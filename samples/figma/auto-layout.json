@@ -1,0 +1,228 @@
+{
+  "name": "Fixture 03 - Auto Layout",
+  "lastModified": "2026-10-07T00:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "doc-03",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "canvas-03",
+        "name": "Page 3 - Auto Layout Multi-column",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "autolayout-title",
+            "name": "Auto Layout Title",
+            "type": "TEXT",
+            "characters": "3단 컬럼 가로 오토레이아웃 (Auto Layout Horizontal)",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 50,
+              "width": 600,
+              "height": 35
+            },
+            "style": {
+              "fontFamily": "Calibri",
+              "fontSize": 22,
+              "fontWeight": "bold"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.2,
+                  "b": 0.3
+                }
+              }
+            ]
+          },
+          {
+            "id": "horizontal-grid-frame",
+            "name": "Horizontal 3-Column Grid",
+            "type": "FRAME",
+            "layoutMode": "HORIZONTAL",
+            "primaryAxisAlignItems": "SPACE_BETWEEN",
+            "itemSpacing": 16,
+            "paddingTop": 12,
+            "paddingBottom": 12,
+            "paddingLeft": 12,
+            "paddingRight": 12,
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 100,
+              "width": 600,
+              "height": 100
+            },
+            "children": [
+              {
+                "id": "col-1",
+                "name": "Column 1 Box",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.92,
+                      "g": 0.95,
+                      "b": 0.99
+                    }
+                  }
+                ],
+                "strokes": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.7,
+                      "g": 0.8,
+                      "b": 0.95
+                    }
+                  }
+                ],
+                "strokeWeight": 1,
+                "paddingTop": 8,
+                "paddingBottom": 8,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+                "children": [
+                  {
+                    "id": "col-1-text",
+                    "name": "Col 1 Text",
+                    "type": "TEXT",
+                    "characters": "컬럼 1 (기획)",
+                    "style": {
+                      "fontFamily": "Calibri",
+                      "fontSize": 14,
+                      "fontWeight": "bold"
+                    },
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "color": {
+                          "r": 0.1,
+                          "g": 0.3,
+                          "b": 0.6
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "col-2",
+                "name": "Column 2 Box",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.94,
+                      "g": 0.98,
+                      "b": 0.94
+                    }
+                  }
+                ],
+                "strokes": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.7,
+                      "g": 0.9,
+                      "b": 0.7
+                    }
+                  }
+                ],
+                "strokeWeight": 1,
+                "paddingTop": 8,
+                "paddingBottom": 8,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+                "children": [
+                  {
+                    "id": "col-2-text",
+                    "name": "Col 2 Text",
+                    "type": "TEXT",
+                    "characters": "컬럼 2 (디자인)",
+                    "style": {
+                      "fontFamily": "Calibri",
+                      "fontSize": 14,
+                      "fontWeight": "bold"
+                    },
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "color": {
+                          "r": 0.1,
+                          "g": 0.5,
+                          "b": 0.2
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "col-3",
+                "name": "Column 3 Box",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.99,
+                      "g": 0.95,
+                      "b": 0.92
+                    }
+                  }
+                ],
+                "strokes": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.95,
+                      "g": 0.8,
+                      "b": 0.7
+                    }
+                  }
+                ],
+                "strokeWeight": 1,
+                "paddingTop": 8,
+                "paddingBottom": 8,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+                "children": [
+                  {
+                    "id": "col-3-text",
+                    "name": "Col 3 Text",
+                    "type": "TEXT",
+                    "characters": "컬럼 3 (개발)",
+                    "style": {
+                      "fontFamily": "Calibri",
+                      "fontSize": 14,
+                      "fontWeight": "bold"
+                    },
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "color": {
+                          "r": 0.7,
+                          "g": 0.3,
+                          "b": 0.1
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

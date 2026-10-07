@@ -1,0 +1,114 @@
+{
+  "name": "Fixture 01 - Simple Document",
+  "lastModified": "2026-10-07T00:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "doc-01",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "canvas-01",
+        "name": "Page 1 - Overview",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "node-h1",
+            "name": "Main Title Heading",
+            "type": "TEXT",
+            "characters": "2026 글로벌 AI 프로젝트 추진 기획서",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 50,
+              "width": 600,
+              "height": 40
+            },
+            "style": {
+              "fontFamily": "Calibri",
+              "fontSize": 28,
+              "fontWeight": "bold",
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.16,
+                  "b": 0.35
+                }
+              }
+            ]
+          },
+          {
+            "id": "node-divider",
+            "name": "Title Divider Line",
+            "type": "LINE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 100,
+              "width": 600,
+              "height": 2
+            },
+            "strokeWeight": 2,
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0,
+                  "g": 0.45,
+                  "b": 0.85
+                }
+              }
+            ]
+          },
+          {
+            "id": "node-p1",
+            "name": "Body Text Paragraph",
+            "type": "TEXT",
+            "characters": "본 문서는 Figma2Word 변환 파이프라인의 첫 번째 수직 슬라이스(Vertical Slice) 검증 문서입니다. Figma에서 작성된 문서 헤딩과 본문 텍스트가 Word 네이티브 단락 요소로 손실 없이 자동 변환됩니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 120,
+              "width": 600,
+              "height": 60
+            },
+            "style": {
+              "fontFamily": "Calibri",
+              "fontSize": 14,
+              "fontWeight": "normal",
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.2,
+                  "b": 0.2
+                }
+              }
+            ]
+          },
+          {
+            "id": "node-img",
+            "name": "Project Logo Image",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 200,
+              "width": 120,
+              "height": 60
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "sample-logo-ref"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

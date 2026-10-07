@@ -1,0 +1,213 @@
+{
+  "name": "Fixture 02 - Card Layout",
+  "lastModified": "2026-10-07T00:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "doc-02",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "canvas-02",
+        "name": "Page 2 - Service Cards",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "card-section-title",
+            "name": "Section Heading",
+            "type": "TEXT",
+            "characters": "핵심 추진 전략 및 서비스 카드",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 40,
+              "width": 600,
+              "height": 35
+            },
+            "style": {
+              "fontFamily": "Calibri",
+              "fontSize": 24,
+              "fontWeight": "bold",
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.2,
+                  "b": 0.4
+                }
+              }
+            ]
+          },
+          {
+            "id": "card-container-1",
+            "name": "Card 1 - Automated Parser",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "paddingTop": 16,
+            "paddingBottom": 16,
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "itemSpacing": 8,
+            "cornerRadius": 8,
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.97,
+                  "b": 1
+                }
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.75,
+                  "g": 0.85,
+                  "b": 0.95
+                }
+              }
+            ],
+            "strokeWeight": 1,
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 90,
+              "width": 600,
+              "height": 120
+            },
+            "children": [
+              {
+                "id": "card-1-title",
+                "name": "Card 1 Title",
+                "type": "TEXT",
+                "characters": "01. 결정론적 규칙 기반 파서 (Deterministic Parser)",
+                "style": {
+                  "fontFamily": "Calibri",
+                  "fontSize": 18,
+                  "fontWeight": "bold"
+                },
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0,
+                      "g": 0.35,
+                      "b": 0.7
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "card-1-desc",
+                "name": "Card 1 Description",
+                "type": "TEXT",
+                "characters": "Figma 노드 트리를 규칙에 따라 안정적으로 Internal Document Model로 매핑하여 재현성을 보장합니다.",
+                "style": {
+                  "fontFamily": "Calibri",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.25,
+                      "g": 0.25,
+                      "b": 0.25
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "card-container-2",
+            "name": "Card 2 - Native Docx Renderer",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "paddingTop": 16,
+            "paddingBottom": 16,
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "itemSpacing": 8,
+            "cornerRadius": 8,
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.98
+                }
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.85,
+                  "b": 0.85
+                }
+              }
+            ],
+            "strokeWeight": 1,
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 230,
+              "width": 600,
+              "height": 120
+            },
+            "children": [
+              {
+                "id": "card-2-title",
+                "name": "Card 2 Title",
+                "type": "TEXT",
+                "characters": "02. 고품질 Word 네이티브 렌더러 (DOCX Renderer)",
+                "style": {
+                  "fontFamily": "Calibri",
+                  "fontSize": 18,
+                  "fontWeight": "bold"
+                },
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.1,
+                      "g": 0.5,
+                      "b": 0.3
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "card-2-desc",
+                "name": "Card 2 Description",
+                "type": "TEXT",
+                "characters": "Word 내에서 테이블, 단락, 스타일, 이미지가 실제 네이티브 객체로 렌더링되어 사용자가 즉시 편집할 수 있습니다.",
+                "style": {
+                  "fontFamily": "Calibri",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "color": {
+                      "r": 0.25,
+                      "g": 0.25,
+                      "b": 0.25
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
