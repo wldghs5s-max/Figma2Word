@@ -38,3 +38,4 @@ Phase 2 스트레스 테스트를 통해 발견된 레이아웃 3대 핵심 결�
 
 ## 4. 최종 결론
 기존 파이프라인의 안전성을 해치지 않으면서 P1 문제를 해결하기 위해 **Strategy E (Spatial Row Clustering + Containment Folding + Sizing Ratio Enrichment)** 기반의 전용 `LayoutEngine`을 파서 전처리 단계에 연동하고, IR의 `ContainerElement`에 `columnWidths?: number[]` 최소 필드를 추가하는 것이 최적의 해법으로 확정되었습니다.
+
