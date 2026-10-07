@@ -1,0 +1,45 @@
+{
+  "name": "Real Text Layout Sample",
+  "lastModified": "2026-10-07T13:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "50:0",
+    "name": "Text Document Page",
+    "type": "FRAME",
+    "absoluteBoundingBox": { "x": 0, "y": 0, "width": 800, "height": 400 },
+    "children": [
+      {
+        "id": "50:1",
+        "name": "Article Title",
+        "type": "TEXT",
+        "characters": "Figma2Word 타이포그래피 여백 최적화",
+        "absoluteBoundingBox": { "x": 40, "y": 40, "width": 600, "height": 36 },
+        "style": { "fontSize": 24, "fontWeight": 700 }
+      },
+      {
+        "id": "50:2",
+        "name": "Article Meta Date",
+        "type": "TEXT",
+        "characters": "작성일: 2026년 10월 7일 | 작성자: 개발팀",
+        "absoluteBoundingBox": { "x": 40, "y": 82, "width": 400, "height": 20 },
+        "style": { "fontSize": 11 }
+      },
+      {
+        "id": "50:3",
+        "name": "Article Body Paragraph 1",
+        "type": "TEXT",
+        "characters": "피그마에서 연속된 텍스트 레이어가 분리되어도 Word에서 불필요하게 3~4줄씩 벌어지지 않고 컴팩트하게 연결됩니다.",
+        "absoluteBoundingBox": { "x": 40, "y": 110, "width": 720, "height": 40 },
+        "style": { "fontSize": 12 }
+      },
+      {
+        "id": "50:4",
+        "name": "Article Body Paragraph 2",
+        "type": "TEXT",
+        "characters": "단락 간 여백을 최적화하여 실제 비즈니스 문서와 동일한 읽기 편한 구조를 제공합니다.",
+        "absoluteBoundingBox": { "x": 40, "y": 160, "width": 720, "height": 40 },
+        "style": { "fontSize": 12 }
+      }
+    ]
+  }
+}

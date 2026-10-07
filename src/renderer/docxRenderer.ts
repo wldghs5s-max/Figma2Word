@@ -194,8 +194,8 @@ export class DocxRenderer {
       heading: levelMap[elem.level] || HeadingLevel.HEADING_1,
       alignment: alignmentMap[elem.alignment] || AlignmentType.LEFT,
       spacing: {
-        before: elem.spacing?.top ? ptToDxa(elem.spacing.top) : ptToDxa(12),
-        after: elem.spacing?.bottom ? ptToDxa(elem.spacing.bottom) : ptToDxa(6),
+        before: elem.spacing?.top !== undefined ? ptToDxa(elem.spacing.top) : ptToDxa(6),
+        after: elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(3),
       },
       children: runs,
     });
@@ -215,13 +215,14 @@ export class DocxRenderer {
       alignment: alignmentMap[elem.alignment] || AlignmentType.LEFT,
       bullet: elem.isBullet ? { level: 0 } : undefined,
       spacing: {
-        before: elem.spacing?.top ? ptToDxa(elem.spacing.top) : 0,
-        after: elem.spacing?.bottom ? ptToDxa(elem.spacing.bottom) : ptToDxa(4),
-        line: elem.spacing?.bottom ? ptToDxa(14) : undefined,
+        before: elem.spacing?.top !== undefined ? ptToDxa(elem.spacing.top) : 0,
+        after: elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(3),
+        line: ptToDxa(14),
       },
       children: runs,
     });
   }
+
 
   private renderTextRun(modelRun: ModelTextRun): TextRun {
     const style = modelRun.style;
