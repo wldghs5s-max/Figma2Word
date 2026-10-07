@@ -1,0 +1,44 @@
+{
+  "name": "P1-2: Overlay / Z-Index Card (Background + Text/Icon)",
+  "document": {
+    "id": "p1-overlay-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-overlay-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-ov-bg",
+            "name": "Card Background Rectangle",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": { "x": 50, "y": 80, "width": 500, "height": 130 },
+            "cornerRadius": 8,
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.98, "b": 1.0, "a": 1 } }],
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.7, "g": 0.85, "b": 0.95, "a": 1 } }],
+            "strokeWeight": 1
+          },
+          {
+            "id": "p1-ov-title",
+            "name": "Card Overlay Title",
+            "type": "TEXT",
+            "characters": "카드 오버레이 헤더 타이틀",
+            "absoluteBoundingBox": { "x": 75, "y": 100, "width": 450, "height": 25 },
+            "style": { "fontSize": 16, "fontWeight": 700 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.3, "b": 0.6, "a": 1 } }]
+          },
+          {
+            "id": "p1-ov-desc",
+            "name": "Card Overlay Description",
+            "type": "TEXT",
+            "characters": "이 텍스트는 사각형 배경 위에 시각적으로 얹혀져 있습니다. Word에서는 분리된 블록이 아닌 단일 Shaded Card Table 내부 콘텐츠로 통합되어야 합니다.",
+            "absoluteBoundingBox": { "x": 75, "y": 135, "width": 450, "height": 50 },
+            "style": { "fontSize": 11 }
+          }
+        ]
+      }
+    ]
+  }
+}

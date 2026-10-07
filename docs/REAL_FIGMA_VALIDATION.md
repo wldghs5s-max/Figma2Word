@@ -74,3 +74,4 @@ DOCUMENT
    - `cornerRadius` (모서리 곡률) 손실: Word 오픈XML 테이블 특성상 직각으로 렌더링됨.
    - `boxShadow` (그림자) 손실: Word의 테이블 음영 스펙 한계로 단색 테두리로 대체됨.
    - `Z-index 겹침` 손실: Flow 문서 특성상 겹침 레이어가 순차 블록으로 분리됨.
+

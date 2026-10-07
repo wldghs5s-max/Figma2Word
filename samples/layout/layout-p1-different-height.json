@@ -1,0 +1,49 @@
+{
+  "name": "P1-1 Case E: Different Heights",
+  "document": {
+    "id": "p1-diff-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-diff-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-diff-tall",
+            "name": "Tall Box (Left)",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 100, "width": 280, "height": 180 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.95, "b": 1.0, "a": 1 } }],
+            "children": [
+              {
+                "id": "p1-diff-t-tall",
+                "name": "Text Tall",
+                "type": "TEXT",
+                "characters": "높이 180px의 긴 카드. 여러 단락의 설명 텍스트가 들어있습니다."
+              }
+            ]
+          },
+          {
+            "id": "p1-diff-short",
+            "name": "Short Box (Right)",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 360, "y": 100, "width": 280, "height": 60 },
+            "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 0.95, "b": 0.9, "a": 1 } }],
+            "children": [
+              {
+                "id": "p1-diff-t-short",
+                "name": "Text Short",
+                "type": "TEXT",
+                "characters": "높이 60px의 짧은 요약 카드."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

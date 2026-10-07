@@ -1,0 +1,61 @@
+{
+  "name": "P1-3: Auto Layout Fixed vs Fill Sizing",
+  "document": {
+    "id": "p1-ff-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-ff-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-ff-container",
+            "name": "Horizontal Flex Bar",
+            "type": "FRAME",
+            "layoutMode": "HORIZONTAL",
+            "itemSpacing": 16,
+            "paddingTop": 12,
+            "paddingBottom": 12,
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "absoluteBoundingBox": { "x": 50, "y": 80, "width": 500, "height": 70 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.96, "g": 0.96, "b": 0.96, "a": 1 } }],
+            "children": [
+              {
+                "id": "p1-ff-fixed-icon",
+                "name": "Fixed Icon Box (60px)",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "layoutSizingHorizontal": "FIXED",
+                "primaryAxisSizingMode": "FIXED",
+                "absoluteBoundingBox": { "x": 66, "y": 92, "width": 60, "height": 46 },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.5, "b": 0.9, "a": 1 } }],
+                "children": [{ "id": "t-icon", "name": "Icon", "type": "TEXT", "characters": "ICON", "style": { "fontSize": 10, "fontWeight": 700 } }]
+              },
+              {
+                "id": "p1-ff-fill-content",
+                "name": "Fill Content Box (340px)",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "layoutSizingHorizontal": "FILL",
+                "primaryAxisSizingMode": "AUTO",
+                "absoluteBoundingBox": { "x": 142, "y": 92, "width": 390, "height": 46 },
+                "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 1.0, "b": 1.0, "a": 1 } }],
+                "children": [
+                  {
+                    "id": "t-desc",
+                    "name": "Desc",
+                    "type": "TEXT",
+                    "characters": "이 영역은 남은 공간을 채우는 Fill 컨테이너입니다. 50:50이 아닌 고정비율(예: 15% : 85%)로 배분되어야 합니다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -420,8 +420,9 @@ export class DocxRenderer {
   private renderContainer(elem: ContainerElement): (Paragraph | Table)[] | Table {
     // If container has horizontal layout, render as a 1-row multi-column Table
     if (elem.layoutDirection === "horizontal" && elem.children.length > 1) {
-      const colWidthPercent = Math.floor(100 / elem.children.length);
-      const cells = elem.children.map((child) => {
+      const defaultColWidth = Math.floor(100 / elem.children.length);
+      const cells = elem.children.map((child, idx) => {
+        const colWidthPercent = elem.columnWidths?.[idx] ?? defaultColWidth;
         const rendered = this.renderElement(child);
         const children = Array.isArray(rendered) ? rendered : [rendered];
 

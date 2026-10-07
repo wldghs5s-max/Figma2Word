@@ -20,6 +20,8 @@ import {
   Alignment,
 } from "../model/index.js";
 
+import { LayoutEngine } from "../layout/index.js";
+
 export type FeatureSupportStatus = "Supported" | "Partially Supported" | "Unsupported" | "Fallback";
 
 export interface ConversionNotice {
@@ -45,10 +47,14 @@ export interface ParseResult {
 export class FigmaParser {
   private notices: ConversionNotice[] = [];
   private imageMap: Record<string, string> = {}; // imageRef -> url/base64
+  private layoutEngine = new LayoutEngine();
 
-  constructor(options?: { imageMap?: Record<string, string> }) {
+  constructor(options?: { imageMap?: Record<string, string>; layoutEngine?: LayoutEngine }) {
     if (options?.imageMap) {
       this.imageMap = options.imageMap;
+    }
+    if (options?.layoutEngine) {
+      this.layoutEngine = options.layoutEngine;
     }
   }
 
@@ -136,15 +142,18 @@ export class FigmaParser {
   private parseChildren(nodes: FigmaNode[]): DocElement[] {
     const visibleNodes = nodes.filter((n) => n.visible !== false);
 
-    // Sort by vertical position (Y) if absoluteBoundingBox exists to preserve natural document flow
-    visibleNodes.sort((a, b) => {
+    // Layout Engine processes spatial relations (P1-1 row clusters, P1-2 overlay containment, P1-3 sizing)
+    const structuredNodes = this.layoutEngine.processNodes(visibleNodes);
+
+    // Sort by vertical position (Y) to preserve natural document flow
+    structuredNodes.sort((a, b) => {
       const aY = a.absoluteBoundingBox?.y ?? 0;
       const bY = b.absoluteBoundingBox?.y ?? 0;
       return aY - bY;
     });
 
     const result: DocElement[] = [];
-    for (const node of visibleNodes) {
+    for (const node of structuredNodes) {
       const elements = this.parseNodeToElements(node);
       result.push(...elements);
     }
@@ -316,6 +325,7 @@ export class FigmaParser {
       background: fill,
       border: stroke,
       cornerRadius: node.cornerRadius,
+      columnWidths: (node as any)._computedColumnWidths,
       children,
     };
   }

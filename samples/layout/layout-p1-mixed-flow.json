@@ -1,0 +1,51 @@
+{
+  "name": "P1-1 Case F: Mixed Flow (Heading -> 2 Columns -> Full Body)",
+  "document": {
+    "id": "p1-mixed-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-mixed-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-m-h1",
+            "name": "Section Heading",
+            "type": "TEXT",
+            "characters": "혼합 문서 흐름 (Mixed Document Flow)",
+            "absoluteBoundingBox": { "x": 50, "y": 40, "width": 600, "height": 30 },
+            "style": { "fontSize": 22, "fontWeight": 700 }
+          },
+          {
+            "id": "p1-m-col-1",
+            "name": "Left Column Frame",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 90, "width": 280, "height": 70 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.93, "g": 0.96, "b": 1.0, "a": 1 } }],
+            "children": [{ "id": "t-mc1", "name": "Text", "type": "TEXT", "characters": "좌측 컬럼 (x: 50)" }]
+          },
+          {
+            "id": "p1-m-col-2",
+            "name": "Right Column Frame",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 360, "y": 90, "width": 280, "height": 70 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.98, "g": 0.95, "b": 0.9, "a": 1 } }],
+            "children": [{ "id": "t-mc2", "name": "Text", "type": "TEXT", "characters": "우측 컬럼 (x: 360)" }]
+          },
+          {
+            "id": "p1-m-body",
+            "name": "Full Width Paragraph",
+            "type": "TEXT",
+            "characters": "2단 컬럼 아래에 전체 너비로 이어지는 설명 단락입니다. Word 문서에서도 2단 테이블 다음에 자연스럽게 단락으로 이어져야 합니다.",
+            "absoluteBoundingBox": { "x": 50, "y": 180, "width": 590, "height": 40 },
+            "style": { "fontSize": 11 }
+          }
+        ]
+      }
+    ]
+  }
+}

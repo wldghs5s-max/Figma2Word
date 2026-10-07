@@ -153,6 +153,7 @@ export const ContainerElementSchema = z.object({
   border: BorderStyleSchema.optional(),
   cornerRadius: z.number().optional(),
   width: z.union([z.number(), z.literal("100%")]).optional(),
+  columnWidths: z.array(z.number()).optional(),
   children: z.array(z.lazy(() => DocElementSchema)),
 });
 export type ContainerElement = {
@@ -165,6 +166,7 @@ export type ContainerElement = {
   border?: z.infer<typeof BorderStyleSchema>;
   cornerRadius?: number;
   width?: number | "100%";
+  columnWidths?: number[];
   children: DocElement[];
 };
 

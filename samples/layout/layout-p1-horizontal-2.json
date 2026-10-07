@@ -1,0 +1,55 @@
+{
+  "name": "P1-1 Case A: Horizontal 2 Columns",
+  "document": {
+    "id": "p1-1-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-1-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-1-box-a",
+            "name": "Box A (Left)",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 100, "width": 280, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.95, "b": 1.0, "a": 1 } }],
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.7, "g": 0.85, "b": 0.95, "a": 1 } }],
+            "strokeWeight": 1,
+            "children": [
+              {
+                "id": "p1-1-text-a",
+                "name": "Text A",
+                "type": "TEXT",
+                "characters": "좌측 컬럼 A (x:50, y:100)",
+                "style": { "fontSize": 12, "fontWeight": 700 }
+              }
+            ]
+          },
+          {
+            "id": "p1-1-box-b",
+            "name": "Box B (Right)",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 360, "y": 100, "width": 280, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 0.95, "b": 0.9, "a": 1 } }],
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.8, "b": 0.7, "a": 1 } }],
+            "strokeWeight": 1,
+            "children": [
+              {
+                "id": "p1-1-text-b",
+                "name": "Text B",
+                "type": "TEXT",
+                "characters": "우측 컬럼 B (x:360, y:100)",
+                "style": { "fontSize": 12, "fontWeight": 700 }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

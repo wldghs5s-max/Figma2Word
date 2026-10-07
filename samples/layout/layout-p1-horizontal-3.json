@@ -1,0 +1,44 @@
+{
+  "name": "P1-1 Case C: Horizontal 3 Columns",
+  "document": {
+    "id": "p1-3-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-3-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-3-col-1",
+            "name": "Column 1",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 80, "width": 180, "height": 90 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.95, "b": 1.0, "a": 1 } }],
+            "children": [{ "id": "t1", "name": "T1", "type": "TEXT", "characters": "컬럼 1 (기획)" }]
+          },
+          {
+            "id": "p1-3-col-2",
+            "name": "Column 2",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 250, "y": 80, "width": 180, "height": 90 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 1.0, "b": 0.95, "a": 1 } }],
+            "children": [{ "id": "t2", "name": "T2", "type": "TEXT", "characters": "컬럼 2 (디자인)" }]
+          },
+          {
+            "id": "p1-3-col-3",
+            "name": "Column 3",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 450, "y": 80, "width": 180, "height": 90 },
+            "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 0.95, "b": 0.95, "a": 1 } }],
+            "children": [{ "id": "t3", "name": "T3", "type": "TEXT", "characters": "컬럼 3 (개발)" }]
+          }
+        ]
+      }
+    ]
+  }
+}

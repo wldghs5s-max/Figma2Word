@@ -1,0 +1,35 @@
+{
+  "name": "P1-1 Case D: Offset Columns (Slight Y difference)",
+  "document": {
+    "id": "p1-offset-doc",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "p1-offset-canvas",
+        "name": "Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "p1-offset-a",
+            "name": "Card A",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 100, "width": 280, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.95, "b": 1.0, "a": 1 } }],
+            "children": [{ "id": "t-oa", "name": "Text A", "type": "TEXT", "characters": "카드 A (y: 100)" }]
+          },
+          {
+            "id": "p1-offset-b",
+            "name": "Card B (Offset by 12px)",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 360, "y": 112, "width": 280, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 0.95, "b": 0.95, "a": 1 } }],
+            "children": [{ "id": "t-ob", "name": "Text B", "type": "TEXT", "characters": "카드 B (y: 112 - 12px 오프셋)" }]
+          }
+        ]
+      }
+    ]
+  }
+}
