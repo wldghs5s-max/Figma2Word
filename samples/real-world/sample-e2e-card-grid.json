@@ -1,0 +1,179 @@
+{
+  "name": "E2E Real Figma Card Grid Sample",
+  "lastModified": "2026-10-07T12:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Card Grid Page",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "2:1",
+            "name": "Card Showcase Header",
+            "type": "TEXT",
+            "characters": "주요 서비스 및 제품 포트폴리오",
+            "absoluteBoundingBox": { "x": 0, "y": 0, "width": 800, "height": 40 },
+            "style": {
+              "fontFamily": "Segoe UI",
+              "fontSize": 24,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT",
+              "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1 } }]
+            }
+          },
+          {
+            "id": "2:2",
+            "name": "3-Column Cards Container",
+            "type": "FRAME",
+            "absoluteBoundingBox": { "x": 0, "y": 60, "width": 800, "height": 220 },
+            "layoutMode": "HORIZONTAL",
+            "itemSpacing": 20,
+            "children": [
+              {
+                "id": "2:3",
+                "name": "Card 1: Basic Plan",
+                "type": "FRAME",
+                "absoluteBoundingBox": { "x": 0, "y": 60, "width": 250, "height": 220 },
+                "layoutMode": "VERTICAL",
+                "itemSpacing": 10,
+                "paddingTop": 16,
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.96, "g": 0.97, "b": 0.99, "a": 1 } }],
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.85, "g": 0.88, "b": 0.92, "a": 1 } }],
+                "strokeWeight": 1,
+                "children": [
+                  {
+                    "id": "2:4",
+                    "name": "Card 1 Title",
+                    "type": "TEXT",
+                    "characters": "스타터 (Starter)",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 16,
+                      "fontWeight": 700,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.3, "b": 0.6, "a": 1 } }]
+                    }
+                  },
+                  {
+                    "id": "2:5",
+                    "name": "Card 1 Description",
+                    "type": "TEXT",
+                    "characters": "개인 프리랜서 및 소규모 기획자를 위한 기본 로컬 DOCX 변환 모듈을 제공합니다.",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 11,
+                      "fontWeight": 400,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "2:6",
+                "name": "Card 2: Pro Plan",
+                "type": "FRAME",
+                "absoluteBoundingBox": { "x": 270, "y": 60, "width": 250, "height": 220 },
+                "layoutMode": "VERTICAL",
+                "itemSpacing": 10,
+                "paddingTop": 16,
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.94, "g": 0.96, "b": 1.0, "a": 1 } }],
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.7, "g": 0.8, "b": 0.95, "a": 1 } }],
+                "strokeWeight": 1,
+                "children": [
+                  {
+                    "id": "2:7",
+                    "name": "Card 2 Title",
+                    "type": "TEXT",
+                    "characters": "프로 (Professional)",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 16,
+                      "fontWeight": 700,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.05, "g": 0.25, "b": 0.7, "a": 1 } }]
+                    }
+                  },
+                  {
+                    "id": "2:8",
+                    "name": "Card 2 Description",
+                    "type": "TEXT",
+                    "characters": "고급 Auto Layout 해석 엔진과 이미지 일괄 다운로더, 다단 그리드 최적화 지원.",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 11,
+                      "fontWeight": 400,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "2:9",
+                "name": "Card 3: Enterprise",
+                "type": "FRAME",
+                "absoluteBoundingBox": { "x": 540, "y": 60, "width": 250, "height": 220 },
+                "layoutMode": "VERTICAL",
+                "itemSpacing": 10,
+                "paddingTop": 16,
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.97, "g": 0.97, "b": 0.97, "a": 1 } }],
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.8, "g": 0.8, "b": 0.8, "a": 1 } }],
+                "strokeWeight": 1,
+                "children": [
+                  {
+                    "id": "2:10",
+                    "name": "Card 3 Title",
+                    "type": "TEXT",
+                    "characters": "엔터프라이즈 (Enterprise)",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 16,
+                      "fontWeight": 700,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.2, "b": 0.2, "a": 1 } }]
+                    }
+                  },
+                  {
+                    "id": "2:11",
+                    "name": "Card 3 Description",
+                    "type": "TEXT",
+                    "characters": "사내 망 및 보안 전용 온프레미스 연동, 대규모 피그마 파일의 배치 문서 자동화.",
+                    "style": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": 11,
+                      "fontWeight": 400,
+                      "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2:12",
+            "name": "Footer Note",
+            "type": "TEXT",
+            "characters": "* 모든 플랜은 100% 로컬 컴퓨터에서 처리되며 데이터가 외부로 유출되지 않습니다.",
+            "absoluteBoundingBox": { "x": 0, "y": 300, "width": 800, "height": 30 },
+            "style": {
+              "fontFamily": "Segoe UI",
+              "fontSize": 10,
+              "italic": true,
+              "fills": [{ "type": "SOLID", "color": { "r": 0.5, "g": 0.5, "b": 0.5, "a": 1 } }]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

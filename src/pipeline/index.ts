@@ -2,6 +2,7 @@ import { FigmaParser, ParseResult, ConversionNotice } from "../parser/index.js";
 import { DocxRenderer } from "../renderer/index.js";
 import { InternalDocument } from "../model/index.js";
 import { FigmaNode, FigmaFileResponse } from "../parser/types.js";
+import { FigmaClient, parseFigmaUrl, FigmaApiError } from "../api/index.js";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -9,6 +10,7 @@ export interface PipelineOptions {
   outputPath?: string;
   imageMap?: Record<string, string>;
   titleOverride?: string;
+  downloadImages?: boolean;
 }
 
 export interface PipelineResult {
@@ -37,6 +39,11 @@ export class ConversionPipeline {
     options?: PipelineOptions
   ): Promise<PipelineResult> {
     const startTime = Date.now();
+
+    // If custom imageMap was provided in options, update parser
+    if (options?.imageMap) {
+      this.parser = new FigmaParser({ imageMap: options.imageMap });
+    }
 
     // Step 1: Parse Figma AST to Internal Document Model
     const parseResult = this.parser.parse(input);
@@ -71,7 +78,7 @@ export class ConversionPipeline {
   }
 
   /**
-   * Convert directly from a Figma JSON file path
+   * Convert directly from a local Figma JSON file path
    */
   public async convertFile(
     jsonFilePath: string,
@@ -89,5 +96,70 @@ export class ConversionPipeline {
 
     return await this.convert(jsonInput, { outputPath: defaultOutputPath });
   }
+
+  /**
+   * Convert live Figma design by URL (e.g. https://www.figma.com/design/:fileKey/:title?node-id=:nodeId)
+   */
+  public async convertFigmaUrl(
+    figmaUrl: string,
+    accessToken: string,
+    options?: PipelineOptions
+  ): Promise<PipelineResult> {
+    const parsed = parseFigmaUrl(figmaUrl);
+    return await this.convertFigmaFileKey(parsed.fileKey, accessToken, {
+      ...options,
+      nodeId: parsed.nodeId,
+      titleOverride: options?.titleOverride || parsed.fileName,
+    });
+  }
+
+  /**
+   * Convert live Figma design using fileKey and optional nodeId
+   */
+  public async convertFigmaFileKey(
+    fileKey: string,
+    accessToken: string,
+    options?: PipelineOptions & { nodeId?: string }
+  ): Promise<PipelineResult> {
+    const client = new FigmaClient({ accessToken });
+
+    let targetInput: FigmaNode | FigmaFileResponse;
+
+    if (options?.nodeId) {
+      // Fetch specific targeted node
+      const nodesRes = await client.fetchNodes(fileKey, [options.nodeId]);
+      const nodeEntry = nodesRes.nodes[options.nodeId];
+      if (!nodeEntry || !nodeEntry.document) {
+        throw new FigmaApiError(
+          `Node '${options.nodeId}' was not found in Figma file '${fileKey}'`,
+          404
+        );
+      }
+      targetInput = nodeEntry.document;
+    } else {
+      // Fetch full file document tree
+      targetInput = await client.fetchFile(fileKey);
+    }
+
+    // Resolve images if downloadImages is not explicitly set to false
+    let imageMap = { ...options?.imageMap };
+    if (options?.downloadImages !== false) {
+      const rootNode: FigmaNode = "document" in targetInput ? targetInput.document : targetInput;
+      const fetchedImages = await client.resolveImages(fileKey, rootNode);
+      imageMap = { ...imageMap, ...fetchedImages };
+    }
+
+    const defaultOutputName = options?.titleOverride || `figma-${fileKey}${options?.nodeId ? `-${options.nodeId.replace(/:/g, '_')}` : ''}`;
+    const defaultOutputPath =
+      options?.outputPath ||
+      path.join(process.cwd(), "samples/output", `${defaultOutputName}.docx`);
+
+    return await this.convert(targetInput, {
+      ...options,
+      imageMap,
+      outputPath: defaultOutputPath,
+    });
+  }
 }
+
 

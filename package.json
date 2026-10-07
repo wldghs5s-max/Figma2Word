@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "convert": "tsx src/cli.ts",
+    "convert:url": "tsx src/cli.ts --url",
     "generate-fixtures": "tsx src/fixtures/generate.ts",
     "dev:web": "npm --prefix apps/web run dev",
     "build:web": "npm --prefix apps/web run build"

@@ -1,0 +1,130 @@
+{
+  "name": "E2E Real Figma Document Sample",
+  "lastModified": "2026-10-07T12:00:00Z",
+  "version": "1.0",
+  "role": "viewer",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Page 1",
+        "type": "CANVAS",
+        "backgroundColor": { "r": 0.95, "g": 0.95, "b": 0.95, "a": 1 },
+        "children": [
+          {
+            "id": "1:2",
+            "name": "Document Header Frame",
+            "type": "FRAME",
+            "absoluteBoundingBox": { "x": 0, "y": 0, "width": 800, "height": 140 },
+            "layoutMode": "VERTICAL",
+            "itemSpacing": 12,
+            "paddingTop": 24,
+            "paddingBottom": 24,
+            "paddingLeft": 32,
+            "paddingRight": 32,
+            "children": [
+              {
+                "id": "1:3",
+                "name": "Document Title",
+                "type": "TEXT",
+                "characters": "Figma2Word 공식 기술 백서: 차세대 문서 변환 파이프라인",
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 26,
+                  "fontWeight": 700,
+                  "textAlignHorizontal": "LEFT",
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.08, "g": 0.12, "b": 0.22, "a": 1 } }]
+                }
+              },
+              {
+                "id": "1:4",
+                "name": "Subtitle",
+                "type": "TEXT",
+                "characters": "Figma REST API와 Word OpenXML의 결정론적 무손실 변환 아키텍처",
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 15,
+                  "fontWeight": 400,
+                  "textAlignHorizontal": "LEFT",
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.45, "b": 0.55, "a": 1 } }]
+                }
+              }
+            ]
+          },
+          {
+            "id": "1:5",
+            "name": "Header Divider",
+            "type": "LINE",
+            "absoluteBoundingBox": { "x": 0, "y": 145, "width": 800, "height": 2 },
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.85, "g": 0.88, "b": 0.92, "a": 1 } }],
+            "strokeWeight": 1
+          },
+          {
+            "id": "1:6",
+            "name": "Content Section 1",
+            "type": "FRAME",
+            "absoluteBoundingBox": { "x": 0, "y": 160, "width": 800, "height": 380 },
+            "layoutMode": "VERTICAL",
+            "itemSpacing": 16,
+            "children": [
+              {
+                "id": "1:7",
+                "name": "Section 1 Heading",
+                "type": "TEXT",
+                "characters": "1. 프로젝트 개요 및 핵심 원칙",
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 20,
+                  "fontWeight": 600,
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.2, "b": 0.35, "a": 1 } }]
+                }
+              },
+              {
+                "id": "1:8",
+                "name": "Section 1 Paragraph 1",
+                "type": "TEXT",
+                "characters": "Figma2Word는 클라우드나 외부 AI 서비스에 의존하지 않고, 로컬 환경에서 피그마 디자인을 마이크로소프트 워드 문서로 안전하고 투명하게 변환하는 엔지니어링 도구입니다.",
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 12,
+                  "fontWeight": 400,
+                  "lineHeightPx": 20,
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.2, "b": 0.2, "a": 1 } }]
+                }
+              },
+              {
+                "id": "1:9",
+                "name": "Architecture Diagram Image",
+                "type": "RECTANGLE",
+                "absoluteBoundingBox": { "x": 0, "y": 280, "width": 600, "height": 180 },
+                "fills": [
+                  {
+                    "type": "IMAGE",
+                    "imageRef": "e2e_doc_diagram_asset_hash_01",
+                    "scaleMode": "FIT"
+                  }
+                ]
+              },
+              {
+                "id": "1:10",
+                "name": "Image Caption",
+                "type": "TEXT",
+                "characters": "그림 1: End-to-End 파이프라인 (Figma API → Parser → LayoutEngine → IR → DOCX)",
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 10,
+                  "italic": true,
+                  "textAlignHorizontal": "CENTER",
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.5, "g": 0.5, "b": 0.5, "a": 1 } }]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

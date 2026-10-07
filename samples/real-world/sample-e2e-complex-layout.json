@@ -1,0 +1,199 @@
+{
+  "name": "E2E Real Figma Complex Layout Sample",
+  "lastModified": "2026-10-07T12:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Complex Dashboard Page",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "3:1",
+            "name": "Hero Banner Overlay Section",
+            "type": "FRAME",
+            "absoluteBoundingBox": { "x": 0, "y": 0, "width": 800, "height": 160 },
+            "children": [
+              {
+                "id": "3:2",
+                "name": "Hero Background Rectangle",
+                "type": "RECTANGLE",
+                "absoluteBoundingBox": { "x": 0, "y": 0, "width": 800, "height": 160 },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.12, "g": 0.18, "b": 0.3, "a": 1 } }],
+                "cornerRadius": 8
+              },
+              {
+                "id": "3:3",
+                "name": "Hero Overlay Title",
+                "type": "TEXT",
+                "characters": "Figma2Word 통합 관제 대시보드 리포트",
+                "absoluteBoundingBox": { "x": 30, "y": 30, "width": 740, "height": 40 },
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 24,
+                  "fontWeight": 700,
+                  "fills": [{ "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }]
+                }
+              },
+              {
+                "id": "3:4",
+                "name": "Hero Overlay Subtitle",
+                "type": "TEXT",
+                "characters": "실시간 데이터 파이프라인 분석 및 Word 문서화 현황 (2026 Q4)",
+                "absoluteBoundingBox": { "x": 30, "y": 80, "width": 740, "height": 30 },
+                "style": {
+                  "fontFamily": "Segoe UI",
+                  "fontSize": 14,
+                  "fontWeight": 400,
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.8, "g": 0.85, "b": 0.95, "a": 1 } }]
+                }
+              }
+            ]
+          },
+          {
+            "id": "3:5",
+            "name": "Nested Metric Row (Fixed Icon + Fill Text)",
+            "type": "FRAME",
+            "absoluteBoundingBox": { "x": 0, "y": 180, "width": 800, "height": 120 },
+            "layoutMode": "HORIZONTAL",
+            "itemSpacing": 24,
+            "children": [
+              {
+                "id": "3:6",
+                "name": "Metric Card 1",
+                "type": "FRAME",
+                "absoluteBoundingBox": { "x": 0, "y": 180, "width": 388, "height": 120 },
+                "layoutMode": "HORIZONTAL",
+                "itemSpacing": 16,
+                "paddingTop": 16,
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.98, "b": 0.96, "a": 1 } }],
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.75, "g": 0.9, "b": 0.8, "a": 1 } }],
+                "strokeWeight": 1,
+                "children": [
+                  {
+                    "id": "3:7",
+                    "name": "Metric 1 Status Image",
+                    "type": "RECTANGLE",
+                    "absoluteBoundingBox": { "x": 16, "y": 196, "width": 64, "height": 64 },
+                    "fills": [
+                      {
+                        "type": "IMAGE",
+                        "imageRef": "e2e_metric_icon_status_success",
+                        "scaleMode": "FIT"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "3:8",
+                    "name": "Metric 1 Details (Fill Width)",
+                    "type": "FRAME",
+                    "absoluteBoundingBox": { "x": 96, "y": 196, "width": 276, "height": 88 },
+                    "layoutMode": "VERTICAL",
+                    "itemSpacing": 6,
+                    "children": [
+                      {
+                        "id": "3:9",
+                        "name": "Metric 1 Value",
+                        "type": "TEXT",
+                        "characters": "99.98% 변환 성공률",
+                        "style": {
+                          "fontFamily": "Segoe UI",
+                          "fontSize": 18,
+                          "fontWeight": 700,
+                          "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.5, "b": 0.2, "a": 1 } }]
+                        }
+                      },
+                      {
+                        "id": "3:10",
+                        "name": "Metric 1 Desc",
+                        "type": "TEXT",
+                        "characters": "32개 이상의 단위/결정론성 테스트 전원 통과 상태",
+                        "style": {
+                          "fontFamily": "Segoe UI",
+                          "fontSize": 11,
+                          "fontWeight": 400,
+                          "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "3:11",
+                "name": "Metric Card 2",
+                "type": "FRAME",
+                "absoluteBoundingBox": { "x": 412, "y": 180, "width": 388, "height": 120 },
+                "layoutMode": "HORIZONTAL",
+                "itemSpacing": 16,
+                "paddingTop": 16,
+                "paddingBottom": 16,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.98, "g": 0.96, "b": 0.99, "a": 1 } }],
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.8, "b": 0.95, "a": 1 } }],
+                "strokeWeight": 1,
+                "children": [
+                  {
+                    "id": "3:12",
+                    "name": "Metric 2 Speed Image",
+                    "type": "RECTANGLE",
+                    "absoluteBoundingBox": { "x": 428, "y": 196, "width": 64, "height": 64 },
+                    "fills": [
+                      {
+                        "type": "IMAGE",
+                        "imageRef": "e2e_metric_icon_speed",
+                        "scaleMode": "FIT"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "3:13",
+                    "name": "Metric 2 Details (Fill Width)",
+                    "type": "FRAME",
+                    "absoluteBoundingBox": { "x": 508, "y": 196, "width": 276, "height": 88 },
+                    "layoutMode": "VERTICAL",
+                    "itemSpacing": 6,
+                    "children": [
+                      {
+                        "id": "3:14",
+                        "name": "Metric 2 Value",
+                        "type": "TEXT",
+                        "characters": "평균 150ms 렌더링",
+                        "style": {
+                          "fontFamily": "Segoe UI",
+                          "fontSize": 18,
+                          "fontWeight": 700,
+                          "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.1, "b": 0.6, "a": 1 } }]
+                        }
+                      },
+                      {
+                        "id": "3:15",
+                        "name": "Metric 2 Desc",
+                        "type": "TEXT",
+                        "characters": "로컬 네이티브 메모리 내 즉시 OpenXML 패킹 처리",
+                        "style": {
+                          "fontFamily": "Segoe UI",
+                          "fontSize": 11,
+                          "fontWeight": 400,
+                          "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
