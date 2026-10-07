@@ -1,0 +1,102 @@
+{
+  "name": "엣지 케이스 및 비표준 노드 테스트 (Edge Cases & Fallbacks)",
+  "lastModified": "2026-10-07T11:50:00Z",
+  "document": {
+    "id": "4:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "4:1",
+        "name": "Edge Cases Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "4:10",
+            "name": "Visible Header",
+            "type": "TEXT",
+            "characters": "비정상/결측 속성 엣지 케이스 검증",
+            "style": { "fontFamily": "Calibri", "fontSize": 20, "fontWeight": 700 }
+          },
+          {
+            "id": "4:20",
+            "name": "Hidden Node (Should Be Ignored)",
+            "type": "TEXT",
+            "visible": false,
+            "characters": "이 텍스트는 visible이 false이므로 Word 문서에 절대 출력되면 안 됩니다."
+          },
+          {
+            "id": "4:30",
+            "name": "Empty Text Node",
+            "type": "TEXT",
+            "characters": "",
+            "style": { "fontSize": 12 }
+          },
+          {
+            "id": "4:40",
+            "name": "Node with No Bounding Box",
+            "type": "TEXT",
+            "characters": "좌표(absoluteBoundingBox)가 없는 텍스트 노드"
+          },
+          {
+            "id": "4:50",
+            "name": "Complex Vector Icon",
+            "type": "VECTOR",
+            "absoluteBoundingBox": { "x": 0, "y": 100, "width": 48, "height": 48 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.8, "g": 0.2, "b": 0.2, "a": 1 } }]
+          },
+          {
+            "id": "4:60",
+            "name": "Polygon Star Node",
+            "type": "STAR",
+            "absoluteBoundingBox": { "x": 60, "y": 100, "width": 48, "height": 48 }
+          },
+          {
+            "id": "4:70",
+            "name": "Boolean Operation Shape",
+            "type": "BOOLEAN_OPERATION",
+            "booleanOperation": "UNION",
+            "absoluteBoundingBox": { "x": 120, "y": 100, "width": 50, "height": 50 }
+          },
+          {
+            "id": "4:80",
+            "name": "Slice Node",
+            "type": "SLICE",
+            "absoluteBoundingBox": { "x": 0, "y": 200, "width": 100, "height": 100 }
+          },
+          {
+            "id": "4:90",
+            "name": "Deep 4-Level Nested Frame",
+            "type": "FRAME",
+            "layoutMode": "VERTICAL",
+            "children": [
+              {
+                "id": "4:91",
+                "name": "Level 2 Frame",
+                "type": "FRAME",
+                "layoutMode": "HORIZONTAL",
+                "children": [
+                  {
+                    "id": "4:92",
+                    "name": "Level 3 Frame",
+                    "type": "FRAME",
+                    "layoutMode": "VERTICAL",
+                    "children": [
+                      {
+                        "id": "4:93",
+                        "name": "Level 4 Text",
+                        "type": "TEXT",
+                        "characters": "4단계 깊이로 중첩된 텍스트 요소",
+                        "style": { "fontSize": 11 }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -112,7 +112,10 @@ figma2word/
 
 - [프로젝트 진행 현황 보고서](file:///c:/Users/77/Documents/Figma2Word/docs/PROJECT_STATUS.md)
 - [기술적 의사결정 기록서](file:///c:/Users/77/Documents/Figma2Word/docs/TECHNICAL_DECISIONS.md)
+- [실제 Figma 데이터 검증 보고서 (Phase 2)](file:///c:/Users/77/Documents/Figma2Word/docs/REAL_FIGMA_VALIDATION.md)
+- [레이아웃 한계 분석 및 문제 분류서](file:///c:/Users/77/Documents/Figma2Word/docs/LAYOUT_LIMITATIONS.md)
 - [변환 가능성 및 한계 검증서 (Phase 0)](file:///c:/Users/77/Documents/Figma2Word/docs/PHASE_0_FEASIBILITY.md)
 - [Internal Document Model 설계서](file:///c:/Users/77/Documents/Figma2Word/docs/DOCUMENT_MODEL.md)
 - [변환 지원 매트릭스](file:///c:/Users/77/Documents/Figma2Word/docs/CONVERSION_SUPPORT_MATRIX.md)
 - [다음 작업자 인수인계 가이드](file:///c:/Users/77/Documents/Figma2Word/docs/NEXT_STEPS.md)
+

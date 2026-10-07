@@ -80,3 +80,4 @@ Figma의 모든 기능을 억지로 지원된다고 속이지 않으며, 파서 
 2. `Partially Supported`: 기본 구조는 보존되나 세부 시각 효과(예: 모서리 곡률, 그림자)가 근사치로 처리됨.
 3. `Unsupported`: Word에서 지원 불가능하여 건너뜀 (예: Blur, Blend Mode).
 4. `Fallback`: 벡터 패스 등이 일반 도형이나 이미지 대체물로 안전하게 렌더링됨.
+

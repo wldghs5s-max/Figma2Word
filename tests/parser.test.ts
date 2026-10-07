@@ -75,3 +75,4 @@ describe("FigmaParser", () => {
     expect(result.stats.fallbackNodes).toBe(1);
   });
 });
+

@@ -18,7 +18,7 @@ export function App() {
   const [duration, setDuration] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const loadPreset = (preset: 'simple' | 'card' | 'auto') => {
+  const loadPreset = async (preset: string) => {
     setSelectedFixture(preset);
     setErrorMsg(null);
     if (preset === 'simple') {
@@ -27,9 +27,25 @@ export function App() {
     } else if (preset === 'card') {
       setJsonInput(JSON.stringify(cardLayoutFixture, null, 2));
       setOutputFileName('card-layout.docx');
-    } else {
+    } else if (preset === 'auto') {
       setJsonInput(JSON.stringify(autoLayoutFixture, null, 2));
       setOutputFileName('auto-layout.docx');
+    } else if (preset === 'proposal') {
+      const data = await import('../../../samples/real-world/sample-a-proposal-doc.json');
+      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      setOutputFileName('sample-a-proposal-doc.docx');
+    } else if (preset === 'nested') {
+      const data = await import('../../../samples/real-world/sample-b-nested-autolayout.json');
+      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      setOutputFileName('sample-b-nested-autolayout.docx');
+    } else if (preset === 'stress') {
+      const data = await import('../../../samples/real-world/sample-c-stress-absolute.json');
+      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      setOutputFileName('sample-c-stress-absolute.docx');
+    } else if (preset === 'edge') {
+      const data = await import('../../../samples/real-world/sample-d-edge-cases.json');
+      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      setOutputFileName('sample-d-edge-cases.docx');
     }
   };
 
@@ -99,27 +115,55 @@ export function App() {
       {/* Input Selection */}
       <section style={{ backgroundColor: '#f9fafb', padding: 20, borderRadius: 8, border: '1px solid #e5e7eb', marginBottom: 20 }}>
         <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: 16 }}>1. Figma 데이터 입력</h3>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           <button
             type="button"
             onClick={() => loadPreset('simple')}
-            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'simple' ? '#2563eb' : '#fff', color: selectedFixture === 'simple' ? '#fff' : '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'simple' ? '#2563eb' : '#fff', color: selectedFixture === 'simple' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13 }}
           >
-            샘플: 심플 문서
+            기본: 심플 문서
           </button>
           <button
             type="button"
             onClick={() => loadPreset('card')}
-            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'card' ? '#2563eb' : '#fff', color: selectedFixture === 'card' ? '#fff' : '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'card' ? '#2563eb' : '#fff', color: selectedFixture === 'card' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13 }}
           >
-            샘플: 카드 레이아웃
+            기본: 카드 레이아웃
           </button>
           <button
             type="button"
             onClick={() => loadPreset('auto')}
-            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'auto' ? '#2563eb' : '#fff', color: selectedFixture === 'auto' ? '#fff' : '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'auto' ? '#2563eb' : '#fff', color: selectedFixture === 'auto' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13 }}
           >
-            샘플: 오토레이아웃 그리드
+            기본: 오토레이아웃 그리드
+          </button>
+          <button
+            type="button"
+            onClick={() => loadPreset('proposal')}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'proposal' ? '#16a34a' : '#fff', color: selectedFixture === 'proposal' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+          >
+            실무: A.제안서 전문
+          </button>
+          <button
+            type="button"
+            onClick={() => loadPreset('nested')}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'nested' ? '#16a34a' : '#fff', color: selectedFixture === 'nested' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+          >
+            실무: B.중첩 오토레이아웃
+          </button>
+          <button
+            type="button"
+            onClick={() => loadPreset('stress')}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'stress' ? '#d97706' : '#fff', color: selectedFixture === 'stress' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+          >
+            스트레스: C.절대좌표 한계
+          </button>
+          <button
+            type="button"
+            onClick={() => loadPreset('edge')}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: selectedFixture === 'edge' ? '#6b7280' : '#fff', color: selectedFixture === 'edge' ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13 }}
+          >
+            엣지: D.결측치 및 미지원
           </button>
         </div>
 

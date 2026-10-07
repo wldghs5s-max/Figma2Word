@@ -68,17 +68,17 @@ export class DocxRenderer {
   public createDocument(doc: InternalDocument): Document {
     const { pageConfig, metadata } = doc;
 
-    // Margins
+    // Margins (default: 25.4mm = 1 inch)
     const margins = {
-      top: mmToDxa(pageConfig.marginsMm.top),
-      right: mmToDxa(pageConfig.marginsMm.right),
-      bottom: mmToDxa(pageConfig.marginsMm.bottom),
-      left: mmToDxa(pageConfig.marginsMm.left),
+      top: mmToDxa(pageConfig?.marginsMm?.top ?? 25.4),
+      right: mmToDxa(pageConfig?.marginsMm?.right ?? 25.4),
+      bottom: mmToDxa(pageConfig?.marginsMm?.bottom ?? 25.4),
+      left: mmToDxa(pageConfig?.marginsMm?.left ?? 25.4),
     };
 
-    // Page Dimensions (A4: 210 x 297mm)
-    const widthDxa = mmToDxa(pageConfig.widthMm);
-    const heightDxa = mmToDxa(pageConfig.heightMm);
+    // Page Dimensions (default A4: 210 x 297mm)
+    const widthDxa = mmToDxa(pageConfig?.widthMm ?? 210);
+    const heightDxa = mmToDxa(pageConfig?.heightMm ?? 297);
 
     // Header & Footer
     let docxHeader: Header | undefined;

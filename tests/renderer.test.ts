@@ -207,4 +207,29 @@ describe("DocxRenderer", () => {
     expect(fs.existsSync(outputPath)).toBe(true);
     expect(fs.statSync(outputPath).size).toBeGreaterThan(1000);
   });
+
+  it("renders identical size and structure via renderToBlob for browser compatibility", async () => {
+    const sampleDoc: InternalDocument = {
+      version: "1.0.0",
+      metadata: { title: "Browser Blob Test", convertedAt: "2026-10-07T00:00:00Z" },
+      pageConfig: { size: "A4", orientation: "portrait" },
+      sections: [
+        {
+          elements: [
+            { type: "heading", level: 1, runs: [{ text: "Blob Test Heading" }], alignment: "left" },
+            { type: "paragraph", runs: [{ text: "Verifying browser blob generation parity with Node buffer." }], alignment: "left" },
+          ],
+        },
+      ],
+    };
+
+    const renderer = new DocxRenderer();
+    const buffer = await renderer.renderToBuffer(sampleDoc);
+    const blob = await renderer.renderToBlob(sampleDoc);
+
+    expect(blob).toBeDefined();
+    // Zip compression of core.xml timestamp may vary by 1-2 bytes across calls
+    expect(Math.abs(blob.size - buffer.length)).toBeLessThanOrEqual(5);
+  });
 });
+

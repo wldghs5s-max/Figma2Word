@@ -91,3 +91,4 @@ export interface FigmaFileResponse {
   version?: string;
   document: FigmaNode;
 }
+

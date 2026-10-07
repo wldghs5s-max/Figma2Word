@@ -31,3 +31,4 @@ describe("ConversionPipeline", () => {
     expect(result.internalDocument.sections.length).toBe(1);
   });
 });
+

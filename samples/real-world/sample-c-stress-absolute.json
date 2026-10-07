@@ -1,0 +1,128 @@
+{
+  "name": "절대좌표 스트레스 테스트 (Non-Auto Layout Stress)",
+  "lastModified": "2026-10-07T11:40:00Z",
+  "document": {
+    "id": "3:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "3:1",
+        "name": "Freeform Canvas",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "3:10",
+            "name": "Stress Test Canvas Title",
+            "type": "TEXT",
+            "characters": "절대좌표 및 비정형 레이아웃 스트레스 테스트",
+            "absoluteBoundingBox": { "x": 50, "y": 40, "width": 600, "height": 30 },
+            "style": { "fontFamily": "Calibri", "fontSize": 22, "fontWeight": 700 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1 } }]
+          },
+          {
+            "id": "3:20",
+            "name": "Left Parallel Box [A]",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 90, "width": 300, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.94, "b": 1.0, "a": 1 } }],
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.6, "g": 0.75, "b": 0.95, "a": 1 } }],
+            "strokeWeight": 1,
+            "children": [
+              {
+                "id": "3:21",
+                "name": "Box A Text",
+                "type": "TEXT",
+                "characters": "좌측 병렬 박스 [A] (x:50, y:90)",
+                "absoluteBoundingBox": { "x": 60, "y": 105, "width": 280, "height": 20 },
+                "style": { "fontFamily": "Calibri", "fontSize": 12, "fontWeight": 700 }
+              }
+            ]
+          },
+          {
+            "id": "3:30",
+            "name": "Right Parallel Box [B]",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 380, "y": 90, "width": 300, "height": 80 },
+            "fills": [{ "type": "SOLID", "color": { "r": 1.0, "g": 0.95, "b": 0.9, "a": 1 } }],
+            "strokes": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.75, "b": 0.6, "a": 1 } }],
+            "strokeWeight": 1,
+            "children": [
+              {
+                "id": "3:31",
+                "name": "Box B Text",
+                "type": "TEXT",
+                "characters": "우측 병렬 박스 [B] (x:380, y:90)",
+                "absoluteBoundingBox": { "x": 390, "y": 105, "width": 280, "height": 20 },
+                "style": { "fontFamily": "Calibri", "fontSize": 12, "fontWeight": 700 }
+              }
+            ]
+          },
+          {
+            "id": "3:40",
+            "name": "Background Overlapping Base [Base]",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": { "x": 50, "y": 200, "width": 400, "height": 120 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.88, "g": 0.92, "b": 0.88, "a": 1 } }]
+          },
+          {
+            "id": "3:41",
+            "name": "Overlapping Floating Overlay [Over]",
+            "type": "TEXT",
+            "characters": "배경 사각형 위에 겹쳐진 텍스트 (Overlap x:80, y:230)",
+            "absoluteBoundingBox": { "x": 80, "y": 230, "width": 300, "height": 40 },
+            "style": { "fontFamily": "Calibri", "fontSize": 14, "fontWeight": 700 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.4, "b": 0.1, "a": 1 } }]
+          },
+          {
+            "id": "3:50",
+            "name": "Tall Column [Tall]",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 50, "y": 350, "width": 200, "height": 160 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.95, "b": 0.95, "a": 1 } }],
+            "children": [
+              {
+                "id": "3:51",
+                "name": "Tall Col Text",
+                "type": "TEXT",
+                "characters": "높이 160px의 긴 컬럼",
+                "absoluteBoundingBox": { "x": 60, "y": 360, "width": 180, "height": 20 },
+                "style": { "fontFamily": "Calibri", "fontSize": 12, "fontWeight": 400 }
+              }
+            ]
+          },
+          {
+            "id": "3:60",
+            "name": "Short Column [Short]",
+            "type": "FRAME",
+            "layoutMode": "NONE",
+            "absoluteBoundingBox": { "x": 280, "y": 350, "width": 200, "height": 50 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.95, "b": 0.95, "a": 1 } }],
+            "children": [
+              {
+                "id": "3:61",
+                "name": "Short Col Text",
+                "type": "TEXT",
+                "characters": "높이 50px의 짧은 컬럼",
+                "absoluteBoundingBox": { "x": 290, "y": 360, "width": 180, "height": 20 },
+                "style": { "fontFamily": "Calibri", "fontSize": 12, "fontWeight": 400 }
+              }
+            ]
+          },
+          {
+            "id": "3:70",
+            "name": "Bottom Flow Element [Bottom]",
+            "type": "TEXT",
+            "characters": "짧은 컬럼 아래에 위치한 하단 플로우 텍스트 (y: 420)",
+            "absoluteBoundingBox": { "x": 280, "y": 420, "width": 300, "height": 30 },
+            "style": { "fontFamily": "Calibri", "fontSize": 12, "fontWeight": 400 },
+            "fills": [{ "type": "SOLID", "color": { "r": 0.3, "g": 0.3, "b": 0.3, "a": 1 } }]
+          }
+        ]
+      }
+    ]
+  }
+}

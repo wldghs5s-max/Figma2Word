@@ -1,0 +1,142 @@
+{
+  "name": "2026 차세대 AI 업무 자동화 솔루션 제안서",
+  "role": "editor",
+  "lastModified": "2026-10-07T11:20:00Z",
+  "editorType": "figma",
+  "version": "982347192",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Cover & Executive Summary",
+        "type": "CANVAS",
+        "backgroundColor": { "r": 0.98, "g": 0.98, "b": 0.98, "a": 1 },
+        "prototypeStartNodeID": null,
+        "children": [
+          {
+            "id": "1:2",
+            "name": "Doc Frame - A4",
+            "type": "FRAME",
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": { "x": 0, "y": 0, "width": 794, "height": 1123 },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "layoutMode": "VERTICAL",
+            "itemSpacing": 24,
+            "paddingTop": 48,
+            "paddingBottom": 48,
+            "paddingLeft": 56,
+            "paddingRight": 56,
+            "fills": [{ "blendMode": "NORMAL", "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }],
+            "children": [
+              {
+                "id": "1:10",
+                "name": "Document Category Tag",
+                "type": "FRAME",
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisSizingMode": "AUTO",
+                "counterAxisSizingMode": "AUTO",
+                "paddingTop": 4,
+                "paddingBottom": 4,
+                "paddingLeft": 10,
+                "paddingRight": 10,
+                "cornerRadius": 4,
+                "fills": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.95, "b": 1.0, "a": 1 } }],
+                "children": [
+                  {
+                    "id": "1:11",
+                    "name": "Category Text",
+                    "type": "TEXT",
+                    "characters": "전략 기획 / AI 혁신 과제",
+                    "style": {
+                      "fontFamily": "Malgun Gothic",
+                      "fontSize": 12,
+                      "fontWeight": 700,
+                      "textAlignHorizontal": "LEFT",
+                      "textAlignVertical": "CENTER",
+                      "lineHeightPx": 16
+                    },
+                    "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.35, "b": 0.8, "a": 1 } }]
+                  }
+                ]
+              },
+              {
+                "id": "1:20",
+                "name": "Document Main Title Heading",
+                "type": "TEXT",
+                "characters": "2026 차세대 엔터프라이즈 AI 자동화 구축 제안서",
+                "style": {
+                  "fontFamily": "Malgun Gothic",
+                  "fontSize": 28,
+                  "fontWeight": 700,
+                  "textAlignHorizontal": "LEFT",
+                  "letterSpacing": -0.5,
+                  "lineHeightPx": 38
+                },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.08, "g": 0.12, "b": 0.22, "a": 1 } }]
+              },
+              {
+                "id": "1:30",
+                "name": "Accent Border Divider Line",
+                "type": "LINE",
+                "absoluteBoundingBox": { "x": 56, "y": 140, "width": 682, "height": 2 },
+                "strokeWeight": 2,
+                "strokes": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.45, "b": 0.9, "a": 1 } }]
+              },
+              {
+                "id": "1:40",
+                "name": "Executive Summary Lead Paragraph",
+                "type": "TEXT",
+                "characters": "본 제안서는 사내 디자인 및 기획 자산의 신속한 문서화를 위해, Figma 디자인을 표준 Microsoft Word(.docx) 형식으로 무손실 변환하는 자체 자동화 시스템 도입 방안을 제시합니다. 디자이너와 기획자 간의 수작업 포맷 재구성 비용을 80% 이상 절감하는 것을 목표로 합니다.",
+                "style": {
+                  "fontFamily": "Malgun Gothic",
+                  "fontSize": 14,
+                  "fontWeight": 400,
+                  "textAlignHorizontal": "LEFT",
+                  "lineHeightPx": 24
+                },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.25, "g": 0.28, "b": 0.35, "a": 1 } }]
+              },
+              {
+                "id": "1:50",
+                "name": "Section Subtitle",
+                "type": "TEXT",
+                "characters": "1. 핵심 기대 효과 및 도입 타당성",
+                "style": {
+                  "fontFamily": "Malgun Gothic",
+                  "fontSize": 20,
+                  "fontWeight": 700,
+                  "textAlignHorizontal": "LEFT"
+                },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.2, "b": 0.35, "a": 1 } }]
+              },
+              {
+                "id": "1:60",
+                "name": "Illustration Graphic Box",
+                "type": "RECTANGLE",
+                "absoluteBoundingBox": { "x": 56, "y": 300, "width": 400, "height": 160 },
+                "cornerRadius": 6,
+                "fills": [{ "type": "IMAGE", "imageRef": "proposal-hero-img-ref" }]
+              },
+              {
+                "id": "1:70",
+                "name": "Footer Notice Text",
+                "type": "TEXT",
+                "characters": "※ 본 문서는 Figma2Word 엔진에 의해 자동 생성된 실무 보고서 규격 문서입니다.",
+                "style": {
+                  "fontFamily": "Calibri",
+                  "fontSize": 10,
+                  "fontWeight": 400,
+                  "textAlignHorizontal": "LEFT"
+                },
+                "fills": [{ "type": "SOLID", "color": { "r": 0.5, "g": 0.5, "b": 0.5, "a": 1 } }]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

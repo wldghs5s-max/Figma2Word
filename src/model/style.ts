@@ -42,3 +42,4 @@ export type LayoutDirection = z.infer<typeof LayoutDirectionSchema>;
 
 export const AlignmentSchema = z.enum(["left", "center", "right", "justify"]);
 export type Alignment = z.infer<typeof AlignmentSchema>;
+

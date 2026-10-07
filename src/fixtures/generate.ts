@@ -34,3 +34,4 @@ console.log("Successfully generated Figma sample fixtures in samples/figma/ :");
 console.log("- samples/figma/simple-document.json");
 console.log("- samples/figma/card-layout.json");
 console.log("- samples/figma/auto-layout.json");
+
