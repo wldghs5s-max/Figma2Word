@@ -152,7 +152,7 @@ export class DocxRenderer {
   /**
    * Render a single DocElement
    */
-  public renderElement(element: DocElement): Paragraph | Table | (Paragraph | Table)[] {
+  public renderElement(element: DocElement): Paragraph | Table | (Paragraph | Table)[] | null {
     switch (element.type) {
       case "heading":
         return this.renderHeading(element);
@@ -171,7 +171,7 @@ export class DocxRenderer {
       case "page_break":
         return this.renderPageBreak(element);
       default:
-        return new Paragraph({ text: "" });
+        return null;
     }
   }
 
@@ -377,12 +377,17 @@ export class DocxRenderer {
     });
   }
 
-  private renderShape(elem: ShapeElement): Table | Paragraph {
-    // Shapes like rectangles, cards, or styled boxes are rendered as 1x1 Word Tables
+  private renderShape(elem: ShapeElement): Table | null {
+    // If shape has no content (empty decorative shape, spacer, dot, bar), do NOT create a 100% Word Table!
+    if (!elem.content || elem.content.length === 0) {
+      return null;
+    }
+
+    // Shapes like rectangles, cards, or styled boxes with content are rendered as 1x1 Word Tables
     // with background shading and borders, preserving editability and exact box layout.
     const hexBg = colorToHex(elem.fill);
     const borderDef = toDocxBorder(elem.stroke);
-    const content = elem.content ? this.renderElements(elem.content) : [new Paragraph({ text: "" })];
+    const content = this.renderElements(elem.content);
 
     return new Table({
       width: {
@@ -435,7 +440,9 @@ export class DocxRenderer {
       const cells = elem.children.map((child, idx) => {
         const colWidthPercent = elem.columnWidths?.[idx] ?? defaultColWidth;
         const rendered = this.renderElement(child);
-        const children = Array.isArray(rendered) ? rendered : [rendered];
+        const children: (Paragraph | Table)[] = Array.isArray(rendered)
+          ? rendered
+          : (rendered ? [rendered] : [new Paragraph({ text: "" })]);
 
         const borderDef = toDocxBorder(elem.border);
         const hexBg = colorToHex(elem.background);
