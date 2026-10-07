@@ -1,0 +1,59 @@
+{
+  "name": "Real Two Column Card Sample",
+  "lastModified": "2026-10-07T13:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "20:0",
+    "name": "Screen Frame",
+    "type": "FRAME",
+    "absoluteBoundingBox": { "x": 0, "y": 0, "width": 1000, "height": 500 },
+    "children": [
+      {
+        "id": "20:1",
+        "name": "Card 1 Background",
+        "type": "RECTANGLE",
+        "absoluteBoundingBox": { "x": 40, "y": 40, "width": 440, "height": 300 },
+        "fills": [{ "type": "SOLID", "color": { "r": 0.96, "g": 0.96, "b": 0.98, "a": 1 } }]
+      },
+      {
+        "id": "20:2",
+        "name": "Card 1 Title",
+        "type": "TEXT",
+        "characters": "프리미엄 서비스 A",
+        "absoluteBoundingBox": { "x": 60, "y": 60, "width": 380, "height": 30 },
+        "style": { "fontSize": 18, "fontWeight": 700 }
+      },
+      {
+        "id": "20:3",
+        "name": "Card 1 Description",
+        "type": "TEXT",
+        "characters": "첫 번째 병렬 카드 설명 내용입니다.",
+        "absoluteBoundingBox": { "x": 60, "y": 100, "width": 380, "height": 40 },
+        "style": { "fontSize": 12 }
+      },
+      {
+        "id": "20:4",
+        "name": "Card 2 Background",
+        "type": "RECTANGLE",
+        "absoluteBoundingBox": { "x": 520, "y": 40, "width": 440, "height": 300 },
+        "fills": [{ "type": "SOLID", "color": { "r": 0.98, "g": 0.96, "b": 0.96, "a": 1 } }]
+      },
+      {
+        "id": "20:5",
+        "name": "Card 2 Title",
+        "type": "TEXT",
+        "characters": "프리미엄 서비스 B",
+        "absoluteBoundingBox": { "x": 540, "y": 60, "width": 380, "height": 30 },
+        "style": { "fontSize": 18, "fontWeight": 700 }
+      },
+      {
+        "id": "20:6",
+        "name": "Card 2 Description",
+        "type": "TEXT",
+        "characters": "두 번째 병렬 카드 설명 내용입니다.",
+        "absoluteBoundingBox": { "x": 540, "y": 100, "width": 380, "height": 40 },
+        "style": { "fontSize": 12 }
+      }
+    ]
+  }
+}

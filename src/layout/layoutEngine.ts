@@ -30,6 +30,11 @@ export class LayoutEngine {
   public processNodes(nodes: FigmaNode[]): FigmaNode[] {
     if (nodes.length === 0) return nodes;
 
+    // Guard: If this node array is already marked as children of a row cluster, don't re-cluster them
+    if (nodes.some((n) => (n as any)._isRowCell)) {
+      return nodes;
+    }
+
     let processed = nodes;
 
     if (nodes.length > 1) {
@@ -89,16 +94,16 @@ export class LayoutEngine {
         // Sort contained children by Y
         containedChildren.sort((a, b) => (a.absoluteBoundingBox?.y ?? 0) - (b.absoluteBoundingBox?.y ?? 0));
 
-        // Fold into parentCandidate with recursion guards
+        // Fold into parentCandidate with clean child marking
         const existingChildren = parentCandidate.children || [];
-        const processedChildren = containedChildren.map((c) => ({ ...c, _isProcessed: true }));
+        const processedChildren = containedChildren.map((c) => ({ ...c, _isContainedChild: true }));
         const mergedChildren = [...existingChildren, ...processedChildren];
 
         result.push({
           ...parentCandidate,
           type: "FRAME", // Convert rectangle to Frame so it acts as container
           layoutMode: "VERTICAL",
-          _isProcessed: true,
+          _isFoldedContainer: true,
           children: mergedChildren,
         } as any);
       } else {
@@ -122,32 +127,40 @@ export class LayoutEngine {
     });
 
     const result: FigmaNode[] = [];
-    let i = 0;
+    const clusteredIds = new Set<string>();
 
-    while (i < sorted.length) {
+    for (let i = 0; i < sorted.length; i++) {
       const current = sorted[i];
+      if (clusteredIds.has(current.id)) continue;
+
       const curBox = current.absoluteBoundingBox;
 
-      if (!curBox || (current as any)._isProcessed) {
+      // Skip nodes without bounding box or already clustered rows
+      if (!curBox || (current as any)._isRowCluster) {
         result.push(current);
-        i++;
+        clusteredIds.add(current.id);
         continue;
       }
 
-      // Try to find subsequent nodes that belong to the same horizontal row
+      // Try to find subsequent sibling nodes that belong to the same horizontal row
       const rowCluster: FigmaNode[] = [current];
-      let j = i + 1;
 
-      while (j < sorted.length) {
-        const next = sorted[j];
-        const nextBox = next.absoluteBoundingBox;
-        if (!nextBox || (next as any)._isProcessed) break;
+      for (let j = i + 1; j < sorted.length; j++) {
+        const candidate = sorted[j];
+        if (clusteredIds.has(candidate.id)) continue;
 
-        if (this.canFormHorizontalRow(rowCluster, next)) {
-          rowCluster.push(next);
-          j++;
-        } else {
+        const candBox = candidate.absoluteBoundingBox;
+        if (!candBox || (candidate as any)._isRowCluster) continue;
+
+        // If candidate's top is significantly below the current cluster's bottom, stop searching
+        const maxClusterBottom = Math.max(...rowCluster.map((n) => n.absoluteBoundingBox!.y + n.absoluteBoundingBox!.height));
+        if (candBox.y > maxClusterBottom + this.rowYThreshold + 40) {
           break;
+        }
+
+        if (this.canFormHorizontalRow(rowCluster, candidate)) {
+          rowCluster.push(candidate);
+          clusteredIds.add(candidate.id);
         }
       }
 
@@ -172,7 +185,8 @@ export class LayoutEngine {
         const maxX = Math.max(...rowCluster.map((n) => n.absoluteBoundingBox!.x + n.absoluteBoundingBox!.width));
         const maxY = Math.max(...rowCluster.map((n) => n.absoluteBoundingBox!.y + n.absoluteBoundingBox!.height));
 
-        const processedCluster = rowCluster.map((n) => ({ ...n, _isProcessed: true }));
+        // Mark row members with _isRowCell so they don't recursively create row clusters inside themselves
+        const processedCluster = rowCluster.map((n) => ({ ...n, _isRowCell: true }));
 
         const clusterFrame: FigmaNode = {
           id: `row-cluster-${current.id}`,
@@ -183,20 +197,22 @@ export class LayoutEngine {
           children: processedCluster,
         };
 
-        // Attach computed widths and recursion guard
+        // Attach computed widths and row cluster marker
         (clusterFrame as any)._computedColumnWidths = columnWidths;
-        (clusterFrame as any)._isProcessed = true;
+        (clusterFrame as any)._isRowCluster = true;
 
         result.push(clusterFrame);
-        i = j;
+        clusteredIds.add(current.id);
       } else {
         result.push(current);
-        i++;
+        clusteredIds.add(current.id);
       }
     }
 
     return result;
   }
+
+
 
   /**
    * P1-3: Computes width percentage ratios for Auto Layout horizontal frames
