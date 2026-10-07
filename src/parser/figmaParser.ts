@@ -76,7 +76,7 @@ export class FigmaParser {
       // Figma root document contains canvases (pages)
       const canvases = (rootNode.children || []).filter((c) => c.visible !== false);
       for (const canvas of canvases) {
-        const elements = this.parseChildren(canvas.children || []);
+        const elements = this.parseCanvasChildren(canvas.children || []);
         sections.push({
           id: canvas.id,
           title: canvas.name,
@@ -85,7 +85,7 @@ export class FigmaParser {
       }
     } else if (rootNode.type === "CANVAS") {
       // Single Canvas (e.g. from targeted URL node-id=0-1)
-      const elements = this.parseChildren(rootNode.children || []);
+      const elements = this.parseCanvasChildren(rootNode.children || []);
       sections.push({
         id: rootNode.id,
         title: rootNode.name,
@@ -153,6 +153,76 @@ export class FigmaParser {
     };
   }
 
+  /**
+   * Parse children of a CANVAS node with Screen Grouping & Layout Isolation.
+   * If the canvas contains multiple independent top-level screen frames,
+   * they are isolated (processed separately by LayoutEngine) and separated by PageBreak.
+   * Otherwise (single screen, or document flow with text/cards), normal flow is preserved.
+   */
+  private parseCanvasChildren(nodes: FigmaNode[]): DocElement[] {
+    const visibleNodes = nodes.filter((n) => n.visible !== false);
+    if (visibleNodes.length === 0) return [];
+
+    // Screen Frame Candidate: FRAME or SECTION with screen-like dimensions and children
+    const isScreenCandidate = (node: FigmaNode): boolean => {
+      if (node.type !== "FRAME" && node.type !== "SECTION") return false;
+      const box = node.absoluteBoundingBox;
+      if (!box) return false;
+      return box.width >= 240 && box.height >= 240 && !!node.children && node.children.length > 0;
+    };
+
+    // Canvas-level inline content check: Direct TEXT or LINE indicates a single document page flow
+    const hasCanvasLevelInlineContent = visibleNodes.some(
+      (n) => n.type === "TEXT" || n.type === "LINE"
+    );
+
+    const screenCandidates = visibleNodes.filter(isScreenCandidate);
+    const isMultiScreen = !hasCanvasLevelInlineContent && screenCandidates.length >= 2;
+
+    if (!isMultiScreen) {
+      // Single screen or normal document flow (preserves existing fixtures and single-frame behaviors)
+      return this.parseChildren(nodes);
+    }
+
+    // --- Multi-Screen Isolation Path ---
+    // Sort screen-level nodes spatially: Primarily top-to-bottom (Y), then left-to-right (X)
+    const sortedNodes = [...visibleNodes].sort((a, b) => {
+      const aBox = a.absoluteBoundingBox;
+      const bBox = b.absoluteBoundingBox;
+      if (!aBox || !bBox) return 0;
+      if (Math.abs(aBox.y - bBox.y) > 100) {
+        return aBox.y - bBox.y;
+      }
+      return aBox.x - bBox.x;
+    });
+
+    const result: DocElement[] = [];
+    const screenSet = new Set(screenCandidates.map((s) => s.id));
+    let previousScreenRendered = false;
+
+    for (const node of sortedNodes) {
+      if (screenSet.has(node.id)) {
+        if (previousScreenRendered) {
+          result.push({
+            id: `pb-${node.id}`,
+            type: "page_break",
+          });
+        }
+
+        // Process this screen frame ISOLATED from sibling screens
+        const screenElements = this.parseNodeToElements(node);
+        result.push(...screenElements);
+        previousScreenRendered = true;
+      } else {
+        // Non-screen element at canvas level (e.g. background shape)
+        const elements = this.parseNodeToElements(node);
+        result.push(...elements);
+      }
+    }
+
+    return result;
+  }
+
   private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string): DocElement[] {
     const visibleNodes = nodes.filter((n) => n.visible !== false);
 
@@ -182,7 +252,6 @@ export class FigmaParser {
     return result;
   }
 
-
   private parseNodeToElements(node: FigmaNode): DocElement[] {
     if (node.visible === false) return [];
 
@@ -191,7 +260,7 @@ export class FigmaParser {
         return [this.parseText(node)];
 
       case "CANVAS":
-        return this.parseChildren(node.children || []);
+        return this.parseCanvasChildren(node.children || []);
 
       case "FRAME":
 

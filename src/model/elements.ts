@@ -64,6 +64,14 @@ export const LineElementSchema = z.object({
 });
 export type LineElement = z.infer<typeof LineElementSchema>;
 
+// Page Break Element
+export const PageBreakElementSchema = z.object({
+  id: z.string().optional(),
+  type: z.literal("page_break"),
+});
+export type PageBreakElement = z.infer<typeof PageBreakElementSchema>;
+
+
 // Shape Element (e.g. Card background, badge, box)
 export const ShapeElementSchema = z.object({
   id: z.string().optional(),
@@ -177,6 +185,7 @@ export const DocElementSchema: z.ZodType<DocElement> = z.lazy(() =>
     ParagraphElementSchema,
     ImageElementSchema,
     LineElementSchema,
+    PageBreakElementSchema,
     ShapeElementSchema as any,
     TableElementSchema as any,
     ContainerElementSchema as any,
@@ -188,6 +197,7 @@ export type DocElement =
   | ParagraphElement
   | ImageElement
   | LineElement
+  | PageBreakElement
   | ShapeElement
   | TableElement
   | ContainerElement;

@@ -8,6 +8,7 @@ import {
   Header,
   Footer,
   ImageRun,
+  PageBreak,
   AlignmentType,
   HeadingLevel,
   WidthType,
@@ -22,6 +23,7 @@ import {
   HeadingElement,
   ImageElement,
   LineElement,
+  PageBreakElement,
   ShapeElement,
   TableElement,
   ContainerElement,
@@ -166,9 +168,17 @@ export class DocxRenderer {
         return this.renderShape(element);
       case "container":
         return this.renderContainer(element);
+      case "page_break":
+        return this.renderPageBreak(element);
       default:
         return new Paragraph({ text: "" });
     }
+  }
+
+  private renderPageBreak(_elem: PageBreakElement): Paragraph {
+    return new Paragraph({
+      children: [new PageBreak()],
+    });
   }
 
   private renderHeading(elem: HeadingElement): Paragraph {
