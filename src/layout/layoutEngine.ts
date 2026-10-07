@@ -91,18 +91,34 @@ export class LayoutEngine {
       }
 
       if (containedChildren.length > 0) {
-        // Sort contained children by Y
-        containedChildren.sort((a, b) => (a.absoluteBoundingBox?.y ?? 0) - (b.absoluteBoundingBox?.y ?? 0));
+        // Infer layout direction based on actual spatial relations of contained children
+        let inferredLayoutMode: "HORIZONTAL" | "VERTICAL" = "VERTICAL";
+        if (parentCandidate.layoutMode === "HORIZONTAL" || parentCandidate.layoutMode === "VERTICAL") {
+          inferredLayoutMode = parentCandidate.layoutMode;
+        } else if (this.isSingleHorizontalRow(containedChildren)) {
+          inferredLayoutMode = "HORIZONTAL";
+        }
+
+        // Sort children according to inferred layout mode
+        if (inferredLayoutMode === "HORIZONTAL") {
+          containedChildren.sort((a, b) => (a.absoluteBoundingBox?.x ?? 0) - (b.absoluteBoundingBox?.x ?? 0));
+        } else {
+          containedChildren.sort((a, b) => (a.absoluteBoundingBox?.y ?? 0) - (b.absoluteBoundingBox?.y ?? 0));
+        }
 
         // Fold into parentCandidate with clean child marking
         const existingChildren = parentCandidate.children || [];
-        const processedChildren = containedChildren.map((c) => ({ ...c, _isContainedChild: true }));
+        const processedChildren = containedChildren.map((c) => ({
+          ...c,
+          _isContainedChild: true,
+          _isRowCell: inferredLayoutMode === "HORIZONTAL" ? true : undefined,
+        }));
         const mergedChildren = [...existingChildren, ...processedChildren];
 
         result.push({
           ...parentCandidate,
           type: "FRAME", // Convert rectangle to Frame so it acts as container
-          layoutMode: "VERTICAL",
+          layoutMode: inferredLayoutMode,
           _isFoldedContainer: true,
           children: mergedChildren,
         } as any);
@@ -113,6 +129,8 @@ export class LayoutEngine {
 
     return result.filter((n) => !absorbedIds.has(n.id));
   }
+
+
 
   /**
    * P1-1: Clusters horizontally adjacent siblings into a single row Frame
@@ -288,4 +306,40 @@ export class LayoutEngine {
 
     return true;
   }
+
+  /**
+   * Helper: Checks if an array of nodes forms a single non-overlapping horizontal row (e.g. Header bar)
+   */
+  private isSingleHorizontalRow(nodes: FigmaNode[]): boolean {
+    if (nodes.length <= 1) return false;
+    const sortedByX = [...nodes].sort(
+      (a, b) => (a.absoluteBoundingBox?.x ?? 0) - (b.absoluteBoundingBox?.x ?? 0)
+    );
+
+    for (let i = 0; i < sortedByX.length - 1; i++) {
+      const a = sortedByX[i];
+      const b = sortedByX[i + 1];
+      const aBox = a.absoluteBoundingBox;
+      const bBox = b.absoluteBoundingBox;
+      if (!aBox || !bBox) return false;
+
+      // X collision: a's right edge cannot collide past b's left edge
+      if (aBox.x + aBox.width > bBox.x + 5) {
+        return false;
+      }
+
+      // Vertical band overlap or proximity
+      const yDiff = Math.abs(aBox.y - bBox.y);
+      const vOverlapTop = Math.max(aBox.y, bBox.y);
+      const vOverlapBottom = Math.min(aBox.y + aBox.height, bBox.y + bBox.height);
+      const hasYOverlap =
+        vOverlapBottom - vOverlapTop > 5 || yDiff <= this.rowYThreshold;
+      if (!hasYOverlap) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
+

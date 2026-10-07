@@ -153,18 +153,26 @@ export class FigmaParser {
     };
   }
 
-  private parseChildren(nodes: FigmaNode[]): DocElement[] {
+  private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string): DocElement[] {
     const visibleNodes = nodes.filter((n) => n.visible !== false);
 
     // Layout Engine processes spatial relations (P1-1 row clusters, P1-2 overlay containment, P1-3 sizing)
     const structuredNodes = this.layoutEngine.processNodes(visibleNodes);
 
-    // Sort by vertical position (Y) to preserve natural document flow
-    structuredNodes.sort((a, b) => {
-      const aY = a.absoluteBoundingBox?.y ?? 0;
-      const bY = b.absoluteBoundingBox?.y ?? 0;
-      return aY - bY;
-    });
+    // Sort: If parent is horizontal, preserve left-to-right flow (X); otherwise top-to-bottom flow (Y)
+    if (parentLayoutMode === "HORIZONTAL") {
+      structuredNodes.sort((a, b) => {
+        const aX = a.absoluteBoundingBox?.x ?? 0;
+        const bX = b.absoluteBoundingBox?.x ?? 0;
+        return aX - bX;
+      });
+    } else {
+      structuredNodes.sort((a, b) => {
+        const aY = a.absoluteBoundingBox?.y ?? 0;
+        const bY = b.absoluteBoundingBox?.y ?? 0;
+        return aY - bY;
+      });
+    }
 
     const result: DocElement[] = [];
     for (const node of structuredNodes) {
@@ -173,6 +181,7 @@ export class FigmaParser {
     }
     return result;
   }
+
 
   private parseNodeToElements(node: FigmaNode): DocElement[] {
     if (node.visible === false) return [];
@@ -309,8 +318,9 @@ export class FigmaParser {
   }
 
   private parseContainer(node: FigmaNode): ContainerElement {
-    const children = this.parseChildren(node.children || []);
+    const children = this.parseChildren(node.children || [], node.layoutMode);
     const fill = this.extractFillColor(node.fills);
+
     const stroke = this.extractStroke(node);
 
     const layoutDirection =
