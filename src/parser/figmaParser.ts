@@ -37,11 +37,13 @@ export interface ParseResult {
   notices: ConversionNotice[];
   stats: {
     totalNodes: number;
+    totalElements: number;
     supportedNodes: number;
     partiallySupportedNodes: number;
     unsupportedNodes: number;
     fallbackNodes: number;
   };
+
 }
 
 export class FigmaParser {
@@ -81,6 +83,14 @@ export class FigmaParser {
           elements,
         });
       }
+    } else if (rootNode.type === "CANVAS") {
+      // Single Canvas (e.g. from targeted URL node-id=0-1)
+      const elements = this.parseChildren(rootNode.children || []);
+      sections.push({
+        id: rootNode.id,
+        title: rootNode.name,
+        elements,
+      });
     } else {
       // Single Frame or Root Node
       const elements = this.parseNodeToElements(rootNode);
@@ -100,14 +110,18 @@ export class FigmaParser {
       });
     }
 
+    const totalElements = sections.reduce((sum, sec) => sum + sec.elements.length, 0);
+
     // Calculate statistics
     const stats = {
       totalNodes: this.notices.length,
+      totalElements,
       supportedNodes: this.notices.filter((n) => n.status === "Supported").length,
       partiallySupportedNodes: this.notices.filter((n) => n.status === "Partially Supported").length,
       unsupportedNodes: this.notices.filter((n) => n.status === "Unsupported").length,
       fallbackNodes: this.notices.filter((n) => n.status === "Fallback").length,
     };
+
 
     const document: InternalDocument = {
       version: "1.0.0",
@@ -167,7 +181,11 @@ export class FigmaParser {
       case "TEXT":
         return [this.parseText(node)];
 
+      case "CANVAS":
+        return this.parseChildren(node.children || []);
+
       case "FRAME":
+
       case "GROUP":
       case "SECTION":
       case "COMPONENT":

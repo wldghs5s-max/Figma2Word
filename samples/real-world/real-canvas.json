@@ -1,0 +1,38 @@
+{
+  "name": "Real Figma Canvas Sample (node-id=0-1)",
+  "lastModified": "2026-10-07T13:00:00Z",
+  "version": "1.0",
+  "document": {
+    "id": "0:1",
+    "name": "Page 1 - Web Dashboard",
+    "type": "CANVAS",
+    "children": [
+      {
+        "id": "10:1",
+        "name": "Dashboard Banner",
+        "type": "FRAME",
+        "layoutMode": "VERTICAL",
+        "paddingTop": 20,
+        "paddingBottom": 20,
+        "paddingLeft": 24,
+        "paddingRight": 24,
+        "children": [
+          {
+            "id": "10:2",
+            "name": "Banner Title",
+            "type": "TEXT",
+            "characters": "전사 통합 대시보드 시스템",
+            "style": { "fontSize": 26, "fontWeight": 700 }
+          },
+          {
+            "id": "10:3",
+            "name": "Banner Subtitle",
+            "type": "TEXT",
+            "characters": "Figma Canvas 직접 변환 지원 검증",
+            "style": { "fontSize": 14 }
+          }
+        ]
+      }
+    ]
+  }
+}

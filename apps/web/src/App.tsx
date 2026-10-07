@@ -118,6 +118,13 @@ export function App() {
       setStatus('문서 모델(IR) 및 레이아웃 파싱 중...');
       const parser = new FigmaParser({ imageMap });
       const result = parser.parse(targetNode);
+
+      if (result.stats.totalElements === 0) {
+        throw new Error(
+          `변환 가능한 Figma 요소를 찾지 못했습니다. 선택한 node-id가 비어있는 Canvas이거나 지원되지 않는 레이어인지 확인하세요. (검사된 총 노드 수: ${result.stats.totalNodes})`
+        );
+      }
+
       result.document.metadata.conversionMode = mode;
       if (parsed.fileName) {
         result.document.metadata.title = parsed.fileName;
@@ -154,10 +161,18 @@ export function App() {
 
       const parser = new FigmaParser();
       const result = parser.parse(parsedData);
+
+      if (result.stats.totalElements === 0) {
+        throw new Error(
+          `변환 가능한 Figma 요소를 찾지 못했습니다. 입력 데이터에 변환 가능한 노드가 포함되어 있는지 확인하세요.`
+        );
+      }
+
       result.document.metadata.conversionMode = mode;
 
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
+
 
       const endTime = performance.now();
 

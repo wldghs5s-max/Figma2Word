@@ -49,12 +49,22 @@ export class ConversionPipeline {
     const parseResult = this.parser.parse(input);
     const internalDoc = parseResult.document;
 
+    // Empty Document Guard: Validate that conversion produced meaningful elements
+    const totalElements = internalDoc.sections.reduce((sum, sec) => sum + sec.elements.length, 0);
+    if (totalElements === 0) {
+      throw new FigmaApiError(
+        `변환 가능한 Figma 요소를 찾지 못했습니다. 선택한 node-id가 비어있는 Canvas이거나 지원되지 않는 레이어인지 확인하세요. (검사된 총 노드 수: ${parseResult.stats.totalNodes})`,
+        422
+      );
+    }
+
     if (options?.titleOverride) {
       internalDoc.metadata.title = options.titleOverride;
     }
 
     // Step 2: Render Internal Document Model to DOCX Buffer
     const docxBuffer = await this.renderer.renderToBuffer(internalDoc);
+
 
     // Step 3: Write to disk if outputPath provided
     if (options?.outputPath) {
