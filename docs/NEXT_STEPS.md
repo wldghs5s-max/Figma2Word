@@ -1,28 +1,30 @@
 # 다음 작업자 인수인계 가이드 (NEXT_STEPS)
 
-- **갱신 일시**: 2026-10-07 (Phase 4 완료 기준)
+- **갱신 일시**: 2026-10-07 (Phase 4.1 실제 Figma 호환성 및 LayoutEngine 안정화 완료 기준)
 
-본 문서는 Phase 4(실제 Figma 연결 및 E2E 검증) 완료 후, 후속 개발자(Phase 5)가 즉시 착수할 수 있는 작업 로드맵을 안내한다.
+본 문서는 Phase 4.1 완료 후, 후속 개발자(Phase 5)가 즉시 착수할 수 있는 작업 로드맵을 안내한다.
 
 ---
 
 ## 1. 현재 시스템 환경 요약
 
 - **빌드 상태**: `npm run build` (`tsc`) 및 `npm run build:web` (`vite build`) 100% 정상 (0 에러).
-- **테스트 현황**: 11개 테스트 파일, **50개 테스트 100% 통과 (Vitest 50/50 Passed)**.
+- **테스트 현황**: 15개 테스트 파일, **58개 테스트 100% 통과 (Vitest 58/58 Passed)**.
 - **파이프라인 아키텍처**:
   ```text
-  Figma URL / File Key
+  Figma URL / File Key / Node ID
           ↓
   FigmaClient (REST API & Image Fills Download)
           ↓
-  FigmaParser
+  FigmaParser (CANVAS 전수 순회 & X/Y 정렬 교정)
           ↓
-  LayoutEngine (P1-1 수평 클러스터링, P1-2 오버레이, P1-3 비례 너비)
+  LayoutEngine (카드 오버레이 폴딩 + 다단 카드 수평 클러스터링 + 비례 너비)
           ↓
   Internal Document Model (IR)
           ↓
-  DocxRenderer (Word OpenXML 패킹)
+  Empty Document Guard (요소 0개 시 빈 DOCX 차단)
+          ↓
+  DocxRenderer (Word OpenXML 패킹 & 압축 spacing)
           ↓
   .docx
   ```

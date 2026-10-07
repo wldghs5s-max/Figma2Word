@@ -1,6 +1,6 @@
 # Figma → Word 변환 지원 매트릭스 (CONVERSION_SUPPORT_MATRIX)
 
-- **갱신 일시**: 2026-10-07 (Phase 4 E2E 및 REST API 연동 완료 기준)
+- **갱신 일시**: 2026-10-07 (Phase 4.1 실제 Figma 호환성 및 LayoutEngine 안정화 완료 기준)
 
 본 문서는 Figma2Word 변환 엔진의 노드 타입 및 스타일 속성별 실제 지원 수준과 변환 전략을 명시한다.
 
@@ -10,14 +10,16 @@
 
 | Figma Node Type | 지원 상태 | 변환 전략 (Conversion Strategy) | 비고 / 한계점 |
 |---|:---:|---|---|
-| **TEXT (제목 계열)** | `Supported` | Word 네이티브 `Heading` (Level 1~3) | 폰트, 크기, 굵기, 색상, 정렬 100% 보존 |
-| **TEXT (일반 본문)** | `Supported` | Word 네이티브 `Paragraph` & `TextRun` | 텍스트 완전 편집 가능 |
-| **FRAME (Auto Layout: HORIZONTAL)** | `Supported` | Word 네이티브 1행 N열 `Table` | **P1-3 해결**: 고정/가변 폭 비례 컬럼 너비(`columnWidths`) 반영 |
+| **CANVAS** | `Supported` | **Phase 4.1 신규**: 하위 프레임 및 디자인 요소 전수 재귀 탐색 | `node-id=0-1` 등 캔버스 단위 진입 시에도 모든 자식 정상 파싱 |
+| **TEXT (제목 계열)** | `Supported` | Word 네이티브 `Heading` (Level 1~3) | 폰트, 크기, 굵기, 색상, 정렬 보존. **Phase 4.1**: 여백 폭발 방지 spacing 최적화 |
+| **TEXT (일반 본문)** | `Supported` | Word 네이티브 `Paragraph` & `TextRun` | 텍스트 완전 편집 가능. **Phase 4.1**: 여백 폭발 방지 spacing 최적화 |
+| **FRAME (Auto Layout: HORIZONTAL)** | `Supported` | Word 네이티브 1행 N열 `Table` | 고정/가변 폭 비례 컬럼 너비(`columnWidths`) 반영 |
 | **FRAME (Auto Layout: VERTICAL)** | `Supported` | Word Flow `Paragraph` / 1x1 Shaded `Table` | 카드 음영, 내부 패딩, 테두리 보존 |
-| **FRAME (Non-Auto Layout / 절대좌표)** | `Supported` | **P1-1 해결**: Bounding Box Interval 수평 클러스터링 | 나란한 2~3열 카드가 다열 테이블로 자동 복원 |
+| **FRAME (Non-Auto Layout / 절대좌표)** | `Supported` | Bounding Box Interval 수평 클러스터링 | 나란한 2~3열 카드가 다열 테이블로 자동 복원 |
+| **CONTAINMENT OVERLAY (카드/헤더)** | `Supported` | **Phase 4.1 개선**: 다단 카드 가로 배치 보존 + 헤더 오버레이 가로 자동 추론 및 X축 정렬 | 배경 사각형 위에 올라간 복합 레이아웃 온전 보존 |
 | **GROUP** | `Supported` | 자식 요소 컨테이너화 (`ContainerElement`) | 계층 구조 및 상대 위치 보존 |
-| **RECTANGLE (IMAGE Fill / S3)** | `Supported` | Word 네이티브 `ImageRun` | **Phase 4 신규**: REST API를 통한 원격 S3 이미지 자동 다운로드 및 임베딩 |
-| **RECTANGLE (Solid Fill / Card Box)** | `Supported` | Word 1x1 Shaded `Table` (Card Box) | **P1-2 해결**: 겹쳐진 텍스트를 카드 내부로 폴딩 |
+| **RECTANGLE (IMAGE Fill / S3)** | `Supported` | Word 네이티브 `ImageRun` | REST API를 통한 원격 S3 이미지 자동 다운로드 및 임베딩 |
+| **RECTANGLE (Solid Fill / Card Box)** | `Supported` | Word 1x1 Shaded `Table` (Card Box) | 겹쳐진 텍스트를 카드 내부로 폴딩 |
 | **LINE** | `Supported` | Word 네이티브 문단 테두리 구분선 | 단색 선 굵기 및 색상 보존 |
 | **COMPONENT / INSTANCE** | `Supported` | 내부 자식 렌더링 컨테이너 | 중첩 구조 및 인스턴스 오버라이드 보존 |
 | **SECTION** | `Supported` | 논리적 상위 컨테이너로 매핑 | 문서 섹션 분할에 활용 |
@@ -44,11 +46,7 @@
 
 ---
 
-## 3. 요약 통계 기준
+## 3. 요약 통계 기준 및 빈 문서 보호
 
-엔진은 변환을 마칠 때마다 사용자에게 아래와 같은 통계 리포트를 투명하게 반환한다:
-- `Total Nodes`: 검사된 총 노드 수
-- `Supported`: 네이티브 손실 없이 변환된 노드 수
-- `Partially Supported`: 구조는 보존되나 세부 효과가 근사된 노드 수
-- `Unsupported`: 생략된 미지원 노드 수
-- `Fallback`: 대체 그래픽으로 우회 렌더링된 노드 수
+- **빈 문서 보호 (Empty Document Guard)**: 변환 가능한 가시적 요소가 0개일 경우, 10KB 크기의 의미 없는 빈 DOCX를 생성하지 않고 사용자에게 원인과 권장 조치를 명확히 고지합니다.
+- 변환 완료 시 통계 리포트 반환: `Total Nodes`, `Supported`, `Partially Supported`, `Unsupported`, `Fallback`.
