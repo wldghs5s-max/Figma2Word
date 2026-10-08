@@ -177,7 +177,11 @@ export class FigmaParser {
     );
 
     const screenCandidates = visibleNodes.filter(isScreenCandidate);
-    const isMultiScreen = !hasCanvasLevelInlineContent && screenCandidates.length >= 2;
+    // A canvas-level caption must not disable isolation when the frames are
+    // side-by-side artboards. Stacked document cards still stay in one flow.
+    const isMultiScreen =
+      screenCandidates.length >= 2 &&
+      (!hasCanvasLevelInlineContent || this.areSideBySideArtboards(screenCandidates));
 
     if (!isMultiScreen) {
       // Single screen or normal document flow (preserves existing fixtures and single-frame behaviors)
@@ -221,6 +225,27 @@ export class FigmaParser {
     }
 
     return result;
+  }
+
+  private areSideBySideArtboards(screens: FigmaNode[]): boolean {
+    const boxes = screens
+      .map((screen) => screen.absoluteBoundingBox)
+      .filter((box): box is NonNullable<typeof box> => !!box);
+    if (boxes.length < 2) return false;
+
+    const sorted = [...boxes].sort((a, b) => a.x - b.x);
+    let separated = 0;
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i];
+      const next = sorted[i + 1];
+      const overlap =
+        Math.min(current.x + current.width, next.x + next.width) - Math.max(current.x, next.x);
+      if (overlap < Math.min(current.width, next.width) * 0.5) {
+        separated++;
+      }
+    }
+
+    return separated >= 1 && separated >= Math.ceil((sorted.length - 1) / 2);
   }
 
   private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string): DocElement[] {
@@ -292,7 +317,7 @@ export class FigmaParser {
     const text = node.characters || "";
     const style = node.style || {};
 
-    const color = this.extractFillColor(node.fills || style.fills);
+    const color = this.extractFillColor(this.textFills(node));
     const fontSize = style.fontSize ? Math.round(style.fontSize * 0.75) : 11; // px to pt approx
 
     const textStyle: TextStyle = {
@@ -307,11 +332,7 @@ export class FigmaParser {
 
     const alignment: Alignment = this.mapAlignment(style.textAlignHorizontal);
 
-    // Classification: If font size >= 16pt or node name contains 'Heading' / 'Title'
-    const isHeading =
-      fontSize >= 16 ||
-      node.name.toLowerCase().includes("heading") ||
-      node.name.toLowerCase().includes("title");
+    const isHeading = this.isHeadingText(node, text, fontSize);
 
     if (isHeading) {
       let level: 1 | 2 | 3 | 4 | 5 | 6 = 1;
@@ -340,21 +361,10 @@ export class FigmaParser {
 
   private parseRectangle(node: FigmaNode): ImageElement | ShapeElement {
     // Check if fill is an image
-    const imagePaint = (node.fills || []).find((f) => f.type === "IMAGE" && f.visible !== false);
-    if (imagePaint) {
-      const imgRef = imagePaint.imageRef || node.imageRef || "";
-      const imgSrc = this.imageMap[imgRef] || imgRef || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-
+    const imageElement = this.imageElementFromNode(node, node.id);
+    if (imageElement) {
       this.addNotice(node, "Supported", "Rectangle with IMAGE fill mapped to Word Image");
-      return {
-        id: node.id,
-        type: "image",
-        source: imgSrc,
-        width: node.absoluteBoundingBox?.width || 200,
-        height: node.absoluteBoundingBox?.height || 100,
-        altText: node.name,
-        alignment: "left",
-      };
+      return imageElement;
     }
 
     // Otherwise solid shape
@@ -389,6 +399,7 @@ export class FigmaParser {
   private parseContainer(node: FigmaNode): ContainerElement {
     const children = this.parseChildren(node.children || [], node.layoutMode);
     const fill = this.extractFillColor(node.fills);
+    const backgroundImage = this.imageElementFromNode(node, `${node.id}-fill`);
 
     const stroke = this.extractStroke(node);
 
@@ -420,6 +431,7 @@ export class FigmaParser {
         left: node.paddingLeft || 0,
       },
       background: fill,
+      backgroundImage: backgroundImage || undefined,
       border: stroke,
       cornerRadius: node.cornerRadius,
       columnWidths: (node as any)._computedColumnWidths,
@@ -450,10 +462,63 @@ export class FigmaParser {
 
   private extractFillColor(fills?: FigmaPaint[]): Color | undefined {
     if (!fills || fills.length === 0) return undefined;
-    const solid = fills.find((f) => f.type === "SOLID" && f.visible !== false);
-    if (!solid || !solid.color) return undefined;
+    const solid = fills.find((f) => f.type === "SOLID" && f.visible !== false && f.color);
+    if (solid?.color) {
+      return this.figmaColorToColor(solid.color, solid.opacity);
+    }
 
-    return this.figmaColorToColor(solid.color, solid.opacity);
+    const gradient = fills.find(
+      (f) => f.visible !== false && String(f.type).startsWith("GRADIENT") && f.gradientStops?.length
+    );
+    const stop = gradient?.gradientStops?.find((item) => item.color);
+    if (stop?.color) {
+      return this.figmaColorToColor(stop.color, gradient?.opacity);
+    }
+
+    return undefined;
+  }
+
+  private textFills(node: FigmaNode): FigmaPaint[] | undefined {
+    const own = (node.fills ?? []).filter((fill) => fill.visible !== false);
+    if (own.length > 0) return node.fills;
+    return node.style?.fills;
+  }
+
+  private imageElementFromNode(node: FigmaNode, id: string): ImageElement | null {
+    const imagePaint = (node.fills || []).find((fill) => fill.type === "IMAGE" && fill.visible !== false);
+    if (!imagePaint) return null;
+
+    const imgRef = imagePaint.imageRef || node.imageRef || "";
+    const imgSrc =
+      this.imageMap[imgRef] ||
+      imgRef ||
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+    return {
+      id,
+      type: "image",
+      source: imgSrc,
+      width: node.absoluteBoundingBox?.width || 200,
+      height: node.absoluteBoundingBox?.height || 100,
+      altText: node.name,
+      alignment: "left",
+    };
+  }
+
+  private isHeadingText(node: FigmaNode, text: string, fontSizePt: number): boolean {
+    if (fontSizePt >= 16) return true;
+
+    const name = node.name.trim().toLowerCase();
+    const content = text.trim().toLowerCase();
+    const explicitRole = /^(h[1-6]|heading|title|subtitle|제목|부제)(\b|\d|$)/.test(name);
+    const nameMirrorsText =
+      !explicitRole &&
+      name.length >= 8 &&
+      content.length > 0 &&
+      (name === content || content.startsWith(name));
+
+    if (nameMirrorsText) return false;
+    return name.includes("heading") || name.includes("title") || name.includes("제목");
   }
 
   private extractStroke(node: FigmaNode) {

@@ -2,9 +2,17 @@ import { FigmaParser, ParseResult, ConversionNotice } from "../parser/index.js";
 import { DocxRenderer } from "../renderer/index.js";
 import { InternalDocument } from "../model/index.js";
 import { FigmaNode, FigmaFileResponse } from "../parser/types.js";
-import { FigmaClient, parseFigmaUrl, FigmaApiError } from "../api/index.js";
+import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError } from "../api/index.js";
 import * as fs from "fs";
 import * as path from "path";
+
+export function safeFileStem(name: string): string {
+  const cleaned = name
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+    .replace(/[. ]+$/g, "")
+    .trim();
+  return (cleaned.length > 0 ? cleaned : "figma-export").slice(0, 80);
+}
 
 export interface PipelineOptions {
   outputPath?: string;
@@ -138,7 +146,7 @@ export class ConversionPipeline {
     if (options?.nodeId) {
       // Fetch specific targeted node
       const nodesRes = await client.fetchNodes(fileKey, [options.nodeId]);
-      const nodeEntry = nodesRes.nodes[options.nodeId];
+      const nodeEntry = findNodeEntry(nodesRes.nodes, options.nodeId);
       if (!nodeEntry || !nodeEntry.document) {
         throw new FigmaApiError(
           `Node '${options.nodeId}' was not found in Figma file '${fileKey}'`,
@@ -159,7 +167,10 @@ export class ConversionPipeline {
       imageMap = { ...imageMap, ...fetchedImages };
     }
 
-    const defaultOutputName = options?.titleOverride || `figma-${fileKey}${options?.nodeId ? `-${options.nodeId.replace(/:/g, '_')}` : ''}`;
+    const defaultOutputName = safeFileStem(
+      options?.titleOverride ||
+        `figma-${fileKey}${options?.nodeId ? `-${options.nodeId.replace(/:/g, "_")}` : ""}`
+    );
     const defaultOutputPath =
       options?.outputPath ||
       path.join(process.cwd(), "samples/output", `${defaultOutputName}.docx`);

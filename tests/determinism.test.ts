@@ -2,9 +2,37 @@ import { describe, it, expect } from "vitest";
 import { FigmaParser } from "../src/parser/figmaParser.js";
 import { DocxRenderer } from "../src/renderer/docxRenderer.js";
 import { simpleDocumentFixture } from "../src/fixtures/samples.js";
-import { execSync } from "child_process";
+import { inflateRawSync } from "node:zlib";
 import * as fs from "fs";
 import * as path from "path";
+
+function readZipEntry(buffer: Buffer, entryName: string): string {
+  let offset = 0;
+  while (offset + 30 <= buffer.length) {
+    if (buffer.readUInt32LE(offset) !== 0x04034b50) break;
+    const flags = buffer.readUInt16LE(offset + 6);
+    const method = buffer.readUInt16LE(offset + 8);
+    let compSize = buffer.readUInt32LE(offset + 18);
+    const nameLength = buffer.readUInt16LE(offset + 26);
+    const extraLength = buffer.readUInt16LE(offset + 28);
+    const name = buffer.subarray(offset + 30, offset + 30 + nameLength).toString("utf8");
+    let dataStart = offset + 30 + nameLength + extraLength;
+
+    if (flags & 0x8) {
+      const nextHeader = buffer.indexOf(Buffer.from([0x50, 0x4b]), dataStart + 4);
+      compSize = (nextHeader === -1 ? buffer.length : nextHeader) - dataStart;
+    }
+
+    const compressed = buffer.subarray(dataStart, dataStart + compSize);
+    if (name === entryName) {
+      const bytes = method === 0 ? compressed : inflateRawSync(compressed);
+      return bytes.toString("utf8");
+    }
+    offset = dataStart + compSize;
+    if (flags & 0x8) offset += 16;
+  }
+  throw new Error(`ZIP entry not found: ${entryName}`);
+}
 
 describe("Determinism Verification (결정론성 검증)", () => {
   it("produces identical InternalDocument IR across multiple consecutive runs", () => {
@@ -42,12 +70,12 @@ describe("Determinism Verification (결정론성 검증)", () => {
     fs.writeFileSync(tmp1, buffer1);
     fs.writeFileSync(tmp2, buffer2);
 
-    // Verify via python that document.xml contents match 100% (normalizing auto-incrementing docPr ids)
-    const p1 = tmp1.replace(/\\/g, "/");
-    const p2 = tmp2.replace(/\\/g, "/");
-    const pyCmd = `python -c "import zipfile, re; z1=zipfile.ZipFile('${p1}'); z2=zipfile.ZipFile('${p2}'); x1=re.sub('docPr id=[^ ]+', '', z1.read('word/document.xml').decode('utf-8')); x2=re.sub('docPr id=[^ ]+', '', z2.read('word/document.xml').decode('utf-8')); print('MATCH' if x1 == x2 else 'MISMATCH')"`;
-    const result = execSync(pyCmd).toString().trim();
-    expect(result).toBe("MATCH");
+    const normalize = (xml: string) => xml.replace(/docPr id=[^ ]+/g, "");
+    const xml1 = normalize(readZipEntry(buffer1, "word/document.xml"));
+    const xml2 = normalize(readZipEntry(buffer2, "word/document.xml"));
+    expect(xml1).toBe(xml2);
+    expect(fs.existsSync(tmp1)).toBe(true);
+    expect(fs.existsSync(tmp2)).toBe(true);
   });
 });
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FigmaParser, ParseResult } from '../../../src/parser/figmaParser';
 import { DocxRenderer } from '../../../src/renderer/docxRenderer';
-import { FigmaClient, parseFigmaUrl, FigmaApiError } from '../../../src/api/index';
+import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError } from '../../../src/api/index';
 import {
   simpleDocumentFixture,
   cardLayoutFixture,
@@ -102,7 +102,7 @@ export function App() {
       if (parsed.nodeId) {
         setStatus(`Figma 노드 [${parsed.nodeId}] 수신 중...`);
         const nodesRes = await client.fetchNodes(parsed.fileKey, [parsed.nodeId]);
-        targetNode = nodesRes.nodes[parsed.nodeId]?.document;
+        targetNode = findNodeEntry(nodesRes.nodes, parsed.nodeId)?.document;
         if (!targetNode) {
           throw new FigmaApiError(`노드 '${parsed.nodeId}'를 찾을 수 없습니다.`, 404);
         }

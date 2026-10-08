@@ -54,7 +54,7 @@ export function toDocxBorder(border?: BorderStyle) {
 
   return {
     style,
-    size: Math.max(1, Math.round(border.width * 8)), // 1/8 pt units
+    size: Math.max(1, Math.round(pxToPt(border.width) * 8)), // 1/8 pt units
     color: colorToHex(border.color) ?? "000000",
   };
 }
@@ -62,12 +62,92 @@ export function toDocxBorder(border?: BorderStyle) {
 /**
  * Convert spacing to docx cell margin or paragraph spacing
  */
+/**
+ * Figma padding and gaps are pixels. Word spacing is points.
+ */
+export function pxToPt(px?: number): number {
+  if (px === undefined || px === null || Number.isNaN(px) || px === 0) return 0;
+  return Math.max(0.5, Math.round(px * 0.75 * 10) / 10);
+}
+
 export function spacingToCellMargin(spacing?: Partial<Spacing>) {
   if (!spacing) return undefined;
   return {
-    top: spacing.top !== undefined ? ptToDxa(spacing.top) : 0,
-    bottom: spacing.bottom !== undefined ? ptToDxa(spacing.bottom) : 0,
-    left: spacing.left !== undefined ? ptToDxa(spacing.left) : 0,
-    right: spacing.right !== undefined ? ptToDxa(spacing.right) : 0,
+    top: spacing.top !== undefined ? ptToDxa(pxToPt(spacing.top)) : 0,
+    bottom: spacing.bottom !== undefined ? ptToDxa(pxToPt(spacing.bottom)) : 0,
+    left: spacing.left !== undefined ? ptToDxa(pxToPt(spacing.left)) : 0,
+    right: spacing.right !== undefined ? ptToDxa(pxToPt(spacing.right)) : 0,
+  };
+}
+
+export type DocxImageType = "png" | "jpg" | "gif" | "bmp";
+
+export function decodeBase64(b64: string): Uint8Array {
+  if (typeof Buffer !== "undefined") {
+    return new Uint8Array(Buffer.from(b64, "base64"));
+  }
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i) & 0xff;
+  }
+  return bytes;
+}
+
+export function decodeDataUrl(source: string): { mime?: string; bytes: Uint8Array } | null {
+  if (!source.startsWith("data:")) return null;
+  const comma = source.indexOf(",");
+  if (comma < 0) return null;
+
+  const meta = source.slice(5, comma);
+  const payload = source.slice(comma + 1).replace(/\s/g, "");
+  if (!payload) return null;
+
+  const mime = meta.split(";")[0] || undefined;
+  try {
+    return { mime, bytes: decodeBase64(payload) };
+  } catch {
+    return null;
+  }
+}
+
+export function detectImageType(bytes: Uint8Array, mime?: string): DocxImageType | null {
+  const normalized = mime?.toLowerCase().split(";")[0].trim();
+  if (normalized === "image/jpeg" || normalized === "image/jpg" || normalized === "image/pjpeg") {
+    return "jpg";
+  }
+  if (normalized === "image/png") return "png";
+  if (normalized === "image/gif") return "gif";
+  if (normalized === "image/bmp" || normalized === "image/x-ms-bmp") return "bmp";
+
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpg";
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  ) {
+    return "png";
+  }
+  if (bytes.length >= 6 && bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return "gif";
+  if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) return "bmp";
+  return null;
+}
+
+export function fitImageSize(
+  width: number,
+  height: number,
+  maxWidth: number
+): { width: number; height: number } {
+  const safeWidth = Math.max(1, Math.round(width || 1));
+  const safeHeight = Math.max(1, Math.round(height || 1));
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0 || safeWidth <= maxWidth) {
+    return { width: safeWidth, height: safeHeight };
+  }
+  const scale = maxWidth / safeWidth;
+  return {
+    width: Math.max(1, Math.round(safeWidth * scale)),
+    height: Math.max(1, Math.round(safeHeight * scale)),
   };
 }

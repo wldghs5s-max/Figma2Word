@@ -15,6 +15,7 @@ export interface FigmaPaint {
   opacity?: number;
   color?: FigmaColor;
   imageRef?: string;
+  gradientStops?: { color: FigmaColor; position?: number }[];
 }
 
 export interface FigmaBoundingBox {

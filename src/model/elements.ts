@@ -158,6 +158,7 @@ export const ContainerElementSchema = z.object({
   gap: z.number().default(0),
   padding: SpacingSchema.partial().optional(),
   background: ColorSchema.optional(),
+  backgroundImage: ImageElementSchema.optional(),
   border: BorderStyleSchema.optional(),
   cornerRadius: z.number().optional(),
   width: z.union([z.number(), z.literal("100%")]).optional(),
@@ -171,6 +172,7 @@ export type ContainerElement = {
   gap: number;
   padding?: Partial<z.infer<typeof SpacingSchema>>;
   background?: z.infer<typeof ColorSchema>;
+  backgroundImage?: ImageElement;
   border?: z.infer<typeof BorderStyleSchema>;
   cornerRadius?: number;
   width?: number | "100%";

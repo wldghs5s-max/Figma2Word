@@ -92,6 +92,65 @@ export function parseFigmaUrl(input: string): ParsedFigmaUrl {
   }
 }
 
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+/**
+ * Find a node entry even when Figma keys the response with '-', ':' or encoded ids.
+ */
+export function findNodeEntry<T extends { document?: FigmaNode }>(
+  nodes: Record<string, T> | undefined,
+  nodeId: string
+): T | undefined {
+  if (!nodes || !nodeId) return undefined;
+
+  const decoded = safeDecode(nodeId);
+  const colonId = decoded.replace(/-/g, ":");
+  const hyphenId = decoded.replace(/:/g, "-");
+  for (const key of [nodeId, decoded, colonId, hyphenId]) {
+    if (nodes[key]?.document) return nodes[key];
+  }
+
+  for (const [key, value] of Object.entries(nodes)) {
+    if (!value?.document) continue;
+    if (safeDecode(key).replace(/-/g, ":") === colonId) return value;
+  }
+
+  return undefined;
+}
+
+function sniffImageMime(bytes: Uint8Array): string {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "image/png";
+  }
+  if (bytes.length >= 6 && bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+    return "image/gif";
+  }
+  if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) return "image/bmp";
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return "application/octet-stream";
+}
+
 /**
  * Official Figma REST API Client
  */
@@ -250,8 +309,9 @@ export class FigmaClient {
     if (nodeIds.length === 0) {
       throw new FigmaApiError("At least one node ID must be provided", 400);
     }
-    const ids = nodeIds.map((id) => encodeURIComponent(id)).join(",");
-    const endpoint = `/files/${encodeURIComponent(fileKey)}/nodes?ids=${ids}`;
+    const query = new URLSearchParams();
+    query.set("ids", nodeIds.join(","));
+    const endpoint = `/files/${encodeURIComponent(fileKey)}/nodes?${query.toString()}`;
     return await this.get<FigmaGetNodesResponse>(endpoint);
   }
 
@@ -279,8 +339,10 @@ export class FigmaClient {
         throw new Error(`Failed to download image: ${response.status} ${response.statusText}`);
       }
 
-      const contentType = response.headers.get("content-type") || "image/png";
+      const headerType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
       const arrayBuffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      const contentType = headerType.startsWith("image/") ? headerType : sniffImageMime(bytes);
 
       // Convert ArrayBuffer to Base64 in both Node and Browser
       let base64String = "";

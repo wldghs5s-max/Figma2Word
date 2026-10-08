@@ -9,14 +9,18 @@
 ## 📌 다음 세션 작업자를 위한 핵심 인수인계 요약 (Handover Summary)
 
 - **현재 Git 브랜치**: `master`
-- **최신 개발 Checkpoint 커밋**: [`8986931`](https://github.com/wldghs5s-max/Figma2Word/commit/8986931) (`fix(phase-4.2-step2b1): avoid tables for empty decorative shapes`)
-- **현재 테스트 상태**: **17개 스위트 / 65개 테스트 전원 통과 (100% Pass, Vitest)**
-- **빌드 상태**: TypeScript 컴파일(`npm run build`) 및 Web 번들링(`npm run build:web`) 0 에러 통과
-- **실제 Figma 실측 현황 (단일 Frame 기준)**:
-  - Tables: **88개 → 64개로 압축 완료 (24개 빈 사각형 Table 100% 제거)**
-  - Max Table Depth: **7**
-  - Text Nodes: **62개 (100% 데이터 무손실 보존)**
-- **내일 이어받을 다음 작업**: **STEP 2-B-2 — Badge / Chip / Button 및 단일 구조 래퍼 Flatten**
+- **현재 인수인계**: [`docs/PROJECT_HANDOVER.md`](docs/PROJECT_HANDOVER.md)
+- **현재 테스트 상태**: 21개 스위트 / 101개 테스트 통과 (2026-10-08 실행)
+- **빌드 상태**: `npm run build`, `npm run build:web` 통과
+- **STEP 2-B-7**: 시작하지 않음
+
+## Current Development Status
+
+Phase 4.2 STEP 2-B is currently implemented through STEP 2-B-6.
+
+The project intentionally prioritizes DOCX visual fidelity over aggressive table-count reduction.
+
+STEP 2-B-7 has not started.
 
 ---
 
@@ -142,6 +146,8 @@ Category E — Badge / Chip / Button (단어 1개 수준 1x1)     22개         
 
 ## ⚠️ 6. 현재 남아 있는 미해결 문제 (Pending Issues)
 
+아래 목록은 STEP 2-B-1 직후의 기록이다. 그 이후 2-B-2부터 2-B-6까지 진행되었다. 현재 상태와 남은 후보는 `docs/PROJECT_HANDOVER.md`를 본다.
+
 다음 문제들은 **아직 해결되지 않았으며, 후속 단계에서 처리해야 합니다**:
 
 1. **문제 1: Badge / Chip / Button의 100% Table화 (Category E, 22개 테이블 잔여)**:
@@ -155,6 +161,8 @@ Category E — Badge / Chip / Button (단어 1개 수준 1x1)     22개         
 ---
 
 ## 🎯 7. 내일 이어받을 다음 작업 로드맵 (Next Tasks)
+
+이 로드맵은 STEP 2-B-1 직후 계획이다. 2-B-2, 2-B-5, 2-B-6은 구현되었고 2-B-3과 2-B-4는 분석만 했다. STEP 2-B-7은 시작하지 않았다.
 
 다음 세션에서 수행할 작업 순서는 다음과 같습니다:
 
@@ -194,6 +202,20 @@ $$\text{실측 및 분석} \longrightarrow \text{최소 변경 설계} \longrigh
 
 ---
 
+## STEP 2-B-6 기록
+
+배경만 있고 테두리와 패딩이 없는 1×1 wrapper 57개 가운데, 자식이 글자 칩으로만 된 1×N 2개만 부모 표를 제거했다. 부모 배경은 자식 표의 `w:tblPr/w:shd`로 옮긴다. 칸마다 배경을 칠하지 않는다.
+
+- 대상: 부모 배경만 있음, 테두리 없음, 패딩 0, 자식 1×N, 각 칸이 문단 또는 단일 텍스트 칩, 이미지 없음.
+- 제외: 패딩, 테두리, 이미지 29개, shape가 섞인 26개, 중첩 표, UNSAFE 64개.
+- 구현: `renderConditionalBackgroundWrapper`. 조건이 하나라도 다르면 기존 1×1 표를 유지한다.
+- 테스트: 기존 91 + 신규 10 = 101, 실패 0. `npm run build`, `npm run build:web` 통과.
+- 동일 Figma: Tables 3064→3062, Nested 3025→3023, depth 11. 텍스트 3934, 이미지 63, 페이지 나누기 38 유지.
+- Word: `01 고객 발굴` / `02 FC 배정` / `03 배정결과` 3열이 한 줄로 남아 있고, 칩 배경 `F5F7FA`가 문단에 유지된다.
+- 다음 후보: 이미지 없는 shape 혼합 26개와 패딩 wrapper. 이번 단계에서 처리하지 않음.
+
+---
+
 ## 🚀 빠른 시작 및 실행 명령어
 
 ```bash
@@ -205,7 +227,7 @@ npm --prefix apps/web install
 npm run build
 npm run build:web
 
-# 전체 테스트 실행 (현재 65개)
+# 전체 테스트 실행 (2026-10-08 기준 101개)
 npm test
 
 # Figma URL 직접 변환 (CLI)

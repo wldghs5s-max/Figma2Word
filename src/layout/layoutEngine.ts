@@ -30,9 +30,10 @@ export class LayoutEngine {
   public processNodes(nodes: FigmaNode[]): FigmaNode[] {
     if (nodes.length === 0) return nodes;
 
-    // Guard: If this node array is already marked as children of a row cluster, don't re-cluster them
+    // Guard: children of a row cluster must not be clustered again.
+    // Width ratios still need to be computed for nested horizontal frames.
     if (nodes.some((n) => (n as any)._isRowCell)) {
-      return nodes;
+      return nodes.map((n) => this.enrichSizingRatios(n));
     }
 
     let processed = nodes;
@@ -62,11 +63,11 @@ export class LayoutEngine {
       if (absorbedIds.has(parentCandidate.id)) continue;
 
       const pBox = parentCandidate.absoluteBoundingBox;
-      // Potential background container: RECTANGLE or FRAME with solid fill and bounding box
+      // Potential background container: RECTANGLE or FRAME with a visible paint and bounding box
       const isContainerLike =
-        pBox &&
+        !!pBox &&
         (parentCandidate.type === "RECTANGLE" || parentCandidate.type === "FRAME") &&
-        (parentCandidate.fills && parentCandidate.fills.length > 0);
+        this.hasVisibleFill(parentCandidate);
 
       if (!isContainerLike || !pBox) {
         result.push(parentCandidate);
@@ -186,17 +187,9 @@ export class LayoutEngine {
         // Sort columns from left to right (X ascending)
         rowCluster.sort((a, b) => (a.absoluteBoundingBox?.x ?? 0) - (b.absoluteBoundingBox?.x ?? 0));
 
-        // Calculate column width percentages
-        const totalW = rowCluster.reduce((sum, n) => sum + (n.absoluteBoundingBox?.width ?? 100), 0);
-        const columnWidths = rowCluster.map((n) =>
-          Math.max(10, Math.round(((n.absoluteBoundingBox?.width ?? 100) / totalW) * 100))
+        const columnWidths = this.toColumnPercents(
+          rowCluster.map((n) => n.absoluteBoundingBox?.width ?? 0)
         );
-
-        // Normalize sum to 100%
-        const sumW = columnWidths.reduce((a, b) => a + b, 0);
-        if (sumW !== 100 && columnWidths.length > 0) {
-          columnWidths[columnWidths.length - 1] += 100 - sumW;
-        }
 
         const minX = Math.min(...rowCluster.map((n) => n.absoluteBoundingBox!.x));
         const minY = Math.min(...rowCluster.map((n) => n.absoluteBoundingBox!.y));
@@ -245,20 +238,79 @@ export class LayoutEngine {
 
       const validBoxes = node.children.every((c) => c.absoluteBoundingBox?.width);
       if (validBoxes) {
-        const totalW = node.children.reduce((sum, c) => sum + (c.absoluteBoundingBox?.width ?? 100), 0);
-        if (totalW > 0) {
-          const columnWidths = node.children.map((c) =>
-            Math.max(5, Math.round(((c.absoluteBoundingBox?.width ?? 100) / totalW) * 100))
-          );
-          const sumW = columnWidths.reduce((a, b) => a + b, 0);
-          if (sumW !== 100 && columnWidths.length > 0) {
-            columnWidths[columnWidths.length - 1] += 100 - sumW;
-          }
+        const columnWidths = this.toColumnPercents(
+          node.children.map((c) => c.absoluteBoundingBox?.width ?? 0)
+        );
+        if (columnWidths.length > 0) {
           (node as any)._computedColumnWidths = columnWidths;
         }
       }
     }
     return node;
+  }
+
+  /**
+   * Convert raw pixel widths into positive percentages that add up to 100.
+   * A hard minimum (for example 10%) can push the total over 100 and make the
+   * last column negative, which Word rejects.
+   */
+  private toColumnPercents(rawWidths: number[]): number[] {
+    if (rawWidths.length === 0) return [];
+
+    const positive = rawWidths.map((width) => (Number.isFinite(width) && width > 0 ? width : 0));
+    const total = positive.reduce((sum, width) => sum + width, 0);
+    if (total <= 0) {
+      const base = Math.max(1, Math.floor(100 / positive.length));
+      const even = positive.map(() => base);
+      let sum = even.reduce((left, right) => left + right, 0);
+      let index = even.length - 1;
+      while (sum > 100 && even.some((width) => width > 1)) {
+        if (even[index] > 1) {
+          even[index] -= 1;
+          sum -= 1;
+        }
+        index = index === 0 ? even.length - 1 : index - 1;
+      }
+      if (sum < 100) even[even.length - 1] += 100 - sum;
+      return even;
+    }
+
+    const exact = positive.map((width) => (width / total) * 100);
+    const rounded = exact.map((width) => Math.max(1, Math.round(width)));
+    let sum = rounded.reduce((left, right) => left + right, 0);
+    let guard = 0;
+
+    while (sum > 100 && guard < 500 && rounded.some((width) => width > 1)) {
+      let index = 0;
+      for (let i = 1; i < rounded.length; i++) {
+        if (rounded[i] > rounded[index]) index = i;
+      }
+      if (rounded[index] <= 1) break;
+      rounded[index] -= 1;
+      sum -= 1;
+      guard++;
+    }
+
+    while (sum < 100 && guard < 800) {
+      let index = 0;
+      let bestRemainder = -Infinity;
+      for (let i = 0; i < exact.length; i++) {
+        const remainder = exact[i] - rounded[i];
+        if (remainder > bestRemainder) {
+          bestRemainder = remainder;
+          index = i;
+        }
+      }
+      rounded[index] += 1;
+      sum += 1;
+      guard++;
+    }
+
+    return rounded;
+  }
+
+  private hasVisibleFill(node: FigmaNode): boolean {
+    return (node.fills ?? []).some((fill) => fill.visible !== false && !!fill.type);
   }
 
   /**
