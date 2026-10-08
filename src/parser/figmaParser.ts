@@ -11,6 +11,7 @@ import {
   DocElement,
   ParagraphElement,
   HeadingElement,
+  TextRun,
   ImageElement,
   LineElement,
   ShapeElement,
@@ -320,7 +321,7 @@ export class FigmaParser {
     const color = this.extractFillColor(this.textFills(node));
     const fontSize = style.fontSize ? Math.round(style.fontSize * 0.75) : 11; // px to pt approx
 
-    const textStyle: TextStyle = {
+    const baseTextStyle: TextStyle = {
       fontFamily: style.fontFamily || "Calibri",
       fontSize,
       fontWeight: this.mapFontWeight(style.fontWeight),
@@ -331,8 +332,8 @@ export class FigmaParser {
     };
 
     const alignment: Alignment = this.mapAlignment(style.textAlignHorizontal);
-
     const isHeading = this.isHeadingText(node, text, fontSize);
+    const runs = this.buildTextRuns(node, text, baseTextStyle);
 
     if (isHeading) {
       let level: 1 | 2 | 3 | 4 | 5 | 6 = 1;
@@ -346,7 +347,7 @@ export class FigmaParser {
         type: "heading",
         level,
         alignment,
-        runs: [{ type: "run", text, style: textStyle }],
+        runs,
       };
     }
 
@@ -355,9 +356,143 @@ export class FigmaParser {
       id: node.id,
       type: "paragraph",
       alignment,
-      runs: [{ type: "run", text, style: textStyle }],
+      runs,
     };
   }
+
+  private buildTextRuns(node: FigmaNode, text: string, baseStyle: TextStyle): TextRun[] {
+    const overrides = node.characterStyleOverrides;
+    const table = node.styleOverrideTable;
+
+    if (!text) {
+      return [{ type: "run", text: "", style: baseStyle }];
+    }
+
+    if (!overrides || overrides.length === 0 || !table || Object.keys(table).length === 0) {
+      return [{ type: "run", text, style: baseStyle }];
+    }
+
+    // Segment text into contiguous slices by overrideId
+    const rawSegments: { text: string; style: TextStyle }[] = [];
+    let start = 0;
+
+    while (start < text.length) {
+      const currentId = overrides[start] ?? 0;
+      let end = start + 1;
+
+      while (end < text.length) {
+        // Guard against splitting surrogate pairs (e.g. emoji)
+        if (this.isHighSurrogate(text.charCodeAt(end - 1)) && this.isLowSurrogate(text.charCodeAt(end))) {
+          end++;
+          continue;
+        }
+
+        const nextId = overrides[end] ?? 0;
+        if (nextId !== currentId) {
+          break;
+        }
+        end++;
+      }
+
+      // Final guard for surrogate pair at boundary
+      if (end < text.length && this.isHighSurrogate(text.charCodeAt(end - 1)) && this.isLowSurrogate(text.charCodeAt(end))) {
+        end++;
+      }
+
+      const segmentText = text.substring(start, end);
+      const segmentStyle = this.resolveRunStyle(baseStyle, currentId, table);
+
+      rawSegments.push({ text: segmentText, style: segmentStyle });
+      start = end;
+    }
+
+    // Merge adjacent segments with identical resolved styles
+    const mergedRuns: TextRun[] = [];
+    for (const seg of rawSegments) {
+      if (mergedRuns.length > 0 && this.areTextStylesEqual(mergedRuns[mergedRuns.length - 1].style, seg.style)) {
+        mergedRuns[mergedRuns.length - 1].text += seg.text;
+      } else {
+        mergedRuns.push({ type: "run", text: seg.text, style: seg.style });
+      }
+    }
+
+    return mergedRuns.length > 0 ? mergedRuns : [{ type: "run", text, style: baseStyle }];
+  }
+
+  private resolveRunStyle(
+    baseStyle: TextStyle,
+    overrideId: number,
+    table: Record<string | number, FigmaTypeStyle>
+  ): TextStyle {
+    if (overrideId === 0) return baseStyle;
+
+    const override = table[overrideId] ?? table[String(overrideId)];
+    if (!override) return baseStyle;
+
+    let fontSize = baseStyle.fontSize;
+    if (override.fontSize) {
+      fontSize = Math.round(override.fontSize * 0.75);
+    }
+
+    let color = baseStyle.color;
+    if (override.fills && override.fills.length > 0) {
+      const extracted = this.extractFillColor(override.fills);
+      if (extracted) color = extracted;
+    }
+
+    let fontWeight = baseStyle.fontWeight;
+    if (override.fontWeight !== undefined) {
+      fontWeight = this.mapFontWeight(override.fontWeight);
+    }
+
+    let italic = baseStyle.italic;
+    if (override.italic !== undefined) {
+      italic = !!override.italic;
+    }
+
+    let underline = baseStyle.underline;
+    let strike = baseStyle.strike;
+    if (override.textDecoration !== undefined) {
+      underline = override.textDecoration === "UNDERLINE";
+      strike = override.textDecoration === "STRIKETHROUGH";
+    }
+
+    return {
+      fontFamily: override.fontFamily || baseStyle.fontFamily,
+      fontSize,
+      fontWeight,
+      italic,
+      underline,
+      strike,
+      color,
+      lineHeight: baseStyle.lineHeight,
+      letterSpacing: override.letterSpacing ?? baseStyle.letterSpacing,
+    };
+  }
+
+  private areTextStylesEqual(a?: Partial<TextStyle>, b?: Partial<TextStyle>): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return (
+      a.fontFamily === b.fontFamily &&
+      a.fontSize === b.fontSize &&
+      a.fontWeight === b.fontWeight &&
+      a.italic === b.italic &&
+      a.underline === b.underline &&
+      a.strike === b.strike &&
+      a.color?.hex === b.color?.hex &&
+      a.color?.a === b.color?.a
+    );
+  }
+
+  private isHighSurrogate(code: number): boolean {
+    return code >= 0xd800 && code <= 0xdbff;
+  }
+
+  private isLowSurrogate(code: number): boolean {
+    return code >= 0xdc00 && code <= 0xdfff;
+  }
+
 
   private parseRectangle(node: FigmaNode): ImageElement | ShapeElement {
     // Check if fill is an image

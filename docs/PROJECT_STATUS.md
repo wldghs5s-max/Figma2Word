@@ -1,9 +1,9 @@
 # Figma2Word 프로젝트 진행 현황 보고서 (PROJECT_STATUS)
 
-> 이 문서는 2026-10-07 Phase 4.1 시점의 기록이다. 현재 단계의 source of truth는 `docs/PROJECT_HANDOVER.md`다. STEP 2-B-7은 시작하지 않았다.
+> 이 문서는 2026-10-08 Phase 5-A 완료 시점의 기록이다. Phase 4.2는 공식 완료되었으며, Phase 5-A (Character Style Overrides) 구현 및 113개 테스트 통과 완료.
 
-- **보고 일시**: 2026-10-07
-- **프로젝트 단계**: Phase 4.1 완료 (실제 Figma 호환성 및 LayoutEngine 안정화 완료)
+- **보고 일시**: 2026-10-08
+- **프로젝트 단계**: Phase 5-A 완료 (Figma Rich Text Character Style Overrides 지원)
 - **최신 Git 상태**: Phase 4.1 (4.1-A ~ 4.1-D) 구현, 테스트 및 검증 완료
 - **대상 OS**: Windows / macOS 호환 로컬 런타임 (Node.js 18+ & 브라우저)
 

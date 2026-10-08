@@ -81,6 +81,8 @@ export interface FigmaNode {
   // Text attributes
   characters?: string;
   style?: FigmaTypeStyle;
+  characterStyleOverrides?: number[];
+  styleOverrideTable?: Record<string | number, FigmaTypeStyle>;
 
   // Image metadata map (when images are embedded or referenced)
   imageRef?: string;
