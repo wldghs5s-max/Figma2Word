@@ -512,10 +512,12 @@ export class DocxRenderer {
 
   private isEmptyDecorative(element: DocElement): boolean {
     if (element.type === "shape") {
+      if (this.hasVisibleBorder(element.stroke)) return false;
       return !element.content || element.content.length === 0;
     }
     if (element.type === "container") {
       if (element.backgroundImage) return false;
+      if (this.hasVisibleBorder(element.border)) return false;
       if (!element.children || element.children.length === 0) return true;
       return element.children.every((child) => this.isEmptyDecorative(child));
     }
@@ -538,15 +540,17 @@ export class DocxRenderer {
   }
 
   private renderContainerBody(elem: ContainerElement): Paragraph | (Paragraph | Table)[] | Table | null {
-    // A single text chip/button keeps its fill and border on the paragraph.
-    // Also covers badges where a single text element is flanked by decorative empty shapes.
+    // A single text chip/button keeps its fill and border on the paragraph only when compact.
+    // Large CTA buttons and regular cards stay as 1x1 Tables to preserve exact padding and box structure.
     if ((elem.background || elem.border) && !elem.backgroundImage && elem.children.length >= 1) {
-      const textLeaf = this.extractBadgeTextLeaf(elem);
-      if (textLeaf) {
-        const chrome = { fill: elem.background, border: elem.border, padding: elem.padding };
-        return textLeaf.type === "heading"
-          ? this.renderHeading(textLeaf, chrome)
-          : this.renderParagraph(textLeaf, chrome);
+      if (this.isCompactChip(elem, 1)) {
+        const textLeaf = this.extractBadgeTextLeaf(elem);
+        if (textLeaf) {
+          const chrome = { fill: elem.background, border: elem.border, padding: elem.padding };
+          return textLeaf.type === "heading"
+            ? this.renderHeading(textLeaf, chrome)
+            : this.renderParagraph(textLeaf, chrome);
+        }
       }
     }
 
@@ -561,13 +565,16 @@ export class DocxRenderer {
         const borderDef = toDocxBorder(childContainer?.border ?? elem.border);
         const hexBg = colorToHex(childContainer?.background ?? elem.background);
         const childPad = spacingToCellMargin(childContainer?.padding);
+        const isCompact = childContainer ? this.isCompactChip(childContainer, elem.children.length) : false;
         const pad = childPad
-          ? {
-              top: Math.min(childPad.top, ptToDxa(4)),
-              bottom: Math.min(childPad.bottom, ptToDxa(4)),
-              left: Math.min(childPad.left, ptToDxa(3)),
-              right: Math.min(childPad.right, ptToDxa(3)),
-            }
+          ? (isCompact
+              ? {
+                  top: Math.min(childPad.top, ptToDxa(4)),
+                  bottom: Math.min(childPad.bottom, ptToDxa(4)),
+                  left: Math.min(childPad.left, ptToDxa(3)),
+                  right: Math.min(childPad.right, ptToDxa(3)),
+                }
+              : childPad)
           : (spacingToCellMargin(elem.padding) ?? { top: 0, bottom: 0, left: 0, right: 0 });
 
         const halfGap = elem.gap > 0 ? ptToDxa(pxToPt(elem.gap) / 2) : 0;
@@ -647,9 +654,7 @@ export class DocxRenderer {
       const children = this.renderSequence(elem.children, elem.gap);
 
       if (children.length === 0) {
-        const borderHex = colorToHex(elem.border?.color);
-        const fillHex = colorToHex(elem.background);
-        if (borderHex !== "A1B0BF" && fillHex !== "A1B0BF") {
+        if (!this.hasVisibleBorder(elem.border)) {
           return null;
         }
       }
@@ -741,8 +746,9 @@ export class DocxRenderer {
     if (
       !parentFill &&
       parentBorder &&
-      parentBorderHex === "A1B0BF" &&
-      childFill === "A1B0BF" &&
+      parentBorderHex &&
+      childFill &&
+      parentBorderHex === childFill &&
       !childBorder &&
       child.children.length === 0 &&
       this.isZeroPadding(child.padding)
@@ -844,6 +850,63 @@ export class DocxRenderer {
           (c.children[0].type === "paragraph" || c.children[0].type === "heading")) ||
         (c.type === "container" && !c.background && !c.border && !c.backgroundImage)
     );
+  }
+
+  private getMaxFontSize(element: DocElement): number {
+    if (element.type === "paragraph" || element.type === "heading") {
+      let maxFs = element.type === "heading" ? 16 : 0;
+      for (const run of element.runs) {
+        if (run.style?.fontSize && run.style.fontSize > maxFs) {
+          maxFs = run.style.fontSize;
+        }
+      }
+      return maxFs;
+    }
+    if (element.type === "container") {
+      let maxFs = 0;
+      for (const c of element.children) {
+        const fs = this.getMaxFontSize(c);
+        if (fs > maxFs) maxFs = fs;
+      }
+      return maxFs;
+    }
+    return 0;
+  }
+
+  private isCompactChip(element: DocElement, parentColCount = 1): boolean {
+    if (element.type !== "container") return false;
+
+    // 1. Font size check: large font buttons (Case C: >= 16px, e.g. 18px) are never compact chips
+    const maxFontSize = this.getMaxFontSize(element);
+    if (maxFontSize >= 16) {
+      return false;
+    }
+
+    const padding = element.padding;
+    const top = padding?.top ?? 0;
+    const bottom = padding?.bottom ?? 0;
+    const left = padding?.left ?? 0;
+    const right = padding?.right ?? 0;
+
+    // 2. Large padding check: CTA buttons (Case B: >= 14px vertical or >= 20px horizontal in <= 2 cols) are never compact chips
+    if (top >= 14 || bottom >= 14) {
+      return false;
+    }
+    if ((left >= 20 || right >= 20) && parentColCount <= 2) {
+      return false;
+    }
+
+    // 3. Multi-column rows (>= 3 cols, e.g. tab bars): buttons with normal font and top <= 12px are treated as compact to avoid wrapping
+    if (parentColCount >= 3 && top <= 12 && bottom <= 12) {
+      return true;
+    }
+
+    // 4. Truly compact chips / badges (Case A: top/bottom <= 8px, left/right <= 12px)
+    if (top <= 8 && bottom <= 8 && left <= 12 && right <= 12) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
