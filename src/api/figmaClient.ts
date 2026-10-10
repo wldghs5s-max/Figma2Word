@@ -4,6 +4,7 @@ import {
   FigmaGetFileOptions,
   FigmaGetNodesResponse,
   FigmaImageFillsResponse,
+  FigmaRateLimitInfo,
 } from "./types.js";
 import { FigmaFileResponse, FigmaNode } from "../parser/types.js";
 
@@ -13,12 +14,19 @@ import { FigmaFileResponse, FigmaNode } from "../parser/types.js";
 export class FigmaApiError extends Error {
   public statusCode?: number;
   public details?: unknown;
+  public rateLimitInfo?: FigmaRateLimitInfo;
 
-  constructor(message: string, statusCode?: number, details?: unknown) {
+  constructor(
+    message: string,
+    statusCode?: number,
+    details?: unknown,
+    rateLimitInfo?: FigmaRateLimitInfo
+  ) {
     super(message);
     this.name = "FigmaApiError";
     this.statusCode = statusCode;
     this.details = details;
+    this.rateLimitInfo = rateLimitInfo;
   }
 }
 
@@ -261,12 +269,57 @@ export class FigmaClient {
           404,
           errBody
         );
-      case 429:
+      case 429: {
+        let rateLimitInfo: FigmaRateLimitInfo | undefined;
+        try {
+          const retryAfterHeader = response.headers?.get("retry-after") ?? undefined;
+          const remainingHeader = response.headers?.get("x-ratelimit-remaining") ?? undefined;
+          const resetHeader = response.headers?.get("x-ratelimit-reset") ?? undefined;
+
+          let retryAfterSeconds: number | undefined;
+          if (retryAfterHeader !== undefined) {
+            const trimmed = retryAfterHeader.trim();
+            // Check if it is integer seconds
+            if (/^\d+$/.test(trimmed)) {
+              const parsedSec = parseInt(trimmed, 10);
+              if (Number.isFinite(parsedSec) && parsedSec >= 0) {
+                retryAfterSeconds = parsedSec;
+              }
+            } else {
+              // Check if it is an HTTP date string (e.g. Wed, 21 Oct 2025 07:28:00 GMT)
+              const parsedDate = Date.parse(trimmed);
+              if (!Number.isNaN(parsedDate)) {
+                const diffSec = Math.ceil((parsedDate - Date.now()) / 1000);
+                if (diffSec >= 0) {
+                  retryAfterSeconds = diffSec;
+                }
+              }
+            }
+          }
+
+          if (
+            retryAfterHeader !== undefined ||
+            remainingHeader !== undefined ||
+            resetHeader !== undefined
+          ) {
+            rateLimitInfo = {
+              retryAfterRaw: retryAfterHeader ?? undefined,
+              retryAfterSeconds,
+              rateLimitRemaining: remainingHeader ?? undefined,
+              rateLimitReset: resetHeader ?? undefined,
+            };
+          }
+        } catch {
+          // Ignore header extraction failure defensively
+        }
+
         throw new FigmaApiError(
           "Rate Limit Exceeded: Too many requests sent to Figma API. Please wait a moment and retry.",
           429,
-          errBody
+          errBody,
+          rateLimitInfo
         );
+      }
       default:
         if (status >= 500) {
           throw new FigmaApiError(

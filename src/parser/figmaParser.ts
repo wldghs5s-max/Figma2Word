@@ -8,6 +8,7 @@ import {
 import {
   InternalDocument,
   DocumentSection,
+  PageConfig,
   DocElement,
   ParagraphElement,
   HeadingElement,
@@ -95,9 +96,37 @@ export class FigmaParser {
     } else {
       // Single Frame or Root Node
       const elements = this.parseNodeToElements(rootNode);
+      let framePageConfig: PageConfig | undefined;
+
+      const box = rootNode.absoluteBoundingBox;
+      if (box && box.width >= 240 && box.height >= 450) {
+        // Mobile or single screen frame: calculate proportional page dimensions to fit content within single page
+        const marginMm = 12; // Compact margin
+        const targetWidthMm = 210; // Standard A4 width
+        const usableWidthMm = targetWidthMm - marginMm * 2; // 186mm
+        const aspectRatio = box.height / box.width;
+        // Height needed to preserve exact aspect ratio + vertical padding for UI cards/buttons
+        const proportionalHeightMm = Math.round(usableWidthMm * aspectRatio + marginMm * 2 + 60);
+        const targetHeightMm = Math.max(297, proportionalHeightMm);
+
+        framePageConfig = {
+          size: targetHeightMm > 297 ? "Custom" : "A4",
+          widthMm: targetWidthMm,
+          heightMm: targetHeightMm,
+          orientation: "portrait",
+          marginsMm: {
+            top: marginMm,
+            bottom: marginMm,
+            left: marginMm,
+            right: marginMm,
+          },
+        };
+      }
+
       sections.push({
         id: rootNode.id,
         title: rootNode.name,
+        pageConfig: framePageConfig,
         elements,
       });
     }
@@ -164,25 +193,62 @@ export class FigmaParser {
     const visibleNodes = nodes.filter((n) => n.visible !== false);
     if (visibleNodes.length === 0) return [];
 
-    // Screen Frame Candidate: FRAME or SECTION with screen-like dimensions and children
+    // Screen Frame Candidate: FRAME, SECTION, or COMPONENT with screen-like dimensions and children
     const isScreenCandidate = (node: FigmaNode): boolean => {
-      if (node.type !== "FRAME" && node.type !== "SECTION") return false;
+      if (node.type !== "FRAME" && node.type !== "SECTION" && node.type !== "COMPONENT") return false;
       const box = node.absoluteBoundingBox;
       if (!box) return false;
-      return box.width >= 240 && box.height >= 240 && !!node.children && node.children.length > 0;
+      if (!node.children || node.children.length === 0) return false;
+      if (box.width < 240 || box.height < 240) return false;
+
+      // If this container directly wraps 2 or more screen candidates,
+      // it is an Artboard Group / Flow Section, not a leaf screen!
+      const childScreens = node.children.filter((c) => isScreenCandidate(c));
+      if (childScreens.length >= 2) {
+        return false;
+      }
+
+      const aspect = box.height / box.width;
+      // Mobile screen: width 240..500, height >= 360, aspect >= 0.8
+      // Also include mobile modals/artboards (height >= 320, or aspect >= 0.7)
+      if (box.width <= 500) {
+        return box.height >= 450 || (box.height >= 320 && aspect >= 0.7);
+      }
+      // Tablet / Desktop screen: width >= 600, height >= 400
+      if (box.width >= 600 && box.height >= 400) {
+        return aspect >= 0.4 && aspect <= 2.5;
+      }
+      return box.height >= 360 && aspect >= 0.5 && aspect <= 4.0;
     };
 
-    // Canvas-level inline content check: Direct TEXT or LINE indicates a single document page flow
-    const hasCanvasLevelInlineContent = visibleNodes.some(
-      (n) => n.type === "TEXT" || n.type === "LINE"
-    );
+    // Pre-process canvas children: unwrap any artboard group / flow section containers
+    // that wrap multiple independent screens together.
+    const unwrapArtboardGroups = (nodesToProcess: FigmaNode[]): FigmaNode[] => {
+      const flattened: FigmaNode[] = [];
+      for (const node of nodesToProcess) {
+        if (node.visible === false) continue;
+        if (
+          (node.type === "FRAME" || node.type === "SECTION" || node.type === "GROUP") &&
+          node.children &&
+          node.children.length > 0
+        ) {
+          const childScreens = node.children.filter((c) => isScreenCandidate(c));
+          if (childScreens.length >= 2) {
+            flattened.push(...unwrapArtboardGroups(node.children));
+            continue;
+          }
+        }
+        flattened.push(node);
+      }
+      return flattened;
+    };
 
-    const screenCandidates = visibleNodes.filter(isScreenCandidate);
-    // A canvas-level caption must not disable isolation when the frames are
-    // side-by-side artboards. Stacked document cards still stay in one flow.
+    const unwrappedNodes = unwrapArtboardGroups(visibleNodes);
+
+    const screenCandidates = unwrappedNodes.filter(isScreenCandidate);
+    // Canvas-level titles or notes must not disable isolation when independent screen artboards are present.
     const isMultiScreen =
-      screenCandidates.length >= 2 &&
-      (!hasCanvasLevelInlineContent || this.areSideBySideArtboards(screenCandidates));
+      screenCandidates.length >= 2 && this.areIndependentArtboards(screenCandidates);
 
     if (!isMultiScreen) {
       // Single screen or normal document flow (preserves existing fixtures and single-frame behaviors)
@@ -191,7 +257,7 @@ export class FigmaParser {
 
     // --- Multi-Screen Isolation Path ---
     // Sort screen-level nodes spatially: Primarily top-to-bottom (Y), then left-to-right (X)
-    const sortedNodes = [...visibleNodes].sort((a, b) => {
+    const sortedNodes = [...unwrappedNodes].sort((a, b) => {
       const aBox = a.absoluteBoundingBox;
       const bBox = b.absoluteBoundingBox;
       if (!aBox || !bBox) return 0;
@@ -219,7 +285,7 @@ export class FigmaParser {
         result.push(...screenElements);
         previousScreenRendered = true;
       } else {
-        // Non-screen element at canvas level (e.g. background shape)
+        // Non-screen element at canvas level (e.g. background shape, canvas title text)
         const elements = this.parseNodeToElements(node);
         result.push(...elements);
       }
@@ -228,25 +294,32 @@ export class FigmaParser {
     return result;
   }
 
-  private areSideBySideArtboards(screens: FigmaNode[]): boolean {
+  private areIndependentArtboards(screens: FigmaNode[]): boolean {
     const boxes = screens
       .map((screen) => screen.absoluteBoundingBox)
       .filter((box): box is NonNullable<typeof box> => !!box);
     if (boxes.length < 2) return false;
 
-    const sorted = [...boxes].sort((a, b) => a.x - b.x);
-    let separated = 0;
-    for (let i = 0; i < sorted.length - 1; i++) {
-      const current = sorted[i];
-      const next = sorted[i + 1];
-      const overlap =
-        Math.min(current.x + current.width, next.x + next.width) - Math.max(current.x, next.x);
-      if (overlap < Math.min(current.width, next.width) * 0.5) {
-        separated++;
+    // Check 1: Horizontal distribution across multiple columns (side-by-side or 2D grid)
+    const distinctX: number[] = [];
+    for (const b of boxes) {
+      if (!distinctX.some((x) => Math.abs(x - b.x) < 60)) {
+        distinctX.push(b.x);
       }
     }
+    if (distinctX.length >= 2) {
+      return true;
+    }
 
-    return separated >= 1 && separated >= Math.ceil((sorted.length - 1) / 2);
+    // Check 2: Vertical sequence of distinct full-sized screens (storyboard in 1 column)
+    const allFullScreen = boxes.every(
+      (b) => (b.height >= 560 && b.width >= 300) || (b.height >= 450 && b.height / b.width >= 1.2)
+    );
+    if (allFullScreen) {
+      return true;
+    }
+
+    return false;
   }
 
   private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string): DocElement[] {

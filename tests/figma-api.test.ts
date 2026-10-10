@@ -199,5 +199,106 @@ describe("Figma API Integration & URL Parser Tests", () => {
         /Rate Limit Exceeded/
       );
     });
+
+    it("parses numeric Retry-After header and preserves rate limit metadata on 429", async () => {
+      const mockHeaders = new Headers({
+        "retry-after": "45",
+        "x-ratelimit-remaining": "0",
+        "x-ratelimit-reset": "1730000000",
+      });
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: mockHeaders,
+        json: async () => ({ err: "Rate limit exceeded" }),
+      } as unknown as Response);
+
+      const client = new FigmaClient({ accessToken: "valid-secret-token" });
+      try {
+        await client.fetchFile("key");
+        expect.unreachable();
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(FigmaApiError);
+        expect(err.statusCode).toBe(429);
+        expect(err.rateLimitInfo).toBeDefined();
+        expect(err.rateLimitInfo?.retryAfterRaw).toBe("45");
+        expect(err.rateLimitInfo?.retryAfterSeconds).toBe(45);
+        expect(err.rateLimitInfo?.rateLimitRemaining).toBe("0");
+        expect(err.rateLimitInfo?.rateLimitReset).toBe("1730000000");
+
+        // Verify secret token is not leaked into message, string, or details
+        expect(err.message).not.toContain("valid-secret-token");
+        expect(JSON.stringify(err.details)).not.toContain("valid-secret-token");
+        expect(JSON.stringify(err.rateLimitInfo)).not.toContain("valid-secret-token");
+      }
+    });
+
+    it("handles 429 gracefully when rate limit headers are missing", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: new Headers(),
+        json: async () => ({ err: "Too many requests" }),
+      } as unknown as Response);
+
+      const client = new FigmaClient({ accessToken: "secret-token" });
+      try {
+        await client.fetchFile("key");
+        expect.unreachable();
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(FigmaApiError);
+        expect(err.statusCode).toBe(429);
+        expect(err.rateLimitInfo).toBeUndefined();
+        expect(err.message).toMatch(/Rate Limit Exceeded/);
+      }
+    });
+
+    it("handles 429 gracefully when Retry-After is malformed or invalid", async () => {
+      const mockHeaders = new Headers({
+        "retry-after": "invalid-value-neither-int-nor-date",
+      });
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: mockHeaders,
+        json: async () => ({ err: "Too many requests" }),
+      } as unknown as Response);
+
+      const client = new FigmaClient({ accessToken: "secret-token" });
+      try {
+        await client.fetchFile("key");
+        expect.unreachable();
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(FigmaApiError);
+        expect(err.statusCode).toBe(429);
+        expect(err.rateLimitInfo?.retryAfterRaw).toBe("invalid-value-neither-int-nor-date");
+        expect(err.rateLimitInfo?.retryAfterSeconds).toBeUndefined();
+      }
+    });
+
+    it("does not attach rateLimitInfo to non-429 errors", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        headers: new Headers({ "retry-after": "10" }),
+        json: async () => ({ err: "Internal server error" }),
+      } as unknown as Response);
+
+      const client = new FigmaClient({ accessToken: "secret-token" });
+      try {
+        await client.fetchFile("key");
+        expect.unreachable();
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(FigmaApiError);
+        expect(err.statusCode).toBe(500);
+        expect(err.rateLimitInfo).toBeUndefined();
+      }
+    });
   });
 });

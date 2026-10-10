@@ -212,4 +212,167 @@ describe("STEP 1: CANVAS Multi-Screen Isolation & Page Breaks", () => {
     expect(pbIndex).toBeGreaterThan(0);
     expect(pbIndex).toBeLessThan(elements.length - 1);
   });
+
+  // Test E: 2D Grid Artboards with Canvas Title (Storyboard / Multi-Row Flow)
+  it("Test E: isolates 2D grid of screen frames with canvas title without collapsing into row columns", () => {
+    const gridCanvas: FigmaNode = {
+      id: "canvas-grid",
+      name: "Storyboard 2D Grid",
+      type: "CANVAS",
+      children: [
+        {
+          id: "canvas-title",
+          name: "Flow Title",
+          type: "TEXT",
+          characters: "모바일 서비스 전체 플로우 (2D 그리드)",
+          absoluteBoundingBox: { x: 0, y: -100, width: 500, height: 40 },
+          style: { fontSize: 24, fontWeight: "bold" },
+        },
+        // Row 1
+        {
+          id: "grid-s1",
+          name: "Screen 1",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 0, y: 0, width: 375, height: 812 },
+          children: [{ id: "t-s1", name: "T1", type: "TEXT", characters: "화면 1" }],
+        },
+        {
+          id: "grid-s2",
+          name: "Screen 2",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 450, y: 0, width: 375, height: 812 },
+          children: [{ id: "t-s2", name: "T2", type: "TEXT", characters: "화면 2" }],
+        },
+        {
+          id: "grid-s3",
+          name: "Screen 3",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 900, y: 0, width: 375, height: 812 },
+          children: [{ id: "t-s3", name: "T3", type: "TEXT", characters: "화면 3" }],
+        },
+        // Row 2
+        {
+          id: "grid-s4",
+          name: "Screen 4",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 0, y: 950, width: 375, height: 812 },
+          children: [{ id: "t-s4", name: "T4", type: "TEXT", characters: "화면 4" }],
+        },
+        {
+          id: "grid-s5",
+          name: "Screen 5",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 450, y: 950, width: 375, height: 812 },
+          children: [{ id: "t-s5", name: "T5", type: "TEXT", characters: "화면 5" }],
+        },
+        {
+          id: "grid-s6",
+          name: "Screen 6",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 900, y: 950, width: 375, height: 812 },
+          children: [{ id: "t-s6", name: "T6", type: "TEXT", characters: "화면 6" }],
+        },
+      ],
+    };
+
+    const parseResult = parser.parse(gridCanvas);
+    const elements = parseResult.document.sections[0].elements;
+
+    // Verify canvas title heading is preserved
+    expect(elements[0].type).toBe("heading");
+
+    // Verify 6 screens separated by 5 PageBreaks
+    const pbElements = elements.filter((e) => e.type === "page_break");
+    expect(pbElements).toHaveLength(5);
+
+    const screenContainers = elements.filter((e) => e.type === "container");
+    expect(screenContainers).toHaveLength(6);
+
+    // Verify none of the screens were grouped into a multi-column row cluster
+    for (const c of screenContainers as any[]) {
+      expect(c.layoutDirection).not.toBe("horizontal");
+      expect(c.columnWidths).toBeUndefined();
+    }
+  });
+
+  // Test F: E2E DOCX OpenXML generation for 2D Grid
+  it("Test F: generates valid DOCX with native PageBreaks and no multi-column screen tables", async () => {
+    const gridCanvas: FigmaNode = {
+      id: "canvas-grid-e2e",
+      name: "E2E Grid Canvas",
+      type: "CANVAS",
+      children: [
+        {
+          id: "e2e-title",
+          name: "Doc Title",
+          type: "TEXT",
+          characters: "E2E 검증 플로우",
+          absoluteBoundingBox: { x: 0, y: -50, width: 400, height: 30 },
+          style: { fontSize: 20 },
+        },
+        {
+          id: "e2e-s1",
+          name: "Screen 1",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 0, y: 0, width: 375, height: 812 },
+          fills: [{ type: "SOLID", color: { r: 0.95, g: 0.95, b: 0.95 } }],
+          children: [
+            { id: "e2e-t1-h", name: "H1", type: "TEXT", characters: "스크린 1 헤더" },
+            { id: "e2e-t1-p", name: "P1", type: "TEXT", characters: "스크린 1 본문" },
+          ],
+        },
+        {
+          id: "e2e-s2",
+          name: "Screen 2",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 450, y: 0, width: 375, height: 812 },
+          fills: [{ type: "SOLID", color: { r: 0.95, g: 0.95, b: 0.95 } }],
+          children: [
+            { id: "e2e-t2-h", name: "H2", type: "TEXT", characters: "스크린 2 헤더" },
+            { id: "e2e-t2-p", name: "P2", type: "TEXT", characters: "스크린 2 본문" },
+          ],
+        },
+      ],
+    };
+
+    const res = await pipeline.convert(gridCanvas);
+    expect(res.docxBuffer).toBeInstanceOf(Buffer);
+
+    // Verify OpenXML
+    const { inflateRawSync } = await import("node:zlib");
+    const buffer = res.docxBuffer;
+    let offset = 0;
+    let xml = "";
+    while (offset + 30 <= buffer.length) {
+      if (buffer.readUInt32LE(offset) !== 0x04034b50) break;
+      const flags = buffer.readUInt16LE(offset + 6);
+      const method = buffer.readUInt16LE(offset + 8);
+      let compSize = buffer.readUInt32LE(offset + 18);
+      const nameLength = buffer.readUInt16LE(offset + 26);
+      const extraLength = buffer.readUInt16LE(offset + 28);
+      const name = buffer.subarray(offset + 30, offset + 30 + nameLength).toString("utf8");
+      const dataStart = offset + 30 + nameLength + extraLength;
+      if (flags & 0x8) {
+        const nextHeader = buffer.indexOf(Buffer.from([0x50, 0x4b]), dataStart + 4);
+        compSize = (nextHeader === -1 ? buffer.length : nextHeader) - dataStart;
+      }
+      const compressed = buffer.subarray(dataStart, dataStart + compSize);
+      if (name === "word/document.xml") {
+        const bytes = method === 0 ? compressed : inflateRawSync(compressed);
+        xml = bytes.toString("utf8");
+        break;
+      }
+      offset = dataStart + compSize;
+      if (flags & 0x8) offset += 16;
+    }
+
+    expect(xml).toContain('<w:br w:type="page"/>');
+    expect(xml).toContain("스크린 1 헤더");
+    expect(xml).toContain("스크린 2 헤더");
+
+    // Verify that neither screen is squeezed into a multi-column row table
+    // (A multi-column table would have multiple w:tc per w:tr at the root)
+    const rootTblMatches = xml.match(/<w:tbl[\s>]/g) || [];
+    expect(rootTblMatches.length).toBe(2);
+  });
 });

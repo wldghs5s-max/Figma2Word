@@ -40,3 +40,10 @@ export interface FigmaImageFillsResponse {
   };
   images?: Record<string, string>;
 }
+
+export interface FigmaRateLimitInfo {
+  retryAfterRaw?: string;
+  retryAfterSeconds?: number;
+  rateLimitRemaining?: string;
+  rateLimitReset?: string;
+}

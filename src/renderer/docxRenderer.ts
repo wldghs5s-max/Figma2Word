@@ -142,19 +142,30 @@ export class DocxRenderer {
     const sections = (doc.sections.length > 0 ? doc.sections : [{ elements: [] }]).map(
       (sec, idx) => {
         const children = this.renderElements(sec.elements);
+        const secPageConfig = sec.pageConfig || pageConfig;
+
+        const secMargins = {
+          top: mmToDxa(secPageConfig?.marginsMm?.top ?? 25.4),
+          right: mmToDxa(secPageConfig?.marginsMm?.right ?? 25.4),
+          bottom: mmToDxa(secPageConfig?.marginsMm?.bottom ?? 25.4),
+          left: mmToDxa(secPageConfig?.marginsMm?.left ?? 25.4),
+        };
+
+        const secWidthDxa = mmToDxa(secPageConfig?.widthMm ?? 210);
+        const secHeightDxa = mmToDxa(secPageConfig?.heightMm ?? 297);
 
         return {
           properties: {
             page: {
               size: {
-                width: pageConfig.orientation === "landscape" ? heightDxa : widthDxa,
-                height: pageConfig.orientation === "landscape" ? widthDxa : heightDxa,
+                width: secPageConfig.orientation === "landscape" ? secHeightDxa : secWidthDxa,
+                height: secPageConfig.orientation === "landscape" ? secWidthDxa : secHeightDxa,
                 orientation:
-                  pageConfig.orientation === "landscape"
+                  secPageConfig.orientation === "landscape"
                     ? ("landscape" as const)
                     : ("portrait" as const),
               },
-              margin: margins,
+              margin: secMargins,
             },
           },
           headers: docxHeader ? { default: docxHeader } : undefined,
@@ -273,7 +284,12 @@ export class DocxRenderer {
         after: (elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(3)) + (pad?.bottom ?? 0),
         line: ptToDxa(14),
       },
-      indent: pad ? { left: pad.left, right: pad.right } : undefined,
+      indent: pad
+        ? {
+            left: Math.min(pad.left, ptToDxa(4)),
+            right: Math.min(pad.right, ptToDxa(4)),
+          }
+        : undefined,
       border: this.chromeBorder(chrome?.border),
       shading: this.chromeShading(chrome?.fill),
       children: runs,
@@ -482,32 +498,89 @@ export class DocxRenderer {
     });
   }
 
-  private renderContainer(elem: ContainerElement): Paragraph | (Paragraph | Table)[] | Table {
+  private renderContainer(elem: ContainerElement): Paragraph | (Paragraph | Table)[] | Table | null {
     const body = this.renderContainerBody(elem);
     if (!elem.backgroundImage) return body;
 
     const image = this.renderImage(elem.backgroundImage);
+    if (!body) return image;
     if (Array.isArray(body)) {
       return body.length > 0 ? [image, ...body] : [image];
     }
     return [image, body];
   }
 
-  private renderContainerBody(elem: ContainerElement): Paragraph | (Paragraph | Table)[] | Table {
+  private isEmptyDecorative(element: DocElement): boolean {
+    if (element.type === "shape") {
+      return !element.content || element.content.length === 0;
+    }
+    if (element.type === "container") {
+      if (element.backgroundImage) return false;
+      if (!element.children || element.children.length === 0) return true;
+      return element.children.every((child) => this.isEmptyDecorative(child));
+    }
+    return false;
+  }
+
+  private extractBadgeTextLeaf(elem: ContainerElement): ParagraphElement | HeadingElement | null {
+    if (!elem.children || elem.children.length === 0) return null;
+    if (elem.children.length === 1) {
+      return this.singleTextLeaf(elem.children[0]);
+    }
+    if (elem.layoutDirection === "horizontal" && elem.columnWidths && elem.columnWidths.length > 1) {
+      return null;
+    }
+    const nonDecorative = elem.children.filter((c) => !this.isEmptyDecorative(c));
+    if (nonDecorative.length === 1 && (nonDecorative[0].type === "paragraph" || nonDecorative[0].type === "heading")) {
+      return nonDecorative[0];
+    }
+    return null;
+  }
+
+  private renderContainerBody(elem: ContainerElement): Paragraph | (Paragraph | Table)[] | Table | null {
+    // A single text chip/button keeps its fill and border on the paragraph.
+    // Also covers badges where a single text element is flanked by decorative empty shapes.
+    if ((elem.background || elem.border) && !elem.backgroundImage && elem.children.length >= 1) {
+      const textLeaf = this.extractBadgeTextLeaf(elem);
+      if (textLeaf) {
+        const chrome = { fill: elem.background, border: elem.border, padding: elem.padding };
+        return textLeaf.type === "heading"
+          ? this.renderHeading(textLeaf, chrome)
+          : this.renderParagraph(textLeaf, chrome);
+      }
+    }
+
     // If container has horizontal layout, render as a 1-row multi-column Table
     if (elem.layoutDirection === "horizontal" && elem.children.length > 1) {
       const defaultColWidth = Math.floor(100 / elem.children.length);
       const cells = elem.children.map((child, idx) => {
         const colWidthPercent = elem.columnWidths?.[idx] ?? defaultColWidth;
-        const rendered = this.renderElement(child);
-        const children: (Paragraph | Table)[] = Array.isArray(rendered)
-          ? rendered
-          : (rendered ? [rendered] : [new Paragraph({ text: "" })]);
+        const isChip = this.isCompactChipOrButton(child);
+        const childContainer = isChip ? (child as ContainerElement) : null;
 
-        const borderDef = toDocxBorder(elem.border);
-        const hexBg = colorToHex(elem.background);
-        const pad = spacingToCellMargin(elem.padding) ?? { top: 0, bottom: 0, left: 0, right: 0 };
+        const borderDef = toDocxBorder(childContainer?.border ?? elem.border);
+        const hexBg = colorToHex(childContainer?.background ?? elem.background);
+        const childPad = spacingToCellMargin(childContainer?.padding);
+        const pad = childPad
+          ? {
+              top: Math.min(childPad.top, ptToDxa(4)),
+              bottom: Math.min(childPad.bottom, ptToDxa(4)),
+              left: Math.min(childPad.left, ptToDxa(3)),
+              right: Math.min(childPad.right, ptToDxa(3)),
+            }
+          : (spacingToCellMargin(elem.padding) ?? { top: 0, bottom: 0, left: 0, right: 0 });
+
         const halfGap = elem.gap > 0 ? ptToDxa(pxToPt(elem.gap) / 2) : 0;
+
+        let children: (Paragraph | Table)[];
+        if (childContainer) {
+          children = this.renderSequence(childContainer.children, childContainer.gap);
+        } else {
+          const rendered = this.renderElement(child);
+          children = Array.isArray(rendered)
+            ? rendered
+            : (rendered ? [rendered] : [new Paragraph({ text: "" })]);
+        }
 
         return new TableCell({
           width: {
@@ -552,23 +625,14 @@ export class DocxRenderer {
         },
         rows: [
           new TableRow({
+            cantSplit: true,
             children: cells,
           }),
         ],
       });
     }
 
-    // A single text chip/button keeps its fill and border on the paragraph.
-    // A surrounding table cell already provides the position, so another 1x1 table is not required.
     if ((elem.background || elem.border) && !elem.backgroundImage && elem.children.length === 1) {
-      const textLeaf = this.singleTextLeaf(elem.children[0]);
-      if (textLeaf) {
-        const chrome = { fill: elem.background, border: elem.border, padding: elem.padding };
-        return textLeaf.type === "heading"
-          ? this.renderHeading(textLeaf, chrome)
-          : this.renderParagraph(textLeaf, chrome);
-      }
-
       const safeWrapper = this.renderSafeIdenticalWrapper(elem);
       if (safeWrapper) return safeWrapper;
 
@@ -581,6 +645,14 @@ export class DocxRenderer {
       const hexBg = colorToHex(elem.background);
       const borderDef = toDocxBorder(elem.border);
       const children = this.renderSequence(elem.children, elem.gap);
+
+      if (children.length === 0) {
+        const borderHex = colorToHex(elem.border?.color);
+        const fillHex = colorToHex(elem.background);
+        if (borderHex !== "A1B0BF" && fillHex !== "A1B0BF") {
+          return null;
+        }
+      }
 
       return new Table({
         width: {
@@ -645,7 +717,16 @@ export class DocxRenderer {
     const parentBorder = this.hasVisibleBorder(parent.border);
     const childBorder = this.hasVisibleBorder(child.border);
 
-    // SAFE-A: white parent with no border and no padding around a white child that already has its own border.
+    // SAFE-A: parent with no border and no padding around a child that has the same background fill or white fill with border.
+    if (
+      parentFill &&
+      childFill &&
+      parentFill === childFill &&
+      !parentBorder
+    ) {
+      return this.renderElement(child);
+    }
+
     if (
       parentFill === "FFFFFF" &&
       !parentBorder &&
@@ -743,6 +824,26 @@ export class DocxRenderer {
       );
     }
     return false;
+  }
+
+  private isCompactChipOrButton(child: DocElement): boolean {
+    if (child.type !== "container") return false;
+    if (child.backgroundImage) return false;
+    if (!child.background && !child.border) return false;
+    if (!child.children || child.children.length === 0) return false;
+    const meaningful = child.children.filter((c) => !this.isEmptyDecorative(c));
+    if (meaningful.length === 0) return false;
+    return meaningful.every(
+      (c) =>
+        c.type === "paragraph" ||
+        c.type === "heading" ||
+        c.type === "line" ||
+        this.singleTextLeaf(c) !== null ||
+        (c.type === "container" &&
+          c.children.length === 1 &&
+          (c.children[0].type === "paragraph" || c.children[0].type === "heading")) ||
+        (c.type === "container" && !c.background && !c.border && !c.backgroundImage)
+    );
   }
 
   /**

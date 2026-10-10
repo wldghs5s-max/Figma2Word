@@ -11,6 +11,9 @@ out/
 # Output generated docx files (keep test fixtures, ignore dynamic outputs)
 output/
 temp/
+debug/
+scratch/
+word/
 
 # Environment variables & secrets
 .env

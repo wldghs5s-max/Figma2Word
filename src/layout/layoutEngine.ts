@@ -331,9 +331,18 @@ export class LayoutEngine {
     const cBox = candidate.absoluteBoundingBox;
     if (!cBox) return false;
 
+    // Defensive Guard: Independent full-sized screens (e.g. mobile/desktop artboards)
+    // must never be clustered into a single horizontal row table.
+    if (cBox.width >= 240 && cBox.height >= 450) {
+      return false;
+    }
+
     for (const member of cluster) {
       const mBox = member.absoluteBoundingBox;
       if (!mBox) return false;
+      if (mBox.width >= 240 && mBox.height >= 450) {
+        return false;
+      }
 
       // Check vertical proximity / overlap
       const yDiff = Math.abs(mBox.y - cBox.y);

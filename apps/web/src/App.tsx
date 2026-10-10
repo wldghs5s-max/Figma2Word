@@ -142,7 +142,18 @@ export function App() {
       setStatus('변환 완료');
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Figma 데이터 변환 중 오류가 발생했습니다.');
+      if (err instanceof FigmaApiError && err.statusCode === 429) {
+        const sec = err.rateLimitInfo?.retryAfterSeconds;
+        if (typeof sec === 'number' && sec > 0) {
+          setErrorMsg(`Figma API 요청 한도(Rate Limit)에 도달했습니다. 약 ${sec}초 후에 다시 시도해 주세요.`);
+        } else if (err.rateLimitInfo?.retryAfterRaw) {
+          setErrorMsg(`Figma API 요청 한도(Rate Limit)에 도달했습니다. 안내된 대기 시간(${err.rateLimitInfo.retryAfterRaw}) 후에 다시 시도해 주세요.`);
+        } else {
+          setErrorMsg('Figma API 요청 한도(Rate Limit)에 도달했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+      } else {
+        setErrorMsg(err.message || 'Figma 데이터 변환 중 오류가 발생했습니다.');
+      }
       setStatus('오류 발생');
     } finally {
       setIsLoading(false);
