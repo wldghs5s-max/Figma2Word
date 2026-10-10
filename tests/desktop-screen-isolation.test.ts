@@ -129,6 +129,164 @@ describe("Step 2-C: Desktop Screen Separation False Positive Diagnostic", () => 
       // No PageBreaks inserted! Continuous document flow!
       expect(pageBreaks.length).toBe(0);
     });
+
+    // A-3: Finding 1 verification - Desktop landing page (1440x2500) containing a feature section (1440x900)
+    // with two side-by-side 375x812 mobile app mockups
+    it("Scenario A-3: desktop page (1440x2500) with two nested 375x812 mobile mockups inside a 1440x900 feature section does not split into separate pages", () => {
+      const desktopPageWithMockupsCanvas: FigmaNode = {
+        id: "canvas-desktop-mockups",
+        name: "Desktop with Nested Mockups Canvas",
+        type: "CANVAS",
+        children: [
+          {
+            id: "frame-landing-page",
+            name: "Landing Page Container",
+            type: "FRAME",
+            absoluteBoundingBox: { x: 0, y: 0, width: 1440, height: 2500 },
+            children: [
+              {
+                id: "sec-hero",
+                name: "Hero Section",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 0, width: 1440, height: 700 },
+                children: [
+                  {
+                    id: "text-hero-title",
+                    name: "Hero Title",
+                    type: "TEXT",
+                    characters: "모바일 앱 출시 안내",
+                    style: { fontSize: 36 },
+                  },
+                ],
+              },
+              {
+                id: "sec-features-with-mockups",
+                name: "Features Section with Mockups",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 700, width: 1440, height: 900 },
+                children: [
+                  {
+                    id: "text-features-heading",
+                    name: "Heading",
+                    type: "TEXT",
+                    characters: "iOS 및 Android 전용 앱 다운로드",
+                    style: { fontSize: 24 },
+                  },
+                  // Nested Mockup 1: iOS Screen (375x812)
+                  {
+                    id: "mockup-ios",
+                    name: "iOS App Preview",
+                    type: "FRAME",
+                    absoluteBoundingBox: { x: 200, y: 760, width: 375, height: 812 },
+                    children: [
+                      {
+                        id: "ios-title",
+                        name: "Screen Title",
+                        type: "TEXT",
+                        characters: "간편 송금 화면",
+                        style: { fontSize: 18 },
+                      },
+                    ],
+                  },
+                  // Nested Mockup 2: Android Screen (375x812)
+                  {
+                    id: "mockup-android",
+                    name: "Android App Preview",
+                    type: "FRAME",
+                    absoluteBoundingBox: { x: 650, y: 760, width: 375, height: 812 },
+                    children: [
+                      {
+                        id: "android-title",
+                        name: "Screen Title",
+                        type: "TEXT",
+                        characters: "자산 관리 화면",
+                        style: { fontSize: 18 },
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                id: "sec-pricing",
+                name: "Pricing Section",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 1600, width: 1440, height: 900 },
+                children: [
+                  {
+                    id: "text-pricing-title",
+                    name: "Pricing Title",
+                    type: "TEXT",
+                    characters: "요금제 안내",
+                    style: { fontSize: 24 },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parser.parse(desktopPageWithMockupsCanvas);
+      const elements = result.document.sections[0].elements;
+      const pageBreaks = elements.filter((e) => e.type === "page_break");
+
+      // Finding 1 Verification:
+      // In a real desktop page (1440x2500), the page container itself is preserved intact.
+      // The nested 375x812 mobile mockups inside the 1440x900 feature section must NOT cause
+      // the desktop page to be split into multiple Word pages.
+      expect(pageBreaks.length).toBe(0);
+      expect(elements.length).toBe(1);
+    });
+
+    // A-4: Edge Case Analysis - What if a 1440x900 feature section with 2 mockups is placed DIRECTLY on CANVAS?
+    it("Scenario A-4: observes behavior when a 1440x900 feature section with two mockups is placed directly on CANVAS", () => {
+      const canvasLevelFeatureSectionCanvas: FigmaNode = {
+        id: "canvas-section-level-mockups",
+        name: "Canvas Level Section with Mockups",
+        type: "CANVAS",
+        children: [
+          {
+            id: "sec-features-direct-on-canvas",
+            name: "Direct Canvas Features Section",
+            type: "FRAME",
+            absoluteBoundingBox: { x: 0, y: 0, width: 1440, height: 900 },
+            children: [
+              {
+                id: "sec-title",
+                name: "Title",
+                type: "TEXT",
+                characters: "앱 다운로드",
+                style: { fontSize: 24 },
+              },
+              {
+                id: "direct-mockup-ios",
+                name: "iOS Mockup",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 200, y: 50, width: 375, height: 812 },
+                children: [{ id: "t1", name: "T", type: "TEXT", characters: "iOS" }],
+              },
+              {
+                id: "direct-mockup-android",
+                name: "Android Mockup",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 650, y: 50, width: 375, height: 812 },
+                children: [{ id: "t2", name: "T", type: "TEXT", characters: "Android" }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parser.parse(canvasLevelFeatureSectionCanvas);
+      const elements = result.document.sections[0].elements;
+      const pageBreaks = elements.filter((e) => e.type === "page_break");
+
+      // When a 1440x900 feature section with 2 full-sized mobile mockups (375x812) is placed DIRECTLY on CANVAS:
+      // Since it is top-level (not wrapped in a desktop page container), unwrapArtboardGroups unwraps it
+      // into the two mockups, treating them like a canvas-level artboard group (Screen 36 pattern), inserting 1 page break.
+      expect(pageBreaks.length).toBe(1);
+      expect(elements.length).toBe(4); // [Title text, Mockup 1 Container, PageBreak, Mockup 2 Container]
+    });
   });
 
   // Scenario B: 가격 비교 또는 기능 비교 섹션 (Comparison section)
