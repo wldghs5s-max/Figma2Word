@@ -194,16 +194,25 @@ export class FigmaParser {
     if (visibleNodes.length === 0) return [];
 
     // Screen Frame Candidate: FRAME, SECTION, or COMPONENT with screen-like dimensions and children
-    const isScreenCandidate = (node: FigmaNode): boolean => {
+    const isScreenCandidate = (node: FigmaNode, parent?: FigmaNode): boolean => {
       if (node.type !== "FRAME" && node.type !== "SECTION" && node.type !== "COMPONENT") return false;
       const box = node.absoluteBoundingBox;
       if (!box) return false;
       if (!node.children || node.children.length === 0) return false;
       if (box.width < 240 || box.height < 240) return false;
 
+      // If parent is a desktop/tablet page or container, a child that spans >= 85% of parent's width
+      // is a horizontal content section/slice (e.g. Hero, Features, Pricing), not an independent screen!
+      if (parent && parent.absoluteBoundingBox) {
+        const pBox = parent.absoluteBoundingBox;
+        if (pBox.width >= 600 && box.width >= pBox.width * 0.85) {
+          return false;
+        }
+      }
+
       // If this container directly wraps 2 or more screen candidates,
       // it is an Artboard Group / Flow Section, not a leaf screen!
-      const childScreens = node.children.filter((c) => isScreenCandidate(c));
+      const childScreens = node.children.filter((c) => isScreenCandidate(c, node));
       if (childScreens.length >= 2) {
         return false;
       }
@@ -232,10 +241,34 @@ export class FigmaParser {
           node.children &&
           node.children.length > 0
         ) {
-          const childScreens = node.children.filter((c) => isScreenCandidate(c));
+          const childScreens = node.children.filter((c) => isScreenCandidate(c, node));
           if (childScreens.length >= 2) {
-            flattened.push(...unwrapArtboardGroups(node.children));
-            continue;
+            // Guard 1: Do NOT unwrap a continuous vertical page where children are full-width stacked sections
+            const isVerticalPageSections =
+              node.type !== "SECTION" &&
+              node.children.length >= 2 &&
+              node.children.every((c) => {
+                const cBox = c.absoluteBoundingBox;
+                const nBox = node.absoluteBoundingBox;
+                return cBox && nBox && cBox.width >= nBox.width * 0.85;
+              });
+
+            // Guard 2: An Artboard Group must contain at least one full-sized screen.
+            // Content rows containing only medium cards (e.g. 360x400 pricing cards) must stay intact.
+            const hasFullScreenChild = childScreens.some((c) => {
+              const b = c.absoluteBoundingBox;
+              if (!b) return false;
+              return (
+                (b.height >= 560 && b.width >= 280) ||
+                (b.height >= 450 && b.height / b.width >= 1.2) ||
+                (b.width >= 600 && b.height >= 500)
+              );
+            });
+
+            if (!isVerticalPageSections && hasFullScreenChild) {
+              flattened.push(...unwrapArtboardGroups(node.children));
+              continue;
+            }
           }
         }
         flattened.push(node);
@@ -245,7 +278,7 @@ export class FigmaParser {
 
     const unwrappedNodes = unwrapArtboardGroups(visibleNodes);
 
-    const screenCandidates = unwrappedNodes.filter(isScreenCandidate);
+    const screenCandidates = unwrappedNodes.filter((n) => isScreenCandidate(n));
     // Canvas-level titles or notes must not disable isolation when independent screen artboards are present.
     const isMultiScreen =
       screenCandidates.length >= 2 && this.areIndependentArtboards(screenCandidates);
@@ -308,7 +341,17 @@ export class FigmaParser {
       }
     }
     if (distinctX.length >= 2) {
-      return true;
+      // Must contain at least one full-sized screen or screen-proportioned frame
+      // (prevents small/medium content cards side-by-side from being mistaken for screens)
+      const hasRealScreen = boxes.some(
+        (b) =>
+          (b.height >= 560 && b.width >= 280) ||
+          (b.height >= 450 && b.height / b.width >= 1.2) ||
+          (b.width >= 600 && b.height >= 500)
+      );
+      if (hasRealScreen) {
+        return true;
+      }
     }
 
     // Check 2: Vertical sequence of distinct full-sized screens (storyboard in 1 column)
