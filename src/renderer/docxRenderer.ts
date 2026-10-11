@@ -386,7 +386,7 @@ export class DocxRenderer {
 
   private renderTable(elem: TableElement): Table {
     const rows = elem.rows.map((r) => {
-      const cells = r.cells.map((c) => {
+      const cells = r.cells.map((c, colIdx) => {
         const cellChildren = this.renderElements(c.children);
 
         const borderDef = c.border ? toDocxBorder(c.border) : toDocxBorder(elem.borders);
@@ -398,8 +398,15 @@ export class DocxRenderer {
         };
 
         const hexBg = colorToHex(c.background);
+        const colWidthPercent = c.width ?? elem.columnWidths?.[colIdx];
 
         return new TableCell({
+          width: colWidthPercent
+            ? {
+                size: colWidthPercent,
+                type: WidthType.PERCENTAGE,
+              }
+            : undefined,
           columnSpan: c.colSpan,
           rowSpan: c.rowSpan,
           borders,

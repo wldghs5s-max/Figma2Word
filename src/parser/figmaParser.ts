@@ -17,6 +17,9 @@ import {
   LineElement,
   ShapeElement,
   ContainerElement,
+  TableElement,
+  TableRow,
+  TableCell,
   Color,
   TextStyle,
   Alignment,
@@ -416,6 +419,8 @@ export class FigmaParser {
       case "INSTANCE": {
         const clustered = this.tryGeometryCluster(node);
         if (clustered) return [clustered];
+        const table = this.tryDataTable(node);
+        if (table) return [table];
         return [this.parseContainer(node)];
       }
 
@@ -669,6 +674,284 @@ export class FigmaParser {
     return this.figmaColorToColor({ r: r / 255, g: g / 255, b: b / 255 }, a);
   }
 
+  /**
+   * Step 11A: Detects a logical multi-row x multi-column data table in the Figma AST
+   * and maps it to a single native Word TableElement instead of fragmented 1-row tables.
+   */
+  private tryDataTable(node: FigmaNode): TableElement | null {
+    if (node.id.startsWith("row-cluster-") || node.id.startsWith("bento-col-")) return null;
+    if (node.type === "SECTION" || node.type === "CANVAS" || node.type === "DOCUMENT") return null;
+
+    const visibleRows = (node.children || []).filter((c) => c.visible !== false);
+    if (visibleRows.length < 2) return null;
+
+    const isVertical =
+      node.layoutMode === "VERTICAL" ||
+      (node.layoutMode !== "HORIZONTAL" && this.isVerticalStack(visibleRows));
+    if (!isVertical) return null;
+
+    const CONTAINER_TYPES = new Set(["FRAME", "GROUP", "INSTANCE", "COMPONENT"]);
+    const firstRowCells = (visibleRows[0].children || []).filter((c) => c.visible !== false);
+    const colCount = firstRowCells.length;
+    if (colCount < 2) return null;
+
+    const parsedRows: { rowNode: FigmaNode; cellNodes: FigmaNode[] }[] = [];
+    for (const row of visibleRows) {
+      if (!CONTAINER_TYPES.has(row.type)) return null;
+      const cells = (row.children || []).filter((c) => c.visible !== false);
+      if (cells.length !== colCount) return null; // Uniform column count required
+
+      // A row must be horizontally oriented (Auto Layout HORIZONTAL or cells ordered on X axis)
+      const isHorizontal =
+        row.layoutMode === "HORIZONTAL" ||
+        (row.layoutMode !== "VERTICAL" && this.isHorizontalRow(cells));
+      if (!isHorizontal) return null;
+
+      // A row's bounding box (if present) should be wider than it is tall
+      const rBox = row.absoluteBoundingBox;
+      if (rBox && rBox.height > rBox.width * 1.5) {
+        return null; // Tall vertical card, not a table row
+      }
+
+      parsedRows.push({ rowNode: row, cellNodes: cells });
+    }
+
+    // Step 11B: Card Grid False-Positive Guard
+    // Genuine data tables have compact rows (<= 100px) and minimal row spacing.
+    // Rich comparison cards and KPI dashboards must remain containers.
+    if (this.isCardGrid(node, parsedRows)) {
+      return null;
+    }
+
+    // Grid Alignment & Column Width calculation
+    const colWidths0 = firstRowCells.map((c) => c.absoluteBoundingBox?.width ?? 0);
+    const row0Width = colWidths0.reduce((sum, w) => sum + w, 0);
+    let colPercentages: number[] = [];
+
+    if (row0Width > 0 && colWidths0.every((w) => w > 0)) {
+      colPercentages = colWidths0.map((w) => Math.max(1, Math.round((w / row0Width) * 100)));
+      const sumP = colPercentages.reduce((a, b) => a + b, 0);
+      if (sumP !== 100 && colPercentages.length > 0) {
+        colPercentages[colPercentages.length - 1] += 100 - sumP;
+      }
+
+      // Check column width consistency across rows (tolerance check: 0.65 ~ 1.5)
+      for (let i = 1; i < parsedRows.length; i++) {
+        const rowCells = parsedRows[i].cellNodes;
+        for (let j = 0; j < colCount; j++) {
+          const w = rowCells[j].absoluteBoundingBox?.width ?? 0;
+          const w0 = colWidths0[j];
+          if (w0 > 0 && w > 0) {
+            const ratio = w / w0;
+            if (ratio < 0.65 || ratio > 1.5) {
+              return null; // Width pattern mismatch -> not a regular data table
+            }
+          }
+        }
+      }
+    } else {
+      const defaultCol = Math.floor(100 / colCount);
+      colPercentages = Array(colCount).fill(defaultCol);
+      colPercentages[colCount - 1] = 100 - defaultCol * (colCount - 1);
+    }
+
+    // Text density check: at least 35% of cells must contain text
+    let textCellCount = 0;
+    for (const r of parsedRows) {
+      for (const c of r.cellNodes) {
+        if (this.nodeHasText(c)) textCellCount++;
+      }
+    }
+    const totalCells = parsedRows.length * colCount;
+    if (textCellCount / totalCells < 0.35) {
+      return null;
+    }
+
+    // Header row detection
+    const isHeaderRow = (rowNode: FigmaNode, rowIndex: number): boolean => {
+      if (rowIndex !== 0) return false;
+      const name = (rowNode.name || "").toLowerCase();
+      if (name.includes("head") || name.includes("th")) return true;
+      const headFill = this.extractShapeFill(rowNode.fills);
+      const row1Fill = this.extractShapeFill(parsedRows[1]?.rowNode.fills);
+      if (headFill && (!row1Fill || headFill.hex !== row1Fill.hex)) return true;
+      const t0 = this.findTextNodes(rowNode);
+      const t1 = this.findTextNodes(parsedRows[1]?.rowNode);
+      const isBold0 = t0.some((t) => {
+        const w = t.style?.fontWeight;
+        return w === "bold" || (typeof w === "number" && w >= 600);
+      });
+      const isBold1 = t1.some((t) => {
+        const w = t.style?.fontWeight;
+        return w === "bold" || (typeof w === "number" && w >= 600);
+      });
+      return isBold0 && !isBold1;
+    };
+
+    // Build TableElement
+    const tableRows: TableRow[] = [];
+    for (let rIdx = 0; rIdx < parsedRows.length; rIdx++) {
+      const { rowNode, cellNodes } = parsedRows[rIdx];
+      const isHeader = isHeaderRow(rowNode, rIdx);
+      const rowBg = this.extractShapeFill(rowNode.fills);
+
+      const tableCells: TableCell[] = [];
+      for (let cIdx = 0; cIdx < cellNodes.length; cIdx++) {
+        const cellNode = cellNodes[cIdx];
+        const cellBg = this.extractShapeFill(cellNode.fills) || rowBg;
+        const cellStroke = this.extractStroke(cellNode);
+
+        const children = this.parseChildren(cellNode.children || [], cellNode.layoutMode, cellNode);
+        const cellChildren: DocElement[] = children.length > 0 ? children : [
+          {
+            type: "paragraph" as const,
+            runs: [{ type: "run" as const, text: "" }],
+            alignment: "left" as const,
+          },
+        ];
+
+        tableCells.push({
+          id: cellNode.id,
+          children: cellChildren,
+          background: cellBg,
+          border: cellStroke,
+          padding: {
+            top: cellNode.paddingTop || 4,
+            right: cellNode.paddingRight || 6,
+            bottom: cellNode.paddingBottom || 4,
+            left: cellNode.paddingLeft || 6,
+          },
+          colSpan: 1,
+          rowSpan: 1,
+          width: colPercentages[cIdx],
+        });
+      }
+
+      tableRows.push({
+        id: rowNode.id,
+        isHeader,
+        cells: tableCells,
+      });
+    }
+
+    const tableBorder = this.extractStroke(node);
+
+    this.addNotice(
+      node,
+      "Supported",
+      `Logical Data Table (${parsedRows.length} rows x ${colCount} cols) mapped to native Word Table.`
+    );
+
+    return {
+      id: node.id,
+      type: "table",
+      rows: tableRows,
+      columnWidths: colPercentages,
+      borders: tableBorder,
+      alignment: "left",
+    };
+  }
+
+  /**
+   * Step 11B: Distinguish card grids (comparison cards, KPI metrics, tile lists)
+   * from genuine data tables. Card grids should remain containers for layout clustering.
+   */
+  private isCardGrid(
+    node: FigmaNode,
+    parsedRows: { rowNode: FigmaNode; cellNodes: FigmaNode[] }[]
+  ): boolean {
+    // 1. Large row spacing check: Table rows typically have minimal/no spacing (itemSpacing <= 8)
+    const rowSpacing = node.itemSpacing ?? 0;
+    if (rowSpacing >= 16) return true; // Large gap between rows -> Card Grid
+
+    let totalHeight = 0;
+    let complexCellCount = 0;
+    let roundedCardCount = 0;
+    let totalCells = 0;
+
+    for (const pr of parsedRows) {
+      const r = pr.rowNode;
+      const h = r.absoluteBoundingBox?.height ?? 0;
+      totalHeight += h;
+
+      const colSpacing = r.itemSpacing ?? 0;
+      for (const c of pr.cellNodes) {
+        totalCells++;
+        const cH = c.absoluteBoundingBox?.height ?? 0;
+        const cRadius = c.cornerRadius ?? 0;
+
+        // Rounded standalone cards with gutter (itemSpacing >= 8) or prominent radius (>= 8)
+        if (cRadius >= 8 || (cRadius >= 4 && colSpacing >= 8)) {
+          roundedCardCount++;
+        }
+
+        // Cell child complexity (e.g. Title + Body + Button, or Label + Value + Trend)
+        const cellKids = (c.children || []).filter((k) => k.visible !== false);
+        if (cellKids.length >= 3 && cH >= 60) {
+          complexCellCount++;
+        }
+      }
+    }
+
+    const avgRowHeight = totalHeight / parsedRows.length;
+
+    // 2. Average row height check: Table rows are compact (<= 100px)
+    if (avgRowHeight > 100) return true;
+
+    // 3. Medium height rows (>= 60px) with rounded card cells or gutters
+    if (avgRowHeight >= 60 && roundedCardCount > 0) return true;
+
+    // 4. Majority of cells are complex UI widgets (3+ children and height >= 60)
+    if (totalCells > 0 && complexCellCount / totalCells >= 0.5) return true;
+
+    // 5. Spaced rows (itemSpacing >= 10) with thick rows (>= 70px)
+    if (rowSpacing >= 10 && avgRowHeight >= 70) return true;
+
+    return false;
+  }
+
+  private isVerticalStack(nodes: FigmaNode[]): boolean {
+    if (nodes.length <= 1) return false;
+    for (let i = 0; i < nodes.length - 1; i++) {
+      const a = nodes[i].absoluteBoundingBox;
+      const b = nodes[i + 1].absoluteBoundingBox;
+      if (!a || !b) return false;
+      // Subsequent row must be lower than previous row (avoid side-by-side nodes with same Y)
+      if (b.y < a.y + 10) return false;
+    }
+    return true;
+  }
+
+  private isHorizontalRow(cells: FigmaNode[]): boolean {
+    if (cells.length < 2) return false;
+    for (let i = 0; i < cells.length - 1; i++) {
+      const a = cells[i].absoluteBoundingBox;
+      const b = cells[i + 1].absoluteBoundingBox;
+      if (!a || !b) return false;
+      // Cell b should be to the right of cell a
+      if (b.x < a.x + 5) return false;
+    }
+    return true;
+  }
+
+  private nodeHasText(node: FigmaNode): boolean {
+    if (node.type === "TEXT" && (node.characters || "").trim().length > 0) return true;
+    for (const child of node.children || []) {
+      if (this.nodeHasText(child)) return true;
+    }
+    return false;
+  }
+
+  private findTextNodes(node?: FigmaNode): FigmaNode[] {
+    if (!node) return [];
+    const result: FigmaNode[] = [];
+    if (node.type === "TEXT") result.push(node);
+    for (const child of node.children || []) {
+      result.push(...this.findTextNodes(child));
+    }
+    return result;
+  }
+
   private parseRectangle(node: FigmaNode): ImageElement | ShapeElement {
     // Check if fill is an image
     const imageElement = this.imageElementFromNode(node, node.id);
@@ -818,7 +1101,7 @@ export class FigmaParser {
   private isHeadingText(node: FigmaNode, text: string, fontSizePt: number): boolean {
     if (fontSizePt >= 16) return true;
 
-    const name = node.name.trim().toLowerCase();
+    const name = (node.name || "").trim().toLowerCase();
     const content = text.trim().toLowerCase();
     const explicitRole = /^(h[1-6]|heading|title|subtitle|제목|부제)(\b|\d|$)/.test(name);
     const nameMirrorsText =

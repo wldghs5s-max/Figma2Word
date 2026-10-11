@@ -379,10 +379,10 @@ export class LayoutEngine {
    */
   private isIndependentScreen(box: FigmaBoundingBox, parent?: FigmaNode): boolean {
     const pBox = parent?.absoluteBoundingBox;
-    if (pBox && pBox.width >= 600) {
-      // Inside a wide container (e.g. desktop page or section >= 600px wide):
+    if (pBox && pBox.width >= 500 && parent?.type !== "CANVAS" && parent?.type !== "DOCUMENT") {
+      // Inside a wide container or document page (width >= 500px, e.g. A4 595px, Letter 612px, desktop >= 600px):
       // A child is an independent full-width section/screen ONLY if it spans almost the full parent width.
-      // Columns, sidebars, cards, and embedded mockups occupying a fraction of the width (< 85%)
+      // Columns, sidebars, cards, and comparison panels occupying a fraction of the width (< 85%)
       // are internal layout elements that should be eligible for horizontal clustering.
       return box.width >= pBox.width * 0.85;
     }
