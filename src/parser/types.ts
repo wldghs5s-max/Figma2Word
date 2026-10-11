@@ -69,7 +69,7 @@ export interface FigmaNode {
   opacity?: number;
 
   // Auto Layout attributes
-  layoutMode?: "NONE" | "HORIZONTAL" | "VERTICAL";
+  layoutMode?: "NONE" | "HORIZONTAL" | "VERTICAL" | "GRID" | string;
   primaryAxisAlignItems?: "MIN" | "CENTER" | "MAX" | "SPACE_BETWEEN";
   counterAxisAlignItems?: "MIN" | "CENTER" | "MAX" | "BASELINE";
   itemSpacing?: number;
@@ -77,6 +77,16 @@ export interface FigmaNode {
   paddingRight?: number;
   paddingTop?: number;
   paddingBottom?: number;
+
+  // Figma Grid Auto Layout attributes
+  gridRowCount?: number;
+  gridColumnCount?: number;
+  gridRowGap?: number;
+  gridColumnGap?: number;
+  gridRowSpan?: number;
+  gridColumnSpan?: number;
+  gridRowAnchorIndex?: number;
+  gridColumnAnchorIndex?: number;
 
   // Text attributes
   characters?: string;

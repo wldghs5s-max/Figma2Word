@@ -42,8 +42,11 @@ export class LayoutEngine {
       // Step 1: Detect containment / overlay relationships (P1-2)
       const afterOverlay = this.foldContainedOverlays(processed);
 
+      // Step 1.5: Detect Figma Grid metadata-driven asymmetric Bento layout (P1-4 / Step 8D)
+      const afterBento = this.foldGridBentoColumns(afterOverlay, parent);
+
       // Step 2: Detect horizontal row clusters for non-auto layout siblings (P1-1)
-      processed = this.clusterHorizontalRows(afterOverlay, parent);
+      processed = this.clusterHorizontalRows(afterBento, parent);
     }
 
     // Step 3: Compute Auto Layout sizing ratios (P1-3)
@@ -425,6 +428,119 @@ export class LayoutEngine {
     }
 
     return true;
+  }
+
+  /**
+   * P1-4 (Step 8D): Detects asymmetric 2-column Bento Grid layouts using Figma Grid metadata.
+   * When a container has layoutMode === "GRID", gridRowCount >= 2, and contains an asymmetric layout
+   * where exactly one dominant card spans the full height (rowSpan === gridRowCount) while 2 or more
+   * remaining cards are stacked on the opposite column, wraps the stacked cards in a synthetic
+   * vertical column frame so that downstream row clustering produces a clean 2-column table with
+   * nested column content.
+   */
+  public foldGridBentoColumns(nodes: FigmaNode[], parent?: FigmaNode): FigmaNode[] {
+    // Requires at least 3 direct children
+    if (nodes.length < 3) return nodes;
+
+    // Check parent Grid metadata
+    const isGridParent =
+      parent?.layoutMode === "GRID" ||
+      (parent?.gridRowCount !== undefined && parent.gridRowCount >= 2);
+    if (!isGridParent) return nodes;
+
+    const rowCount = parent?.gridRowCount ?? 0;
+    const colCount = parent?.gridColumnCount ?? 0;
+    if (rowCount < 2 || colCount < 2) return nodes;
+
+    // Every candidate node must have bounding box
+    const hasBoxes = nodes.every((n) => n.absoluteBoundingBox);
+    if (!hasBoxes) return nodes;
+
+    // Find candidate dominant card that spans the full grid height (gridRowSpan === rowCount)
+    // and occupies a multi-row span (gridRowSpan >= 2) while occupying a subset of columns (< colCount)
+    const dominantCandidates = nodes.filter((n) => {
+      const rowSpan = n.gridRowSpan ?? 1;
+      const colSpan = n.gridColumnSpan ?? 1;
+      return rowSpan === rowCount && rowSpan >= 2 && colSpan >= 1 && colSpan < colCount;
+    });
+
+    // There must be exactly ONE dominant card
+    if (dominantCandidates.length !== 1) return nodes;
+
+    const dominant = dominantCandidates[0];
+    const domBox = dominant.absoluteBoundingBox!;
+    const domColAnchor = dominant.gridColumnAnchorIndex ?? 0;
+    const domColSpan = dominant.gridColumnSpan ?? 1;
+    const domColEnd = domColAnchor + domColSpan;
+
+    const remaining = nodes.filter((n) => n.id !== dominant.id);
+    if (remaining.length < 2) return nodes;
+
+    const remMinX = Math.min(...remaining.map((r) => r.absoluteBoundingBox!.x));
+    const remMaxX = Math.max(...remaining.map((r) => r.absoluteBoundingBox!.x + r.absoluteBoundingBox!.width));
+
+    // Dominant is on left if column anchor starts at 0 and sits geometrically to the left
+    const isDominantOnLeft = domColAnchor === 0 && domBox.x < remMinX;
+    // Dominant is on right if column reaches end (or > 0) and sits geometrically to the right
+    const isDominantOnRight = (domColEnd === colCount || domColAnchor > 0) && domBox.x > remMinX;
+
+    if (!isDominantOnLeft && !isDominantOnRight) return nodes;
+
+    let oppositeValid = false;
+    if (isDominantOnLeft) {
+      oppositeValid = remaining.every((r) => {
+        const anchor = r.gridColumnAnchorIndex ?? 0;
+        const rBox = r.absoluteBoundingBox!;
+        return anchor >= domColEnd || rBox.x >= domBox.x + domBox.width - 20;
+      });
+    } else {
+      oppositeValid = remaining.every((r) => {
+        const anchor = r.gridColumnAnchorIndex ?? 0;
+        const span = r.gridColumnSpan ?? 1;
+        const rBox = r.absoluteBoundingBox!;
+        return anchor + span <= domColAnchor || rBox.x + rBox.width <= domBox.x + 20;
+      });
+    }
+
+    if (!oppositeValid) return nodes;
+
+    // Verify remaining nodes are distributed across at least 2 distinct grid rows
+    const rowAnchors = new Set(remaining.map((r) => r.gridRowAnchorIndex ?? 0));
+    if (rowAnchors.size < 2) return nodes;
+
+    // Verify remaining nodes together span the dominant card's vertical extent
+    const remMinY = Math.min(...remaining.map((r) => r.absoluteBoundingBox!.y));
+    const remMaxY = Math.max(...remaining.map((r) => r.absoluteBoundingBox!.y + r.absoluteBoundingBox!.height));
+    const remHeight = remMaxY - remMinY;
+
+    if (remHeight < domBox.height * 0.75) return nodes;
+
+    // Sort remaining nodes: top-to-bottom (Y), then left-to-right (X)
+    const sortedRemaining = [...remaining].sort((a, b) => {
+      const aBox = a.absoluteBoundingBox!;
+      const bBox = b.absoluteBoundingBox!;
+      const yDiff = aBox.y - bBox.y;
+      if (Math.abs(yDiff) > 5) return yDiff;
+      return aBox.x - bBox.x;
+    });
+
+    const syntheticColumn: FigmaNode = {
+      id: `bento-col-${parent?.id ?? "grid"}-${dominant.id}`,
+      name: `Bento Column (${sortedRemaining.map((n) => n.name).join(" + ")})`,
+      type: "FRAME",
+      layoutMode: "VERTICAL",
+      itemSpacing: parent?.gridRowGap ?? parent?.itemSpacing ?? 0,
+      absoluteBoundingBox: {
+        x: remMinX,
+        y: remMinY,
+        width: remMaxX - remMinX,
+        height: remHeight,
+      },
+      children: sortedRemaining,
+    };
+    (syntheticColumn as any)._isBentoSyntheticColumn = true;
+
+    return isDominantOnLeft ? [dominant, syntheticColumn] : [syntheticColumn, dominant];
   }
 }
 
