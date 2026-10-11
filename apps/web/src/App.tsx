@@ -7,6 +7,9 @@ import {
   isFigmaSnapshot,
   createFigmaSnapshot,
   assessImageCompleteness,
+  SelectableFrame,
+  extractSelectableFrames,
+  filterFigmaNodeByFrames,
 } from '../../../src/pipeline/index';
 import {
   simpleDocumentFixture,
@@ -36,48 +39,98 @@ export function App() {
     fileKey?: string;
     nodeId?: string;
   } | null>(null);
+  const [selectableFrames, setSelectableFrames] = useState<SelectableFrame[]>([]);
+  const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
+
+  const updateFramesFromNode = (node: any) => {
+    try {
+      const frames = extractSelectableFrames(node);
+      setSelectableFrames(frames);
+      setSelectedFrameIds(frames.map((f) => f.id));
+    } catch {
+      setSelectableFrames([]);
+      setSelectedFrameIds([]);
+    }
+  };
+
+  const handleToggleFrame = (frameId: string) => {
+    setSelectedFrameIds((prev) =>
+      prev.includes(frameId) ? prev.filter((id) => id !== frameId) : [...prev, frameId]
+    );
+    setDocxBlob(null);
+  };
+
+  const handleSelectAllFrames = () => {
+    setSelectedFrameIds(selectableFrames.map((f) => f.id));
+    setDocxBlob(null);
+  };
+
+  const handleDeselectAllFrames = () => {
+    setSelectedFrameIds([]);
+    setDocxBlob(null);
+  };
+
+  const handleSelectOnlyA4Frames = () => {
+    const a4Ids = selectableFrames.filter((f) => f.isRecommendedA4).map((f) => f.id);
+    setSelectedFrameIds(a4Ids.length > 0 ? a4Ids : selectableFrames.map((f) => f.id));
+    setDocxBlob(null);
+  };
+
 
   const loadPreset = async (preset: string) => {
     setSelectedFixture(preset);
     setErrorMsg(null);
+    let fixtureNode: any = simpleDocumentFixture;
     if (preset === 'simple') {
+      fixtureNode = simpleDocumentFixture;
       setJsonInput(JSON.stringify(simpleDocumentFixture, null, 2));
       setOutputFileName('simple-document.docx');
     } else if (preset === 'card') {
+      fixtureNode = cardLayoutFixture;
       setJsonInput(JSON.stringify(cardLayoutFixture, null, 2));
       setOutputFileName('card-layout.docx');
     } else if (preset === 'auto') {
+      fixtureNode = autoLayoutFixture;
       setJsonInput(JSON.stringify(autoLayoutFixture, null, 2));
       setOutputFileName('auto-layout.docx');
     } else if (preset === 'proposal') {
       const data = await import('../../../samples/real-world/sample-a-proposal-doc.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-a-proposal-doc.docx');
     } else if (preset === 'nested') {
       const data = await import('../../../samples/real-world/sample-b-nested-autolayout.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-b-nested-autolayout.docx');
     } else if (preset === 'stress') {
       const data = await import('../../../samples/real-world/sample-c-stress-absolute.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-c-stress-absolute.docx');
     } else if (preset === 'edge') {
       const data = await import('../../../samples/real-world/sample-d-edge-cases.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-d-edge-cases.docx');
     } else if (preset === 'e2e-doc') {
       const data = await import('../../../samples/real-world/sample-e2e-document.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-e2e-document.docx');
     } else if (preset === 'e2e-card') {
       const data = await import('../../../samples/real-world/sample-e2e-card-grid.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-e2e-card-grid.docx');
     } else if (preset === 'e2e-complex') {
       const data = await import('../../../samples/real-world/sample-e2e-complex-layout.json');
-      setJsonInput(JSON.stringify(data.default || data, null, 2));
+      fixtureNode = data.default || data;
+      setJsonInput(JSON.stringify(fixtureNode, null, 2));
       setOutputFileName('sample-e2e-complex-layout.docx');
     }
+    updateFramesFromNode('document' in fixtureNode ? fixtureNode.document : fixtureNode);
+    setDocxBlob(null);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +149,7 @@ export function App() {
             fileKey: parsedData.metadata?.fileKey,
             nodeId: parsedData.metadata?.nodeId,
           });
+          updateFramesFromNode(parsedData.figmaNode);
           const imgStats = assessImageCompleteness(parsedData.figmaNode, parsedData.imageMap);
           if (imgStats.referencedCount === 0) {
             setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (이미지 없는 디자인)`);
@@ -112,11 +166,13 @@ export function App() {
             imageMap,
             fileName: file.name.replace(/\.[^/.]+$/, ''),
           });
+          updateFramesFromNode(targetNode);
           setStatus(`Figma JSON [${file.name}] 로드 완료`);
         }
         setJsonInput(text);
         setOutputFileName(file.name.replace(/\.[^/.]+$/, '') + '.docx');
         setErrorMsg(null);
+        setDocxBlob(null);
       } catch (err: any) {
         setErrorMsg(`JSON 파일 읽기 실패: ${err.message}`);
       }
@@ -168,6 +224,7 @@ export function App() {
         fileKey: parsed.fileKey,
         nodeId: parsed.nodeId,
       });
+      updateFramesFromNode(rootNode);
 
       setStatus('문서 모델(IR) 및 레이아웃 파싱 중...');
       const parser = new FigmaParser({ imageMap });
@@ -224,14 +281,28 @@ export function App() {
 
   const handleReuseAndConvert = async () => {
     if (!loadedSnapshot) return;
+    if (selectableFrames.length > 0 && selectedFrameIds.length === 0) {
+      setErrorMsg('변환할 프레임이 선택되지 않았습니다. 최소 1개 이상의 프레임을 선택해주세요.');
+      return;
+    }
     try {
       setIsLoading(true);
       setErrorMsg(null);
       setStatus('메모리 데이터로 오프라인 변환 중 (API 호출 0회)...');
       const startTime = performance.now();
 
+      const effectiveNode = selectedFrameIds.length > 0 && selectableFrames.length > 0
+        ? filterFigmaNodeByFrames(loadedSnapshot.targetNode, selectedFrameIds)
+        : loadedSnapshot.targetNode;
+
       const parser = new FigmaParser({ imageMap: loadedSnapshot.imageMap });
-      const result = parser.parse(loadedSnapshot.targetNode);
+      const result = parser.parse(effectiveNode);
+
+      if (result.stats.totalElements === 0) {
+        throw new Error(
+          `변환 가능한 Figma 요소를 찾지 못했습니다. 선택한 프레임이 비어있는지 확인하세요.`
+        );
+      }
 
       result.document.metadata.conversionMode = mode;
       result.document.pageConfig.orientation = pageOrientation;
@@ -249,8 +320,10 @@ export function App() {
 
       setParseResult(result);
       setDocxBlob(blob);
+      const baseName = (loadedSnapshot.fileName || outputFileName.replace(/\.docx$/i, '')).replace(/-(Portrait|Landscape)$/i, '');
+      setOutputFileName(`${baseName}-${pageOrientation === 'landscape' ? 'Landscape' : 'Portrait'}.docx`);
       setDuration(Math.round(endTime - startTime));
-      setStatus(`메모리 재변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'})`);
+      setStatus(`메모리 재변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'}, ${selectedFrameIds.length > 0 ? `${selectedFrameIds.length}개 프레임` : '전체'})`);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || '재변환 중 오류가 발생했습니다.');
@@ -292,8 +365,24 @@ export function App() {
         }
       }
 
+      if (selectableFrames.length > 0 && selectedFrameIds.length === 0) {
+        setErrorMsg('변환할 프레임이 선택되지 않았습니다. 최소 1개 이상의 프레임을 선택해주세요.');
+        return;
+      }
+
+      let effectiveNode = targetNode;
+      if (selectableFrames.length > 0 && selectedFrameIds.length > 0) {
+        effectiveNode = filterFigmaNodeByFrames(targetNode, selectedFrameIds);
+      } else {
+        const extracted = extractSelectableFrames(targetNode);
+        if (extracted.length > 0) {
+          setSelectableFrames(extracted);
+          setSelectedFrameIds(extracted.map((f) => f.id));
+        }
+      }
+
       const parser = new FigmaParser({ imageMap });
-      const result = parser.parse(targetNode);
+      const result = parser.parse(effectiveNode);
 
       if (result.stats.totalElements === 0) {
         throw new Error(
@@ -318,8 +407,10 @@ export function App() {
 
       setParseResult(result);
       setDocxBlob(blob);
+      const baseName = (loadedSnapshot?.fileName || outputFileName.replace(/\.docx$/i, '')).replace(/-(Portrait|Landscape)$/i, '');
+      setOutputFileName(`${baseName}-${pageOrientation === 'landscape' ? 'Landscape' : 'Portrait'}.docx`);
       setDuration(Math.round(endTime - startTime));
-      setStatus('오프라인 변환 완료 (API 호출 0회)');
+      setStatus(`오프라인 변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'}, ${selectedFrameIds.length > 0 ? `${selectedFrameIds.length}개 프레임` : '전체'})`);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || '변환 중 오류가 발생했습니다.');
@@ -430,8 +521,12 @@ export function App() {
             </div>
 
             {loadedSnapshot && (() => {
-              const imgStats = assessImageCompleteness(loadedSnapshot.targetNode, loadedSnapshot.imageMap);
+              const effectiveTarget = (selectedFrameIds.length > 0 && selectableFrames.length > 0)
+                ? filterFigmaNodeByFrames(loadedSnapshot.targetNode, selectedFrameIds)
+                : loadedSnapshot.targetNode;
+              const imgStats = assessImageCompleteness(effectiveTarget, loadedSnapshot.imageMap);
               const isWarning = imgStats.referencedCount > 0 && !imgStats.isComplete;
+              const isPartialSelection = selectedFrameIds.length > 0 && selectedFrameIds.length < selectableFrames.length;
               return (
                 <div
                   style={{
@@ -444,6 +539,7 @@ export function App() {
                 >
                   <div style={{ fontSize: 13, color: isWarning ? '#92400e' : '#065f46', marginBottom: 6, fontWeight: 700 }}>
                     {isWarning ? '⚠️ 메모리 스냅샷 주의 (이미지 결손 감지)' : '⚡ 메모리 스냅샷 보존 중'}: [{loadedSnapshot.fileName || 'Figma 디자인'}]
+                    {isPartialSelection && <span style={{ fontSize: 11, fontWeight: 500, marginLeft: 6, color: '#4b5563' }}>(선택된 {selectedFrameIds.length}개 프레임 기준)</span>}
                   </div>
                   <div style={{ fontSize: 12, color: isWarning ? '#b45309' : '#047857', marginBottom: 10 }}>
                     {imgStats.referencedCount === 0 ? (
@@ -540,20 +636,105 @@ export function App() {
         )}
       </section>
 
+      {/* Frame Selection */}
+      {selectableFrames.length > 0 && (
+        <section style={{ backgroundColor: '#f9fafb', padding: 16, borderRadius: 8, border: '1px solid #e5e7eb', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+            <div>
+              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>변환 대상 프레임 선택 (Frame Selection)</h4>
+              <span style={{ fontSize: 12, color: selectedFrameIds.length === 0 ? '#dc2626' : '#4b5563' }}>
+                선택됨: <strong>{selectedFrameIds.length}</strong> / {selectableFrames.length}개
+                {selectedFrameIds.length === 0 && ' ⚠️ 최소 1개 이상 선택해야 변환할 수 있습니다.'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleSelectAllFrames}
+                style={{ padding: '4px 10px', fontSize: 12, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}
+              >
+                전체 선택
+              </button>
+              <button
+                type="button"
+                onClick={handleDeselectAllFrames}
+                style={{ padding: '4px 10px', fontSize: 12, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}
+              >
+                선택 해제
+              </button>
+              {selectableFrames.some((f) => f.isA4Ratio) && (
+                <button
+                  type="button"
+                  onClick={handleSelectOnlyA4Frames}
+                  style={{ padding: '4px 10px', fontSize: 12, borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  📄 A4 문서 프레임만 선택 ({selectableFrames.filter((f) => f.isA4Ratio).length}개)
+                </button>
+              )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto', paddingRight: 4 }}>
+            {selectableFrames.map((frame) => {
+              const isChecked = selectedFrameIds.includes(frame.id);
+              return (
+                <label
+                  key={frame.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderRadius: 6,
+                    border: `1px solid ${isChecked ? '#93c5fd' : '#e5e7eb'}`,
+                    backgroundColor: isChecked ? '#eff6ff' : '#fff',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleToggleFrame(frame.id)}
+                    />
+                    <span style={{ fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      {frame.name}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>
+                      ({frame.id})
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, color: '#4b5563', fontFamily: 'monospace' }}>
+                      {Math.round(frame.width)} × {Math.round(frame.height)} (비율 {frame.aspectRatio.toFixed(2)})
+                    </span>
+                    {frame.isA4Ratio && (
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 9999, background: '#dcfce7', color: '#166534', fontWeight: 700 }}>
+                        A4 문서 권장
+                      </span>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Mode Selection */}
       <section style={{ backgroundColor: '#f9fafb', padding: 16, borderRadius: 8, border: '1px solid #e5e7eb', marginBottom: 20 }}>
         <h4 style={{ marginTop: 0, marginBottom: 10, fontSize: 14 }}>변환 모드 (Conversion Mode)</h4>
         <div style={{ display: 'flex', gap: 20, fontSize: 13 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="balanced" checked={mode === 'balanced'} onChange={() => setMode('balanced')} />
+            <input type="radio" name="mode" value="balanced" checked={mode === 'balanced'} onChange={() => { setMode('balanced'); setDocxBlob(null); }} />
             <span><strong>Balanced</strong> (권장: 균형 모드)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="fidelity" checked={mode === 'fidelity'} onChange={() => setMode('fidelity')} />
+            <input type="radio" name="mode" value="fidelity" checked={mode === 'fidelity'} onChange={() => { setMode('fidelity'); setDocxBlob(null); }} />
             <span><strong>Design Fidelity</strong> (디자인 우선)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="editability" checked={mode === 'editability'} onChange={() => setMode('editability')} />
+            <input type="radio" name="mode" value="editability" checked={mode === 'editability'} onChange={() => { setMode('editability'); setDocxBlob(null); }} />
             <span><strong>Editability</strong> (편집성 우선)</span>
           </label>
         </div>
@@ -564,11 +745,29 @@ export function App() {
         <h4 style={{ marginTop: 0, marginBottom: 10, fontSize: 14 }}>용지 방향 (Page Orientation)</h4>
         <div style={{ display: 'flex', gap: 20, fontSize: 13 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="orientation" value="portrait" checked={pageOrientation === 'portrait'} onChange={() => setPageOrientation('portrait')} />
+            <input
+              type="radio"
+              name="orientation"
+              value="portrait"
+              checked={pageOrientation === 'portrait'}
+              onChange={() => {
+                setPageOrientation('portrait');
+                setDocxBlob(null);
+              }}
+            />
             <span><strong>A4 세로형 (Portrait)</strong> (기본값, 본문 폭 451pt / 602px)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="orientation" value="landscape" checked={pageOrientation === 'landscape'} onChange={() => setPageOrientation('landscape')} />
+            <input
+              type="radio"
+              name="orientation"
+              value="landscape"
+              checked={pageOrientation === 'landscape'}
+              onChange={() => {
+                setPageOrientation('landscape');
+                setDocxBlob(null);
+              }}
+            />
             <span><strong>A4 가로형 (Landscape)</strong> (데스크톱/와이드 디자인 권장, 본문 폭 698pt / 931px)</span>
           </label>
         </div>

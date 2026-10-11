@@ -23,6 +23,10 @@ import {
 } from "../model/index.js";
 
 import { LayoutEngine } from "../layout/index.js";
+import { analyzeGeometryCluster, rasterizeGeometryCluster } from "./geometryRaster.js";
+
+/** Largest cluster (px²) eligible for rasterization: widgets such as charts, never whole screens. */
+const MAX_GEOMETRY_CLUSTER_AREA = 250_000;
 
 export type FeatureSupportStatus = "Supported" | "Partially Supported" | "Unsupported" | "Fallback";
 
@@ -409,8 +413,11 @@ export class FigmaParser {
       case "GROUP":
       case "SECTION":
       case "COMPONENT":
-      case "INSTANCE":
+      case "INSTANCE": {
+        const clustered = this.tryGeometryCluster(node);
+        if (clustered) return [clustered];
         return [this.parseContainer(node)];
+      }
 
       case "RECTANGLE":
         return [this.parseRectangle(node)];
@@ -610,6 +617,58 @@ export class FigmaParser {
   }
 
 
+  /**
+   * Step 10C: a widget made only of exactly reproducible geometry (rectangles, rounded boxes,
+   * straight lines) is emitted as ONE image instead of being dropped as "contentless shapes".
+   * Synthetic layout wrappers are never candidates and anything with text, bitmap fills, free-form
+   * vector paths or large (screen-sized) areas keeps the regular container path.
+   */
+  private tryGeometryCluster(node: FigmaNode): ImageElement | null {
+    if (node.id.startsWith("row-cluster-") || node.id.startsWith("bento-col-")) return null;
+    const box = node.absoluteBoundingBox;
+    if (!box || box.width * box.height > MAX_GEOMETRY_CLUSTER_AREA) return null;
+
+    const cluster = analyzeGeometryCluster(node);
+    if (!cluster) return null;
+
+    const raster = rasterizeGeometryCluster(cluster);
+    this.addNotice(
+      node,
+      "Fallback",
+      `Geometry cluster (${cluster.leafCount} shapes) rasterized to image (${raster.width}x${raster.height}px); not editable in Word.`
+    );
+    return {
+      id: `${node.id}-geometry`,
+      type: "image",
+      source: raster.dataUrl,
+      width: raster.width,
+      height: raster.height,
+      altText: node.name,
+      alignment: "left",
+    };
+  }
+
+  /** Composite stacked visible SOLID paints (bottom to top) into one color; first SOLID if only one. */
+  private extractShapeFill(fills?: FigmaPaint[]): Color | undefined {
+    const solids = (fills ?? []).filter((f) => f.type === "SOLID" && f.visible !== false && f.color);
+    if (solids.length <= 1) return this.extractFillColor(fills);
+
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let a = 0;
+    for (const paint of solids) {
+      const sa = paint.opacity ?? paint.color?.a ?? 1;
+      const outA = sa + a * (1 - sa);
+      if (outA <= 0) continue;
+      r = (paint.color!.r * 255 * sa + r * a * (1 - sa)) / outA;
+      g = (paint.color!.g * 255 * sa + g * a * (1 - sa)) / outA;
+      b = (paint.color!.b * 255 * sa + b * a * (1 - sa)) / outA;
+      a = outA;
+    }
+    return this.figmaColorToColor({ r: r / 255, g: g / 255, b: b / 255 }, a);
+  }
+
   private parseRectangle(node: FigmaNode): ImageElement | ShapeElement {
     // Check if fill is an image
     const imageElement = this.imageElementFromNode(node, node.id);
@@ -619,7 +678,7 @@ export class FigmaParser {
     }
 
     // Otherwise solid shape
-    const fill = this.extractFillColor(node.fills);
+    const fill = this.extractShapeFill(node.fills);
     const stroke = this.extractStroke(node);
 
     this.addNotice(node, "Partially Supported", "Rectangle mapped to Shape (Card Container)");
