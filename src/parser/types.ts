@@ -64,9 +64,11 @@ export interface FigmaNode {
   fills?: FigmaPaint[];
   strokes?: FigmaPaint[];
   strokeWeight?: number;
+  strokeAlign?: "INSIDE" | "CENTER" | "OUTSIDE" | string;
   cornerRadius?: number;
   rectangleCornerRadii?: [number, number, number, number];
   opacity?: number;
+  clipsContent?: boolean;
 
   // Auto Layout attributes
   layoutMode?: "NONE" | "HORIZONTAL" | "VERTICAL" | "GRID" | string;

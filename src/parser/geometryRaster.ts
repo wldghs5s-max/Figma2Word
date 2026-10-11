@@ -26,6 +26,13 @@ interface Rgba {
   a: number;
 }
 
+interface ClipBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 interface BoxOp {
   x: number;
   y: number;
@@ -35,6 +42,7 @@ interface BoxOp {
   fills: Rgba[];
   stroke?: { color: Rgba; weight: number; align: "INSIDE" | "CENTER" | "OUTSIDE" };
   alpha: number;
+  clip?: ClipBox;
 }
 
 export interface GeometryCluster {
@@ -42,6 +50,8 @@ export interface GeometryCluster {
   height: number;
   ops: BoxOp[];
   leafCount: number;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 export interface GeometryRaster {
@@ -93,9 +103,30 @@ function strokeAlignOf(node: FigmaNode): "INSIDE" | "CENTER" | "OUTSIDE" {
   return align === "CENTER" || align === "OUTSIDE" ? align : "INSIDE";
 }
 
+interface ClipRect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+interface RawBoxOp {
+  absX: number;
+  absY: number;
+  absW: number;
+  absH: number;
+  radii: [number, number, number, number];
+  fills: Rgba[];
+  stroke?: { color: Rgba; weight: number; align: "INSIDE" | "CENTER" | "OUTSIDE" };
+  alpha: number;
+  clipRect?: ClipRect;
+  visualBounds: ClipRect;
+}
+
 /**
- * Analyze a node. Returns the paint operations (back-to-front) when the visible subtree is a
- * geometry-only cluster that can be reproduced exactly, otherwise null.
+ * Step 11C: Analyze a node. Returns paint operations with precise Union AABB
+ * and clipping boundaries preserved, preventing outer strokes and protruding
+ * children from being clipped.
  */
 export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null {
   if (!CONTAINER_TYPES.has(root.type)) return null;
@@ -104,13 +135,11 @@ export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null 
   if (rootBox.width > MAX_DIMENSION_PX || rootBox.height > MAX_DIMENSION_PX) return null;
   if (visibleChildren(root).length === 0) return null;
 
-  const ops: BoxOp[] = [];
+  const rawOps: RawBoxOp[] = [];
   let leafCount = 0;
   let supported = true;
 
-  const rel = (box: { x: number; y: number }) => ({ x: box.x - rootBox.x, y: box.y - rootBox.y });
-
-  const visit = (node: FigmaNode, inheritedAlpha: number): void => {
+  const visit = (node: FigmaNode, inheritedAlpha: number, parentClip: ClipRect | null): void => {
     if (!supported || node.visible === false) return;
     if (node.type === "TEXT") {
       supported = false;
@@ -118,7 +147,6 @@ export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null 
     }
     const box = node.absoluteBoundingBox;
     if (!box) {
-      // A box-less container with no visible children is meaningless; anything else is unknown.
       if (CONTAINER_TYPES.has(node.type) && visibleChildren(node).length === 0) return;
       supported = false;
       return;
@@ -133,8 +161,26 @@ export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null 
     const alpha = inheritedAlpha * (node.opacity ?? 1);
     const kids = visibleChildren(node);
     const isContainer = CONTAINER_TYPES.has(node.type);
-    const origin = rel(box);
     const rotation = (node as { rotation?: number }).rotation ?? 0;
+
+    // Clipping hierarchy: if this container clipsContent, compute intersected clip rect
+    let currentClip = parentClip;
+    if (isContainer && node.clipsContent === true) {
+      const nodeClip: ClipRect = {
+        x0: box.x,
+        y0: box.y,
+        x1: box.x + box.width,
+        y1: box.y + box.height,
+      };
+      currentClip = parentClip
+        ? {
+            x0: Math.max(parentClip.x0, nodeClip.x0),
+            y0: Math.max(parentClip.y0, nodeClip.y0),
+            x1: Math.min(parentClip.x1, nodeClip.x1),
+            y1: Math.min(parentClip.y1, nodeClip.y1),
+          }
+        : nodeClip;
+    }
 
     const radiiOf = (): [number, number, number, number] => {
       const per = node.rectangleCornerRadii;
@@ -143,56 +189,95 @@ export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null 
       return [r, r, r, r];
     };
 
-    const buildBoxOp = (): BoxOp => {
-      const op: BoxOp = {
-        x: origin.x,
-        y: origin.y,
-        w: box.width,
-        h: box.height,
-        radii: radiiOf(),
-        fills,
-        alpha,
-      };
+    const buildRawBoxOp = (): RawBoxOp => {
+      let strokeDef: { color: Rgba; weight: number; align: "INSIDE" | "CENTER" | "OUTSIDE" } | undefined;
+      let eo = 0;
       if (strokes.length > 0) {
         const top = strokes[strokes.length - 1];
-        op.stroke = { color: top, weight: node.strokeWeight ?? 1, align: strokeAlignOf(node) };
+        const weight = node.strokeWeight ?? 1;
+        const align = strokeAlignOf(node);
+        strokeDef = { color: top, weight, align };
+        eo = align === "INSIDE" ? 0 : align === "CENTER" ? weight / 2 : weight;
       }
-      return op;
+
+      const vx0 = box.x - eo;
+      const vy0 = box.y - eo;
+      const vx1 = box.x + box.width + eo;
+      const vy1 = box.y + box.height + eo;
+
+      let visualBounds: ClipRect = { x0: vx0, y0: vy0, x1: vx1, y1: vy1 };
+      if (currentClip) {
+        visualBounds = {
+          x0: Math.max(vx0, currentClip.x0),
+          y0: Math.max(vy0, currentClip.y0),
+          x1: Math.min(vx1, currentClip.x1),
+          y1: Math.min(vy1, currentClip.y1),
+        };
+      }
+
+      return {
+        absX: box.x,
+        absY: box.y,
+        absW: box.width,
+        absH: box.height,
+        radii: radiiOf(),
+        fills,
+        stroke: strokeDef,
+        alpha,
+        clipRect: currentClip ?? undefined,
+        visualBounds,
+      };
     };
 
     if (isContainer && kids.length > 0) {
-      if (fills.length > 0 || strokes.length > 0) ops.push(buildBoxOp());
-      for (const child of kids) visit(child, alpha);
+      if (fills.length > 0 || strokes.length > 0) rawOps.push(buildRawBoxOp());
+      for (const child of kids) visit(child, alpha, currentClip);
       return;
     }
 
     // Leaf nodes
     if (isLineLike(node)) {
-      if (strokes.length === 0) return; // invisible line
+      if (strokes.length === 0) return;
       const weight = node.strokeWeight ?? 1;
       const color = strokes[strokes.length - 1];
       const horizontal = box.height <= LINE_EPSILON;
-      ops.push({
-        x: horizontal ? origin.x : origin.x - weight / 2,
-        y: horizontal ? origin.y - weight / 2 : origin.y,
-        w: horizontal ? box.width : weight,
-        h: horizontal ? weight : box.height,
+      const absX = horizontal ? box.x : box.x - weight / 2;
+      const absY = horizontal ? box.y - weight / 2 : box.y;
+      const absW = horizontal ? box.width : weight;
+      const absH = horizontal ? weight : box.height;
+
+      let visualBounds: ClipRect = { x0: absX, y0: absY, x1: absX + absW, y1: absY + absH };
+      if (currentClip) {
+        visualBounds = {
+          x0: Math.max(visualBounds.x0, currentClip.x0),
+          y0: Math.max(visualBounds.y0, currentClip.y0),
+          x1: Math.min(visualBounds.x1, currentClip.x1),
+          y1: Math.min(visualBounds.y1, currentClip.y1),
+        };
+      }
+
+      rawOps.push({
+        absX,
+        absY,
+        absW,
+        absH,
         radii: [0, 0, 0, 0],
         fills: [color],
         alpha,
+        clipRect: currentClip ?? undefined,
+        visualBounds,
       });
       leafCount++;
       return;
     }
 
     if (isContainer) {
-      // Empty frame/instance: a painted box, or an invisible spacer.
       if (fills.length === 0 && strokes.length === 0) return;
       if (Math.abs(rotation) > 1e-3) {
         supported = false;
         return;
       }
-      ops.push(buildBoxOp());
+      rawOps.push(buildRawBoxOp());
       leafCount++;
       return;
     }
@@ -202,26 +287,101 @@ export function analyzeGeometryCluster(root: FigmaNode): GeometryCluster | null 
       (node.type === "VECTOR" &&
         (node.cornerRadius !== undefined || node.rectangleCornerRadii !== undefined));
     if (!rectangleLike || Math.abs(rotation) > 1e-3) {
-      supported = false; // free-form vector path / ellipse / rotated shape: outline unknown
+      supported = false;
       return;
     }
     if (fills.length === 0 && strokes.length === 0) return;
-    ops.push(buildBoxOp());
+    rawOps.push(buildRawBoxOp());
     leafCount++;
   };
 
-  // Root: paints its own box first, then children
+  // Root clipping context: if root has clipsContent === true, initial clip is rootBox
+  const rootClip: ClipRect | null = root.clipsContent === true
+    ? { x0: rootBox.x, y0: rootBox.y, x1: rootBox.x + rootBox.width, y1: rootBox.y + rootBox.height }
+    : null;
+
   const rootFills = solidPaints(root.fills);
   const rootStrokes = solidPaints(root.strokes);
   if (rootFills === null || rootStrokes === null) return null;
-  visit(root, 1);
+  visit(root, 1, rootClip);
 
   if (!supported) return null;
   if (leafCount === 0) return null;
   const rootPaints = rootFills.length > 0 || rootStrokes.length > 0 ? 1 : 0;
   if (leafCount + rootPaints < 2) return null;
 
-  return { width: rootBox.width, height: rootBox.height, ops, leafCount };
+  // Root visual boundary (considering root stroke)
+  let rootEo = 0;
+  if (rootStrokes.length > 0) {
+    const rAlign = strokeAlignOf(root);
+    const rWeight = root.strokeWeight ?? 1;
+    rootEo = rAlign === "INSIDE" ? 0 : rAlign === "CENTER" ? rWeight / 2 : rWeight;
+  }
+  const rootVisual: ClipRect = {
+    x0: rootBox.x - rootEo,
+    y0: rootBox.y - rootEo,
+    x1: rootBox.x + rootBox.width + rootEo,
+    y1: rootBox.y + rootBox.height + rootEo,
+  };
+
+  // Compute final Union AABB bounds
+  let minX = rootVisual.x0;
+  let minY = rootVisual.y0;
+  let maxX = rootVisual.x1;
+  let maxY = rootVisual.y1;
+
+  if (root.clipsContent !== true) {
+    // Unclipped root: expand canvas to union AABB of root and all visible ops
+    for (const ro of rawOps) {
+      if (ro.visualBounds.x1 > ro.visualBounds.x0 && ro.visualBounds.y1 > ro.visualBounds.y0) {
+        minX = Math.min(minX, ro.visualBounds.x0);
+        minY = Math.min(minY, ro.visualBounds.y0);
+        maxX = Math.max(maxX, ro.visualBounds.x1);
+        maxY = Math.max(maxY, ro.visualBounds.y1);
+      }
+    }
+  }
+
+  const finalWidth = Math.ceil(maxX - minX);
+  const finalHeight = Math.ceil(maxY - minY);
+  if (finalWidth > MAX_DIMENSION_PX || finalHeight > MAX_DIMENSION_PX) return null;
+
+  // Transform rawOps into relative BoxOps based on new origin (minX, minY)
+  const ops: BoxOp[] = [];
+  for (const ro of rawOps) {
+    // If op is completely clipped out, skip
+    if (ro.clipRect && (ro.visualBounds.x1 <= ro.visualBounds.x0 || ro.visualBounds.y1 <= ro.visualBounds.y0)) {
+      continue;
+    }
+    const op: BoxOp = {
+      x: ro.absX - minX,
+      y: ro.absY - minY,
+      w: ro.absW,
+      h: ro.absH,
+      radii: ro.radii,
+      fills: ro.fills,
+      stroke: ro.stroke,
+      alpha: ro.alpha,
+    };
+    if (ro.clipRect) {
+      op.clip = {
+        x: ro.clipRect.x0 - minX,
+        y: ro.clipRect.y0 - minY,
+        w: ro.clipRect.x1 - ro.clipRect.x0,
+        h: ro.clipRect.y1 - ro.clipRect.y0,
+      };
+    }
+    ops.push(op);
+  }
+
+  return {
+    width: finalWidth,
+    height: finalHeight,
+    ops,
+    leafCount,
+    offsetX: minX - rootBox.x,
+    offsetY: minY - rootBox.y,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -329,10 +489,23 @@ export function rasterizeOps(cluster: GeometryCluster, scale: number): { rgba: U
       };
     }
 
-    const minX = Math.max(0, Math.floor(outer.x0));
-    const maxX = Math.min(w - 1, Math.ceil(outer.x1) - 1);
-    const minY = Math.max(0, Math.floor(outer.y0));
-    const maxY = Math.min(h - 1, Math.ceil(outer.y1) - 1);
+    let minX = Math.max(0, Math.floor(outer.x0));
+    let maxX = Math.min(w - 1, Math.ceil(outer.x1) - 1);
+    let minY = Math.max(0, Math.floor(outer.y0));
+    let maxY = Math.min(h - 1, Math.ceil(outer.y1) - 1);
+
+    if (op.clip) {
+      const clipX0 = Math.floor(op.clip.x * scale);
+      const clipY0 = Math.floor(op.clip.y * scale);
+      const clipX1 = Math.ceil((op.clip.x + op.clip.w) * scale) - 1;
+      const clipY1 = Math.ceil((op.clip.y + op.clip.h) * scale) - 1;
+      minX = Math.max(minX, clipX0);
+      maxX = Math.min(maxX, clipX1);
+      minY = Math.max(minY, clipY0);
+      maxY = Math.min(maxY, clipY1);
+    }
+
+    if (minX > maxX || minY > maxY) continue;
 
     for (let py = minY; py <= maxY; py++) {
       for (let px = minX; px <= maxX; px++) {
