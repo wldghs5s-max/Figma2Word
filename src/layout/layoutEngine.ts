@@ -333,14 +333,14 @@ export class LayoutEngine {
 
     // Defensive Guard: Independent full-sized screens (e.g. mobile/desktop artboards)
     // must never be clustered into a single horizontal row table.
-    if (cBox.width >= 240 && cBox.height >= 450) {
+    if (this.isIndependentScreen(cBox)) {
       return false;
     }
 
     for (const member of cluster) {
       const mBox = member.absoluteBoundingBox;
       if (!mBox) return false;
-      if (mBox.width >= 240 && mBox.height >= 450) {
+      if (this.isIndependentScreen(mBox)) {
         return false;
       }
 
@@ -366,6 +366,19 @@ export class LayoutEngine {
     }
 
     return true;
+  }
+
+  /**
+   * Defensive check: Detects if bounding box represents an independent full-sized screen artboard
+   * (e.g. mobile phone viewport or desktop artboard) rather than a regular UI card or component.
+   */
+  private isIndependentScreen(box: FigmaBoundingBox): boolean {
+    const aspect = box.height / box.width;
+    // Mobile fullscreen screen: typical viewport (width 240..500, height >= 600, portrait aspect >= 1.6)
+    const isMobileScreen = box.width >= 240 && box.width <= 500 && box.height >= 600 && aspect >= 1.6;
+    // Desktop/Tablet artboard: width >= 600, height >= 500
+    const isDesktopScreen = box.width >= 600 && box.height >= 500;
+    return isMobileScreen || isDesktopScreen;
   }
 
   /**

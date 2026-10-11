@@ -603,8 +603,9 @@ export class DocxRenderer {
           margins: {
             top: pad.top,
             bottom: pad.bottom,
-            left: pad.left + (idx > 0 ? halfGap : 0),
-            right: pad.right + (idx < elem.children.length - 1 ? halfGap : 0),
+            left: (childPad ? pad.left : (idx === 0 ? pad.left : 0)) + (idx > 0 ? halfGap : 0),
+            right: (childPad ? pad.right : (idx === elem.children.length - 1 ? pad.right : 0)) +
+              (idx < elem.children.length - 1 ? halfGap : 0),
           },
           shading: hexBg
             ? {
@@ -714,8 +715,21 @@ export class DocxRenderer {
 
     const child = parent.children[0];
     if (child.type !== "container" || child.backgroundImage) return null;
-    if (child.layoutDirection === "horizontal" && child.children.length > 1) return null;
-    if (this.containsImage(child)) return null;
+
+    // STEP 3B: Refined flattening guards for horizontal rows and image-containing children.
+    // 1. For horizontal multi-column children: keep wrapper if child has an explicit border
+    //    (which a multi-column table cannot render on its outer boundary).
+    if (child.layoutDirection === "horizontal" && child.children.length > 1) {
+      if (this.hasVisibleBorder(child.border)) return null;
+    }
+
+    // 2. For children containing images: keep wrapper if child contains complex nested horizontal tables.
+    if (this.containsImage(child)) {
+      const hasNestedMultiCol = child.children.some(
+        (c: DocElement) => c.type === "container" && c.layoutDirection === "horizontal" && c.children.length > 1
+      );
+      if (hasNestedMultiCol) return null;
+    }
 
     const parentFill = colorToHex(parent.background);
     const childFill = colorToHex(child.background);
@@ -737,6 +751,17 @@ export class DocxRenderer {
       !parentBorder &&
       childFill === "FFFFFF" &&
       childBorder
+    ) {
+      return this.renderElement(child);
+    }
+
+    // SAFE-A2: white/borderless parent around a borderless horizontal row (with identical, white, or transparent fill)
+    if (
+      parentFill === "FFFFFF" &&
+      !parentBorder &&
+      child.layoutDirection === "horizontal" &&
+      !childBorder &&
+      (!childFill || childFill === "FFFFFF")
     ) {
       return this.renderElement(child);
     }

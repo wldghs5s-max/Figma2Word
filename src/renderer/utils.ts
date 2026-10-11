@@ -70,13 +70,22 @@ export function pxToPt(px?: number): number {
   return Math.max(0.5, Math.round(px * 0.75 * 10) / 10);
 }
 
-export function spacingToCellMargin(spacing?: Partial<Spacing>) {
+export const MAX_CELL_HORIZONTAL_PADDING_PT = 36;
+export const MAX_CELL_VERTICAL_PADDING_PT = 48;
+
+export function spacingToCellMargin(
+  spacing?: Partial<Spacing>,
+  options?: { maxHorizontalPt?: number; maxVerticalPt?: number }
+) {
   if (!spacing) return undefined;
+  const maxH = options?.maxHorizontalPt ?? MAX_CELL_HORIZONTAL_PADDING_PT;
+  const maxV = options?.maxVerticalPt ?? MAX_CELL_VERTICAL_PADDING_PT;
+
   return {
-    top: spacing.top !== undefined ? ptToDxa(pxToPt(spacing.top)) : 0,
-    bottom: spacing.bottom !== undefined ? ptToDxa(pxToPt(spacing.bottom)) : 0,
-    left: spacing.left !== undefined ? ptToDxa(pxToPt(spacing.left)) : 0,
-    right: spacing.right !== undefined ? ptToDxa(pxToPt(spacing.right)) : 0,
+    top: spacing.top !== undefined ? ptToDxa(Math.min(pxToPt(spacing.top), maxV)) : 0,
+    bottom: spacing.bottom !== undefined ? ptToDxa(Math.min(pxToPt(spacing.bottom), maxV)) : 0,
+    left: spacing.left !== undefined ? ptToDxa(Math.min(pxToPt(spacing.left), maxH)) : 0,
+    right: spacing.right !== undefined ? ptToDxa(Math.min(pxToPt(spacing.right), maxH)) : 0,
   };
 }
 
