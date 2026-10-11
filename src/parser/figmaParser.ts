@@ -365,11 +365,11 @@ export class FigmaParser {
     return false;
   }
 
-  private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string): DocElement[] {
+  private parseChildren(nodes: FigmaNode[], parentLayoutMode?: string, parent?: FigmaNode): DocElement[] {
     const visibleNodes = nodes.filter((n) => n.visible !== false);
 
     // Layout Engine processes spatial relations (P1-1 row clusters, P1-2 overlay containment, P1-3 sizing)
-    const structuredNodes = this.layoutEngine.processNodes(visibleNodes);
+    const structuredNodes = this.layoutEngine.processNodes(visibleNodes, parent);
 
     // Sort: If parent is horizontal, preserve left-to-right flow (X); otherwise top-to-bottom flow (Y)
     if (parentLayoutMode === "HORIZONTAL") {
@@ -648,7 +648,7 @@ export class FigmaParser {
   }
 
   private parseContainer(node: FigmaNode): ContainerElement {
-    const children = this.parseChildren(node.children || [], node.layoutMode);
+    const children = this.parseChildren(node.children || [], node.layoutMode, node);
     const fill = this.extractFillColor(node.fills);
     const backgroundImage = this.imageElementFromNode(node, `${node.id}-fill`);
 

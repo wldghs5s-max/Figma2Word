@@ -27,7 +27,7 @@ export class LayoutEngine {
    * Main entrypoint: Takes an array of raw Figma sibling nodes and transforms their
    * spatial relationships into structured containers (Row Clusters, Overlays, and Sizing Ratios).
    */
-  public processNodes(nodes: FigmaNode[]): FigmaNode[] {
+  public processNodes(nodes: FigmaNode[], parent?: FigmaNode): FigmaNode[] {
     if (nodes.length === 0) return nodes;
 
     // Guard: children of a row cluster must not be clustered again.
@@ -43,7 +43,7 @@ export class LayoutEngine {
       const afterOverlay = this.foldContainedOverlays(processed);
 
       // Step 2: Detect horizontal row clusters for non-auto layout siblings (P1-1)
-      processed = this.clusterHorizontalRows(afterOverlay);
+      processed = this.clusterHorizontalRows(afterOverlay, parent);
     }
 
     // Step 3: Compute Auto Layout sizing ratios (P1-3)
@@ -137,7 +137,7 @@ export class LayoutEngine {
    * P1-1: Clusters horizontally adjacent siblings into a single row Frame
    * if they share overlapping or proximate vertical bounds without horizontal collision.
    */
-  public clusterHorizontalRows(nodes: FigmaNode[]): FigmaNode[] {
+  public clusterHorizontalRows(nodes: FigmaNode[], parent?: FigmaNode): FigmaNode[] {
     // Only cluster nodes that have bounding boxes and are non-auto-layout siblings
     const sorted = [...nodes].sort((a, b) => {
       const aY = a.absoluteBoundingBox?.y ?? 0;
@@ -177,7 +177,7 @@ export class LayoutEngine {
           break;
         }
 
-        if (this.canFormHorizontalRow(rowCluster, candidate)) {
+        if (this.canFormHorizontalRow(rowCluster, candidate, parent)) {
           rowCluster.push(candidate);
           clusteredIds.add(candidate.id);
         }
@@ -327,20 +327,20 @@ export class LayoutEngine {
   /**
    * Helper: Determines if candidate can join the existing horizontal row cluster.
    */
-  private canFormHorizontalRow(cluster: FigmaNode[], candidate: FigmaNode): boolean {
+  private canFormHorizontalRow(cluster: FigmaNode[], candidate: FigmaNode, parent?: FigmaNode): boolean {
     const cBox = candidate.absoluteBoundingBox;
     if (!cBox) return false;
 
     // Defensive Guard: Independent full-sized screens (e.g. mobile/desktop artboards)
     // must never be clustered into a single horizontal row table.
-    if (this.isIndependentScreen(cBox)) {
+    if (this.isIndependentScreen(cBox, parent)) {
       return false;
     }
 
     for (const member of cluster) {
       const mBox = member.absoluteBoundingBox;
       if (!mBox) return false;
-      if (this.isIndependentScreen(mBox)) {
+      if (this.isIndependentScreen(mBox, parent)) {
         return false;
       }
 
@@ -371,8 +371,19 @@ export class LayoutEngine {
   /**
    * Defensive check: Detects if bounding box represents an independent full-sized screen artboard
    * (e.g. mobile phone viewport or desktop artboard) rather than a regular UI card or component.
+   * When parent context is provided, elements inside a wide container (e.g. desktop web frame)
+   * are only treated as independent screens if they span nearly the full width of the parent.
    */
-  private isIndependentScreen(box: FigmaBoundingBox): boolean {
+  private isIndependentScreen(box: FigmaBoundingBox, parent?: FigmaNode): boolean {
+    const pBox = parent?.absoluteBoundingBox;
+    if (pBox && pBox.width >= 600) {
+      // Inside a wide container (e.g. desktop page or section >= 600px wide):
+      // A child is an independent full-width section/screen ONLY if it spans almost the full parent width.
+      // Columns, sidebars, cards, and embedded mockups occupying a fraction of the width (< 85%)
+      // are internal layout elements that should be eligible for horizontal clustering.
+      return box.width >= pBox.width * 0.85;
+    }
+
     const aspect = box.height / box.width;
     // Mobile fullscreen screen: typical viewport (width 240..500, height >= 600, portrait aspect >= 1.6)
     const isMobileScreen = box.width >= 240 && box.width <= 500 && box.height >= 600 && aspect >= 1.6;
