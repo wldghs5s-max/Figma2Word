@@ -3,6 +3,11 @@ import { FigmaParser, ParseResult } from '../../../src/parser/figmaParser';
 import { DocxRenderer } from '../../../src/renderer/docxRenderer';
 import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError } from '../../../src/api/index';
 import {
+  FigmaSnapshot,
+  isFigmaSnapshot,
+  createFigmaSnapshot,
+} from '../../../src/pipeline/index';
+import {
   simpleDocumentFixture,
   cardLayoutFixture,
   autoLayoutFixture,
@@ -23,6 +28,13 @@ export function App() {
   const [duration, setDuration] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadedSnapshot, setLoadedSnapshot] = useState<{
+    targetNode: any;
+    imageMap?: Record<string, string>;
+    fileName?: string;
+    fileKey?: string;
+    nodeId?: string;
+  } | null>(null);
 
   const loadPreset = async (preset: string) => {
     setSelectedFixture(preset);
@@ -72,10 +84,35 @@ export function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      const text = event.target?.result as string;
-      setJsonInput(text);
-      setOutputFileName(file.name.replace(/\.[^/.]+$/, '') + '.docx');
-      setErrorMsg(null);
+      try {
+        const text = event.target?.result as string;
+        const parsedData = JSON.parse(text);
+        if (isFigmaSnapshot(parsedData)) {
+          setLoadedSnapshot({
+            targetNode: parsedData.figmaNode,
+            imageMap: parsedData.imageMap,
+            fileName: parsedData.metadata?.fileName || file.name.replace(/\.[^/.]+$/, ''),
+            fileKey: parsedData.metadata?.fileKey,
+            nodeId: parsedData.metadata?.nodeId,
+          });
+          const imgCount = Object.keys(parsedData.imageMap || {}).length;
+          setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (오프라인 이미지 ${imgCount}개 포함)`);
+        } else {
+          const targetNode = parsedData.document || parsedData;
+          const imageMap = parsedData.images || parsedData.meta?.images || {};
+          setLoadedSnapshot({
+            targetNode,
+            imageMap,
+            fileName: file.name.replace(/\.[^/.]+$/, ''),
+          });
+          setStatus(`Figma JSON [${file.name}] 로드 완료`);
+        }
+        setJsonInput(text);
+        setOutputFileName(file.name.replace(/\.[^/.]+$/, '') + '.docx');
+        setErrorMsg(null);
+      } catch (err: any) {
+        setErrorMsg(`JSON 파일 읽기 실패: ${err.message}`);
+      }
     };
     reader.readAsText(file);
   };
@@ -115,6 +152,15 @@ export function App() {
       setStatus('이미지 에셋 확인 및 다운로드 중...');
       const rootNode = 'document' in targetNode ? targetNode.document : targetNode;
       const imageMap = await client.resolveImages(parsed.fileKey, rootNode);
+
+      // Save to memory cache for repeated conversions without API calls
+      setLoadedSnapshot({
+        targetNode,
+        imageMap,
+        fileName: parsed.fileName || `figma-${parsed.fileKey}`,
+        fileKey: parsed.fileKey,
+        nodeId: parsed.nodeId,
+      });
 
       setStatus('문서 모델(IR) 및 레이아웃 파싱 중...');
       const parser = new FigmaParser({ imageMap });
@@ -169,18 +215,78 @@ export function App() {
     }
   };
 
+  const handleReuseAndConvert = async () => {
+    if (!loadedSnapshot) return;
+    try {
+      setIsLoading(true);
+      setErrorMsg(null);
+      setStatus('메모리 데이터로 오프라인 변환 중 (API 호출 0회)...');
+      const startTime = performance.now();
+
+      const parser = new FigmaParser({ imageMap: loadedSnapshot.imageMap });
+      const result = parser.parse(loadedSnapshot.targetNode);
+
+      result.document.metadata.conversionMode = mode;
+      result.document.pageConfig.orientation = pageOrientation;
+      if (result.document.sections) {
+        for (const section of result.document.sections) {
+          if (section.pageConfig) {
+            section.pageConfig.orientation = pageOrientation;
+          }
+        }
+      }
+
+      const renderer = new DocxRenderer();
+      const blob = await renderer.renderToBlob(result.document);
+      const endTime = performance.now();
+
+      setParseResult(result);
+      setDocxBlob(blob);
+      setDuration(Math.round(endTime - startTime));
+      setStatus(`메모리 재변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'})`);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || '재변환 중 오류가 발생했습니다.');
+      setStatus('오류 발생');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleConvert = async () => {
     try {
       setIsLoading(true);
       setErrorMsg(null);
-      setStatus('변환 중...');
+      setStatus('오프라인 변환 중 (API 호출 0회)...');
       const startTime = performance.now();
 
-      const inputContent = jsonInput.trim() || JSON.stringify(simpleDocumentFixture);
-      const parsedData = JSON.parse(inputContent);
+      let targetNode: any;
+      let imageMap: Record<string, string> = {};
 
-      const parser = new FigmaParser();
-      const result = parser.parse(parsedData);
+      if (loadedSnapshot) {
+        targetNode = loadedSnapshot.targetNode;
+        imageMap = loadedSnapshot.imageMap || {};
+      } else {
+        const inputContent = jsonInput.trim() || JSON.stringify(simpleDocumentFixture);
+        const parsedData = JSON.parse(inputContent);
+        if (isFigmaSnapshot(parsedData)) {
+          targetNode = parsedData.figmaNode;
+          imageMap = parsedData.imageMap || {};
+          setLoadedSnapshot({
+            targetNode,
+            imageMap,
+            fileName: parsedData.metadata?.fileName,
+            fileKey: parsedData.metadata?.fileKey,
+            nodeId: parsedData.metadata?.nodeId,
+          });
+        } else {
+          targetNode = parsedData.document || parsedData;
+          imageMap = parsedData.images || parsedData.meta?.images || {};
+        }
+      }
+
+      const parser = new FigmaParser({ imageMap });
+      const result = parser.parse(targetNode);
 
       if (result.stats.totalElements === 0) {
         throw new Error(
@@ -201,13 +307,12 @@ export function App() {
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
 
-
       const endTime = performance.now();
 
       setParseResult(result);
       setDocxBlob(blob);
       setDuration(Math.round(endTime - startTime));
-      setStatus('변환 완료');
+      setStatus('오프라인 변환 완료 (API 호출 0회)');
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || '변환 중 오류가 발생했습니다.');
@@ -215,6 +320,29 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDownloadSnapshot = () => {
+    if (!loadedSnapshot) return;
+    // Security: Never include accessToken or headers in snapshot
+    const snapshot = createFigmaSnapshot(
+      loadedSnapshot.targetNode,
+      loadedSnapshot.imageMap,
+      {
+        fileName: loadedSnapshot.fileName || outputFileName.replace(/\.docx$/, ''),
+        fileKey: loadedSnapshot.fileKey,
+        nodeId: loadedSnapshot.nodeId,
+      }
+    );
+    const jsonBlob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(jsonBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${loadedSnapshot.fileName || outputFileName.replace(/\.docx$/, '') || 'figma-snapshot'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleDownload = () => {
@@ -283,14 +411,42 @@ export function App() {
                 style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 4 }}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleFetchAndConvert}
-              disabled={isLoading}
-              style={{ padding: '10px 20px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', fontSize: 14, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer' }}
-            >
-              {isLoading ? '연동 및 변환 중...' : 'Figma 실시간 가져오기 & DOCX 변환'}
-            </button>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleFetchAndConvert}
+                disabled={isLoading}
+                style={{ padding: '10px 20px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', fontSize: 14, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+              >
+                {isLoading ? '연동 및 변환 중...' : 'Figma 실시간 가져오기 & DOCX 변환'}
+              </button>
+            </div>
+
+            {loadedSnapshot && (
+              <div style={{ marginTop: 14, padding: '12px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6 }}>
+                <div style={{ fontSize: 13, color: '#065f46', marginBottom: 8 }}>
+                  ⚡ <strong>메모리 스냅샷 보존 중</strong>: [{loadedSnapshot.fileName || 'Figma 디자인'}]
+                  {loadedSnapshot.imageMap && ` (오프라인 이미지 ${Object.keys(loadedSnapshot.imageMap).length}개 포함)`}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleReuseAndConvert}
+                    disabled={isLoading}
+                    style={{ padding: '8px 16px', borderRadius: 5, border: 'none', background: '#059669', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    ⚡ 메모리 데이터로 DOCX 즉시 변환 (API 0회)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSnapshot}
+                    style={{ padding: '8px 16px', borderRadius: 5, border: '1px solid #059669', background: '#fff', color: '#065f46', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    💾 Figma JSON 스냅샷 저장
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div>
@@ -396,8 +552,8 @@ export function App() {
           <strong>상태:</strong> {status} {duration !== null && `(${duration}ms)`}
         </p>
 
-        {docxBlob && (
-          <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+          {docxBlob && (
             <button
               type="button"
               onClick={handleDownload}
@@ -405,8 +561,17 @@ export function App() {
             >
               📥 Microsoft Word 문서 (.docx) 다운로드
             </button>
-          </div>
-        )}
+          )}
+          {loadedSnapshot && (
+            <button
+              type="button"
+              onClick={handleDownloadSnapshot}
+              style={{ padding: '10px 18px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              💾 Figma JSON 스냅샷 저장 (.json 다운로드)
+            </button>
+          )}
+        </div>
 
         {parseResult && (
           <div>

@@ -22,6 +22,47 @@ export interface PipelineOptions {
   pageOrientation?: "portrait" | "landscape";
 }
 
+export interface FigmaSnapshotMetadata {
+  fileName?: string;
+  fileKey?: string;
+  nodeId?: string;
+  exportedAt?: string;
+}
+
+export interface FigmaSnapshot {
+  version: "1.0";
+  source: "figma2word";
+  exportedAt: string;
+  metadata?: FigmaSnapshotMetadata;
+  figmaNode: FigmaNode | FigmaFileResponse;
+  imageMap?: Record<string, string>;
+}
+
+export function isFigmaSnapshot(obj: unknown): obj is FigmaSnapshot {
+  if (!obj || typeof obj !== "object") return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    (o.source === "figma2word" || "figmaNode" in o) &&
+    !!o.figmaNode &&
+    typeof o.figmaNode === "object"
+  );
+}
+
+export function createFigmaSnapshot(
+  targetNode: FigmaNode | FigmaFileResponse,
+  imageMap?: Record<string, string>,
+  metadata?: FigmaSnapshotMetadata
+): FigmaSnapshot {
+  return {
+    version: "1.0",
+    source: "figma2word",
+    exportedAt: new Date().toISOString(),
+    metadata,
+    figmaNode: targetNode,
+    imageMap: imageMap ? { ...imageMap } : {},
+  };
+}
+
 export interface PipelineResult {
   docxBuffer: Buffer;
   outputPath?: string;
@@ -108,7 +149,22 @@ export class ConversionPipeline {
   }
 
   /**
-   * Convert directly from a local Figma JSON file path
+   * Convert offline from a FigmaSnapshot object without any network API calls
+   */
+  public async convertSnapshot(
+    snapshot: FigmaSnapshot,
+    options?: PipelineOptions
+  ): Promise<PipelineResult> {
+    const mergedImageMap = { ...snapshot.imageMap, ...options?.imageMap };
+    return await this.convert(snapshot.figmaNode, {
+      ...options,
+      imageMap: mergedImageMap,
+      titleOverride: options?.titleOverride || snapshot.metadata?.fileName,
+    });
+  }
+
+  /**
+   * Convert directly from a local Figma JSON file path (supports both raw Figma JSON and FigmaSnapshot JSON)
    */
   public async convertFile(
     jsonFilePath: string,
@@ -116,7 +172,19 @@ export class ConversionPipeline {
     options?: PipelineOptions
   ): Promise<PipelineResult> {
     const rawContent = await fs.promises.readFile(jsonFilePath, "utf-8");
-    const jsonInput = JSON.parse(rawContent) as FigmaFileResponse;
+    const jsonInput = JSON.parse(rawContent);
+
+    if (isFigmaSnapshot(jsonInput)) {
+      const defaultOutputPath =
+        outputPath ||
+        path.join(
+          process.cwd(),
+          "samples/output",
+          `${jsonInput.metadata?.fileName || path.basename(jsonFilePath, path.extname(jsonFilePath))}.docx`
+        );
+      return await this.convertSnapshot(jsonInput, { ...options, outputPath: defaultOutputPath });
+    }
+
     const defaultOutputPath =
       outputPath ||
       path.join(
@@ -125,7 +193,7 @@ export class ConversionPipeline {
         `${path.basename(jsonFilePath, path.extname(jsonFilePath))}.docx`
       );
 
-    return await this.convert(jsonInput, { ...options, outputPath: defaultOutputPath });
+    return await this.convert(jsonInput as FigmaFileResponse, { ...options, outputPath: defaultOutputPath });
   }
 
   /**
