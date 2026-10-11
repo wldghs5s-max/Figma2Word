@@ -8,6 +8,7 @@ function parseCliArgs(args: string[]) {
     url?: string;
     token?: string;
     output?: string;
+    orientation?: "portrait" | "landscape";
     files: string[];
   } = { files: [] };
 
@@ -19,6 +20,11 @@ function parseCliArgs(args: string[]) {
       result.token = args[++i];
     } else if (arg === "--output" || arg === "-o") {
       result.output = args[++i];
+    } else if (arg === "--orientation" || arg === "-r") {
+      const val = args[++i]?.toLowerCase();
+      if (val === "landscape" || val === "portrait") {
+        result.orientation = val;
+      }
     } else if (!arg.startsWith("-")) {
       result.files.push(arg);
     }
@@ -56,6 +62,7 @@ async function main() {
     try {
       const res = await pipeline.convertFigmaUrl(parsedArgs.url, token, {
         outputPath: parsedArgs.output,
+        pageOrientation: parsedArgs.orientation,
       });
 
       console.log(`\n[SUCCESS] Converted in ${res.durationMs}ms`);
@@ -113,7 +120,9 @@ async function main() {
   for (const file of filesToConvert) {
     console.log(`\nProcessing: ${path.basename(file)}...`);
     try {
-      const res = await pipeline.convertFile(file, parsedArgs.output);
+      const res = await pipeline.convertFile(file, parsedArgs.output, {
+        pageOrientation: parsedArgs.orientation,
+      });
       console.log(`[SUCCESS] Converted in ${res.durationMs}ms`);
       console.log(`Output: ${res.outputPath}`);
       console.log(

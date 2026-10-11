@@ -10,6 +10,7 @@ import {
 
 export function App() {
   const [mode, setMode] = useState<'balanced' | 'fidelity' | 'editability'>('balanced');
+  const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [inputTab, setInputTab] = useState<'preset' | 'url' | 'manual'>('preset');
   const [figmaUrl, setFigmaUrl] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
@@ -126,6 +127,14 @@ export function App() {
       }
 
       result.document.metadata.conversionMode = mode;
+      result.document.pageConfig.orientation = pageOrientation;
+      if (result.document.sections) {
+        for (const section of result.document.sections) {
+          if (section.pageConfig) {
+            section.pageConfig.orientation = pageOrientation;
+          }
+        }
+      }
       if (parsed.fileName) {
         result.document.metadata.title = parsed.fileName;
       }
@@ -180,6 +189,14 @@ export function App() {
       }
 
       result.document.metadata.conversionMode = mode;
+      result.document.pageConfig.orientation = pageOrientation;
+      if (result.document.sections) {
+        for (const section of result.document.sections) {
+          if (section.pageConfig) {
+            section.pageConfig.orientation = pageOrientation;
+          }
+        }
+      }
 
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
@@ -346,6 +363,21 @@ export function App() {
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
             <input type="radio" name="mode" value="editability" checked={mode === 'editability'} onChange={() => setMode('editability')} />
             <span><strong>Editability</strong> (편집성 우선)</span>
+          </label>
+        </div>
+      </section>
+
+      {/* Page Orientation Selection */}
+      <section style={{ backgroundColor: '#f9fafb', padding: 16, borderRadius: 8, border: '1px solid #e5e7eb', marginBottom: 20 }}>
+        <h4 style={{ marginTop: 0, marginBottom: 10, fontSize: 14 }}>용지 방향 (Page Orientation)</h4>
+        <div style={{ display: 'flex', gap: 20, fontSize: 13 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input type="radio" name="orientation" value="portrait" checked={pageOrientation === 'portrait'} onChange={() => setPageOrientation('portrait')} />
+            <span><strong>A4 세로형 (Portrait)</strong> (기본값, 본문 폭 451pt / 602px)</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input type="radio" name="orientation" value="landscape" checked={pageOrientation === 'landscape'} onChange={() => setPageOrientation('landscape')} />
+            <span><strong>A4 가로형 (Landscape)</strong> (데스크톱/와이드 디자인 권장, 본문 폭 698pt / 931px)</span>
           </label>
         </div>
       </section>

@@ -19,6 +19,7 @@ export interface PipelineOptions {
   imageMap?: Record<string, string>;
   titleOverride?: string;
   downloadImages?: boolean;
+  pageOrientation?: "portrait" | "landscape";
 }
 
 export interface PipelineResult {
@@ -70,6 +71,17 @@ export class ConversionPipeline {
       internalDoc.metadata.title = options.titleOverride;
     }
 
+    if (options?.pageOrientation) {
+      internalDoc.pageConfig.orientation = options.pageOrientation;
+      for (const sec of internalDoc.sections) {
+        if (sec.pageConfig) {
+          sec.pageConfig.orientation = options.pageOrientation;
+        } else {
+          sec.pageConfig = { ...internalDoc.pageConfig, orientation: options.pageOrientation };
+        }
+      }
+    }
+
     // Step 2: Render Internal Document Model to DOCX Buffer
     const docxBuffer = await this.renderer.renderToBuffer(internalDoc);
 
@@ -100,7 +112,8 @@ export class ConversionPipeline {
    */
   public async convertFile(
     jsonFilePath: string,
-    outputPath?: string
+    outputPath?: string,
+    options?: PipelineOptions
   ): Promise<PipelineResult> {
     const rawContent = await fs.promises.readFile(jsonFilePath, "utf-8");
     const jsonInput = JSON.parse(rawContent) as FigmaFileResponse;
@@ -112,7 +125,7 @@ export class ConversionPipeline {
         `${path.basename(jsonFilePath, path.extname(jsonFilePath))}.docx`
       );
 
-    return await this.convert(jsonInput, { outputPath: defaultOutputPath });
+    return await this.convert(jsonInput, { ...options, outputPath: defaultOutputPath });
   }
 
   /**

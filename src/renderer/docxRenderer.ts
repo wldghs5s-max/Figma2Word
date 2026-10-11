@@ -158,10 +158,10 @@ export class DocxRenderer {
           properties: {
             page: {
               size: {
-                width: secPageConfig.orientation === "landscape" ? secHeightDxa : secWidthDxa,
-                height: secPageConfig.orientation === "landscape" ? secWidthDxa : secHeightDxa,
+                width: secWidthDxa,
+                height: secHeightDxa,
                 orientation:
-                  secPageConfig.orientation === "landscape"
+                  secPageConfig?.orientation === "landscape"
                     ? ("landscape" as const)
                     : ("portrait" as const),
               },
@@ -190,10 +190,16 @@ export class DocxRenderer {
     const result: (Paragraph | Table)[] = [];
     for (const elem of elements) {
       const rendered = this.renderElement(elem);
-      if (Array.isArray(rendered)) {
-        result.push(...rendered);
-      } else if (rendered) {
-        result.push(rendered);
+      const pieces = Array.isArray(rendered) ? rendered : rendered ? [rendered] : [];
+      for (const piece of pieces) {
+        if (result.length > 0 && result[result.length - 1] instanceof Table && piece instanceof Table) {
+          result.push(
+            new Paragraph({
+              spacing: { before: 0, after: 0 },
+            })
+          );
+        }
+        result.push(piece);
       }
     }
     return result;
@@ -471,6 +477,10 @@ export class DocxRenderer {
         new TableRow({
           children: [
             new TableCell({
+              width: {
+                size: 100,
+                type: WidthType.PERCENTAGE,
+              },
               borders: {
                 top: borderDef,
                 bottom: borderDef,
@@ -677,6 +687,10 @@ export class DocxRenderer {
           new TableRow({
             children: [
               new TableCell({
+                width: {
+                  size: 100,
+                  type: WidthType.PERCENTAGE,
+                },
                 borders: {
                   top: borderDef,
                   bottom: borderDef,
@@ -983,14 +997,37 @@ export class DocxRenderer {
       const rendered = this.renderElement(elem);
       const pieces = Array.isArray(rendered) ? rendered : rendered ? [rendered] : [];
       if (pieces.length === 0) continue;
-      if (result.length > 0 && gapPt > 0) {
-        result.push(
-          new Paragraph({
-            spacing: { before: ptToDxa(pxToPt(gapPt)), after: 0 },
-          })
-        );
+      if (result.length > 0) {
+        if (gapPt > 0) {
+          result.push(
+            new Paragraph({
+              spacing: { before: ptToDxa(pxToPt(gapPt)), after: 0 },
+            })
+          );
+        } else if (result[result.length - 1] instanceof Table && pieces[0] instanceof Table) {
+          // STEP 4B: Prevent Word from merging adjacent independent tables into a compound table
+          result.push(
+            new Paragraph({
+              spacing: { before: 0, after: 0 },
+            })
+          );
+        }
       }
-      result.push(...pieces);
+      for (let i = 0; i < pieces.length; i++) {
+        if (
+          i > 0 &&
+          result.length > 0 &&
+          result[result.length - 1] instanceof Table &&
+          pieces[i] instanceof Table
+        ) {
+          result.push(
+            new Paragraph({
+              spacing: { before: 0, after: 0 },
+            })
+          );
+        }
+        result.push(pieces[i]);
+      }
     }
     return result;
   }
