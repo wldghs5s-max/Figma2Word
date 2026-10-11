@@ -2,7 +2,7 @@ import { FigmaParser, ParseResult, ConversionNotice } from "../parser/index.js";
 import { DocxRenderer } from "../renderer/index.js";
 import { InternalDocument } from "../model/index.js";
 import { FigmaNode, FigmaFileResponse } from "../parser/types.js";
-import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError } from "../api/index.js";
+import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError, collectImageRefs } from "../api/index.js";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -22,11 +22,46 @@ export interface PipelineOptions {
   pageOrientation?: "portrait" | "landscape";
 }
 
+export interface FigmaImageCompleteness {
+  referencedCount: number;
+  resolvedCount: number;
+  isComplete: boolean;
+  missingRefs: string[];
+}
+
+export function assessImageCompleteness(
+  targetNode: FigmaNode | FigmaFileResponse,
+  imageMap?: Record<string, string>
+): FigmaImageCompleteness {
+  const referencedRefs = collectImageRefs(targetNode);
+  const map = imageMap || {};
+  const missingRefs: string[] = [];
+
+  for (const ref of referencedRefs) {
+    const data = map[ref];
+    if (!data || typeof data !== "string" || !data.startsWith("data:image/")) {
+      missingRefs.push(ref);
+    }
+  }
+
+  const referencedCount = referencedRefs.length;
+  const resolvedCount = referencedCount - missingRefs.length;
+  const isComplete = missingRefs.length === 0;
+
+  return {
+    referencedCount,
+    resolvedCount,
+    isComplete,
+    missingRefs,
+  };
+}
+
 export interface FigmaSnapshotMetadata {
   fileName?: string;
   fileKey?: string;
   nodeId?: string;
   exportedAt?: string;
+  imageStats?: FigmaImageCompleteness;
 }
 
 export interface FigmaSnapshot {
@@ -53,11 +88,15 @@ export function createFigmaSnapshot(
   imageMap?: Record<string, string>,
   metadata?: FigmaSnapshotMetadata
 ): FigmaSnapshot {
+  const imageStats = metadata?.imageStats || assessImageCompleteness(targetNode, imageMap);
   return {
     version: "1.0",
     source: "figma2word",
     exportedAt: new Date().toISOString(),
-    metadata,
+    metadata: {
+      ...metadata,
+      imageStats,
+    },
     figmaNode: targetNode,
     imageMap: imageMap ? { ...imageMap } : {},
   };

@@ -3,6 +3,7 @@ import {
   ConversionPipeline,
   createFigmaSnapshot,
   isFigmaSnapshot,
+  assessImageCompleteness,
   FigmaSnapshot,
 } from "../src/pipeline/index.js";
 import { FigmaNode } from "../src/parser/types.js";
@@ -237,4 +238,55 @@ describe("Step 7: Figma JSON Snapshot & Offline Repeated Conversion", () => {
     expect(p1.internalDocument.pageConfig.orientation).toBe("portrait");
     expect(l1.internalDocument.pageConfig.orientation).toBe("landscape");
   });
+
+  // 11. 이미지 완전성 검사 (M=K) 및 누락 경고 안전장치 검증
+  it("Item 11: assessImageCompleteness correctly detects 100% complete, missing, and zero-image states", () => {
+    // 100% Complete: referenced 1, resolved 1
+    const completeStats = assessImageCompleteness(sampleCardNode, sampleImageMap);
+    expect(completeStats.referencedCount).toBe(1);
+    expect(completeStats.resolvedCount).toBe(1);
+    expect(completeStats.isComplete).toBe(true);
+    expect(completeStats.missingRefs).toEqual([]);
+
+    // Incomplete / Missing: referenced 1, resolved 0
+    const missingStats = assessImageCompleteness(sampleCardNode, {});
+    expect(missingStats.referencedCount).toBe(1);
+    expect(missingStats.resolvedCount).toBe(0);
+    expect(missingStats.isComplete).toBe(false);
+    expect(missingStats.missingRefs).toEqual(["hero-img-ref-123"]);
+
+    // Zero-image text/vector node
+    const textOnlyNode: FigmaNode = {
+      id: "text-only",
+      name: "Only Text",
+      type: "FRAME",
+      absoluteBoundingBox: { x: 0, y: 0, width: 200, height: 100 },
+      children: [
+        {
+          id: "t1",
+          name: "Text",
+          type: "TEXT",
+          characters: "Hello World",
+          absoluteBoundingBox: { x: 10, y: 10, width: 100, height: 20 },
+        },
+      ],
+    };
+    const zeroImageStats = assessImageCompleteness(textOnlyNode, {});
+    expect(zeroImageStats.referencedCount).toBe(0);
+    expect(zeroImageStats.resolvedCount).toBe(0);
+    expect(zeroImageStats.isComplete).toBe(true);
+    expect(zeroImageStats.missingRefs).toEqual([]);
+
+    // Verify createFigmaSnapshot automatically embeds imageStats
+    const autoSnapshot = createFigmaSnapshot(sampleCardNode, sampleImageMap);
+    expect(autoSnapshot.metadata?.imageStats).toBeDefined();
+    expect(autoSnapshot.metadata?.imageStats?.isComplete).toBe(true);
+    expect(autoSnapshot.metadata?.imageStats?.referencedCount).toBe(1);
+
+    const incompleteSnapshot = createFigmaSnapshot(sampleCardNode, {});
+    expect(incompleteSnapshot.metadata?.imageStats?.isComplete).toBe(false);
+    expect(incompleteSnapshot.metadata?.imageStats?.resolvedCount).toBe(0);
+    expect(incompleteSnapshot.metadata?.imageStats?.missingRefs).toContain("hero-img-ref-123");
+  });
 });
+

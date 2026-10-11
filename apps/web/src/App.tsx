@@ -6,6 +6,7 @@ import {
   FigmaSnapshot,
   isFigmaSnapshot,
   createFigmaSnapshot,
+  assessImageCompleteness,
 } from '../../../src/pipeline/index';
 import {
   simpleDocumentFixture,
@@ -95,8 +96,14 @@ export function App() {
             fileKey: parsedData.metadata?.fileKey,
             nodeId: parsedData.metadata?.nodeId,
           });
-          const imgCount = Object.keys(parsedData.imageMap || {}).length;
-          setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (오프라인 이미지 ${imgCount}개 포함)`);
+          const imgStats = assessImageCompleteness(parsedData.figmaNode, parsedData.imageMap);
+          if (imgStats.referencedCount === 0) {
+            setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (이미지 없는 디자인)`);
+          } else if (imgStats.isComplete) {
+            setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (✅ 이미지 ${imgStats.referencedCount}개 완전 무결)`);
+          } else {
+            setStatus(`⚠️ Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료 (경고: 참조 이미지 ${imgStats.referencedCount}개 중 ${imgStats.resolvedCount}개만 포함됨, ${imgStats.missingRefs.length}개 누락)`);
+          }
         } else {
           const targetNode = parsedData.document || parsedData;
           const imageMap = parsedData.images || parsedData.meta?.images || {};
@@ -422,31 +429,60 @@ export function App() {
               </button>
             </div>
 
-            {loadedSnapshot && (
-              <div style={{ marginTop: 14, padding: '12px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6 }}>
-                <div style={{ fontSize: 13, color: '#065f46', marginBottom: 8 }}>
-                  ⚡ <strong>메모리 스냅샷 보존 중</strong>: [{loadedSnapshot.fileName || 'Figma 디자인'}]
-                  {loadedSnapshot.imageMap && ` (오프라인 이미지 ${Object.keys(loadedSnapshot.imageMap).length}개 포함)`}
+            {loadedSnapshot && (() => {
+              const imgStats = assessImageCompleteness(loadedSnapshot.targetNode, loadedSnapshot.imageMap);
+              const isWarning = imgStats.referencedCount > 0 && !imgStats.isComplete;
+              return (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: '12px 14px',
+                    background: isWarning ? '#fffbeb' : '#ecfdf5',
+                    border: `1px solid ${isWarning ? '#fde68a' : '#a7f3d0'}`,
+                    borderRadius: 6,
+                  }}
+                >
+                  <div style={{ fontSize: 13, color: isWarning ? '#92400e' : '#065f46', marginBottom: 6, fontWeight: 700 }}>
+                    {isWarning ? '⚠️ 메모리 스냅샷 주의 (이미지 결손 감지)' : '⚡ 메모리 스냅샷 보존 중'}: [{loadedSnapshot.fileName || 'Figma 디자인'}]
+                  </div>
+                  <div style={{ fontSize: 12, color: isWarning ? '#b45309' : '#047857', marginBottom: 10 }}>
+                    {imgStats.referencedCount === 0 ? (
+                      'ℹ️ 이미지 참조 없음 (텍스트 및 벡터 레이아웃 디자인)'
+                    ) : imgStats.isComplete ? (
+                      `✅ 모든 이미지(${imgStats.referencedCount}개) 오프라인 패키징 완료 — 100% 완전 무결 백업`
+                    ) : (
+                      `❌ 이미지 누락 경고: 디자인 내 참조 이미지 ${imgStats.referencedCount}개 중 ${imgStats.resolvedCount}개만 확보되었습니다 (${imgStats.missingRefs.length}개 결손). 이 스냅샷은 불완전 백업입니다.`
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={handleReuseAndConvert}
+                      disabled={isLoading}
+                      style={{ padding: '8px 16px', borderRadius: 5, border: 'none', background: '#059669', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      ⚡ 메모리 데이터로 DOCX 즉시 변환 (API 0회)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadSnapshot}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 5,
+                        border: `1px solid ${isWarning ? '#d97706' : '#059669'}`,
+                        background: isWarning ? '#fff7ed' : '#fff',
+                        color: isWarning ? '#b45309' : '#065f46',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isWarning ? '💾 불완전 스냅샷이라도 저장 (.json)' : '💾 Figma JSON 스냅샷 저장 (.json)'}
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={handleReuseAndConvert}
-                    disabled={isLoading}
-                    style={{ padding: '8px 16px', borderRadius: 5, border: 'none', background: '#059669', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    ⚡ 메모리 데이터로 DOCX 즉시 변환 (API 0회)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadSnapshot}
-                    style={{ padding: '8px 16px', borderRadius: 5, border: '1px solid #059669', background: '#fff', color: '#065f46', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    💾 Figma JSON 스냅샷 저장
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         ) : (
           <div>
@@ -562,15 +598,33 @@ export function App() {
               📥 Microsoft Word 문서 (.docx) 다운로드
             </button>
           )}
-          {loadedSnapshot && (
-            <button
-              type="button"
-              onClick={handleDownloadSnapshot}
-              style={{ padding: '10px 18px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              💾 Figma JSON 스냅샷 저장 (.json 다운로드)
-            </button>
-          )}
+          {loadedSnapshot && (() => {
+            const imgStats = assessImageCompleteness(loadedSnapshot.targetNode, loadedSnapshot.imageMap);
+            const isWarning = imgStats.referencedCount > 0 && !imgStats.isComplete;
+            return (
+              <button
+                type="button"
+                onClick={handleDownloadSnapshot}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 6,
+                  border: `1px solid ${isWarning ? '#f59e0b' : '#2563eb'}`,
+                  background: isWarning ? '#fffbeb' : '#eff6ff',
+                  color: isWarning ? '#b45309' : '#1d4ed8',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                {isWarning
+                  ? '⚠️ Figma JSON 스냅샷 저장 (이미지 누락 포함)'
+                  : '💾 Figma JSON 스냅샷 저장 (.json 다운로드)'}
+              </button>
+            );
+          })()}
         </div>
 
         {parseResult && (

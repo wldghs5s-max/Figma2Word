@@ -422,28 +422,7 @@ export class FigmaClient {
    * Collect all imageRef keys present in a Figma node tree
    */
   public collectImageRefs(root: FigmaNode): string[] {
-    const refs = new Set<string>();
-
-    const traverse = (node: FigmaNode) => {
-      if (node.imageRef) {
-        refs.add(node.imageRef);
-      }
-      if (node.fills && Array.isArray(node.fills)) {
-        for (const fill of node.fills) {
-          if (fill.type === "IMAGE" && fill.imageRef) {
-            refs.add(fill.imageRef);
-          }
-        }
-      }
-      if (node.children && Array.isArray(node.children)) {
-        for (const child of node.children) {
-          traverse(child);
-        }
-      }
-    };
-
-    traverse(root);
-    return Array.from(refs);
+    return collectImageRefs(root);
   }
 
   /**
@@ -497,3 +476,35 @@ export class FigmaClient {
     return resultMap;
   }
 }
+
+/**
+ * Collect all imageRef keys present in a Figma node tree or file response
+ */
+export function collectImageRefs(root: FigmaNode | FigmaFileResponse | any): string[] {
+  const refs = new Set<string>();
+  if (!root) return [];
+  const actualRoot = "document" in root ? root.document : root;
+
+  const traverse = (node: any) => {
+    if (!node || typeof node !== "object") return;
+    if (node.imageRef) {
+      refs.add(node.imageRef);
+    }
+    if (node.fills && Array.isArray(node.fills)) {
+      for (const fill of node.fills) {
+        if (fill && fill.type === "IMAGE" && fill.imageRef) {
+          refs.add(fill.imageRef);
+        }
+      }
+    }
+    if (node.children && Array.isArray(node.children)) {
+      for (const child of node.children) {
+        traverse(child);
+      }
+    }
+  };
+
+  traverse(actualRoot);
+  return Array.from(refs);
+}
+
