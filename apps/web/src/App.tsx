@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FigmaParser, ParseResult } from '../../../src/parser/figmaParser';
 import { DocxRenderer } from '../../../src/renderer/docxRenderer';
 import { FigmaClient, parseFigmaUrl, findNodeEntry, FigmaApiError } from '../../../src/api/index';
@@ -32,6 +32,11 @@ export function App() {
   const [duration, setDuration] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [uploadedFileInfo, setUploadedFileInfo] = useState<{
+    name: string;
+    sizeBytes: number;
+    frameCount: number;
+  } | null>(null);
   const [loadedSnapshot, setLoadedSnapshot] = useState<{
     targetNode: any;
     imageMap?: Record<string, string>;
@@ -41,6 +46,9 @@ export function App() {
   } | null>(null);
   const [selectableFrames, setSelectableFrames] = useState<SelectableFrame[]>([]);
   const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
+
+  const conversionReqIdRef = useRef<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateFramesFromNode = (node: any) => {
     try {
@@ -54,6 +62,7 @@ export function App() {
   };
 
   const handleToggleFrame = (frameId: string) => {
+    conversionReqIdRef.current++;
     setSelectedFrameIds((prev) =>
       prev.includes(frameId) ? prev.filter((id) => id !== frameId) : [...prev, frameId]
     );
@@ -61,23 +70,42 @@ export function App() {
   };
 
   const handleSelectAllFrames = () => {
+    conversionReqIdRef.current++;
     setSelectedFrameIds(selectableFrames.map((f) => f.id));
     setDocxBlob(null);
   };
 
   const handleDeselectAllFrames = () => {
+    conversionReqIdRef.current++;
     setSelectedFrameIds([]);
     setDocxBlob(null);
   };
 
   const handleSelectOnlyA4Frames = () => {
+    conversionReqIdRef.current++;
     const a4Ids = selectableFrames.filter((f) => f.isRecommendedA4).map((f) => f.id);
     setSelectedFrameIds(a4Ids.length > 0 ? a4Ids : selectableFrames.map((f) => f.id));
     setDocxBlob(null);
   };
 
+  const handleClearUploadedFile = () => {
+    conversionReqIdRef.current++;
+    setUploadedFileInfo(null);
+    setLoadedSnapshot(null);
+    setSelectableFrames([]);
+    setSelectedFrameIds([]);
+    setDocxBlob(null);
+    setParseResult(null);
+    setStatus('대기 중');
+    setErrorMsg(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const loadPreset = async (preset: string) => {
+    conversionReqIdRef.current++;
+    setUploadedFileInfo(null);
     setSelectedFixture(preset);
     setErrorMsg(null);
     let fixtureNode: any = simpleDocumentFixture;
@@ -136,12 +164,18 @@ export function App() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    conversionReqIdRef.current++;
+    setDocxBlob(null);
+    setParseResult(null);
+
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
         const parsedData = JSON.parse(text);
+        let extractedNode: any;
         if (isFigmaSnapshot(parsedData)) {
+          extractedNode = parsedData.figmaNode;
           setLoadedSnapshot({
             targetNode: parsedData.figmaNode,
             imageMap: parsedData.imageMap,
@@ -160,6 +194,7 @@ export function App() {
           }
         } else {
           const targetNode = parsedData.document || parsedData;
+          extractedNode = targetNode;
           const imageMap = parsedData.images || parsedData.meta?.images || {};
           setLoadedSnapshot({
             targetNode,
@@ -169,10 +204,22 @@ export function App() {
           updateFramesFromNode(targetNode);
           setStatus(`Figma JSON [${file.name}] 로드 완료`);
         }
-        setJsonInput(text);
+        let frameCount = 0;
+        try {
+          frameCount = extractSelectableFrames(extractedNode).length;
+        } catch {
+          frameCount = 0;
+        }
+        setUploadedFileInfo({
+          name: file.name,
+          sizeBytes: file.size,
+          frameCount,
+        });
+        // 대용량 JSON의 텍스트 문자열(20~40MB)을 React state에 저장하지 않음으로써
+        // V8 힙 44MB 점유 및 DOM textarea 렌더링 동결을 완전히 방지
+        setJsonInput('');
         setOutputFileName(file.name.replace(/\.[^/.]+$/, '') + '.docx');
         setErrorMsg(null);
-        setDocxBlob(null);
       } catch (err: any) {
         setErrorMsg(`JSON 파일 읽기 실패: ${err.message}`);
       }
@@ -180,7 +227,20 @@ export function App() {
     reader.readAsText(file);
   };
 
+  const handleModeChange = (newMode: 'balanced' | 'fidelity' | 'editability') => {
+    conversionReqIdRef.current++;
+    setMode(newMode);
+    setDocxBlob(null);
+  };
+
+  const handleOrientationChange = (newOrientation: 'portrait' | 'landscape') => {
+    conversionReqIdRef.current++;
+    setPageOrientation(newOrientation);
+    setDocxBlob(null);
+  };
+
   const handleFetchAndConvert = async () => {
+    if (isLoading) return;
     if (!figmaUrl.trim()) {
       setErrorMsg('Figma URL을 입력해주세요.');
       return;
@@ -189,6 +249,9 @@ export function App() {
       setErrorMsg('Figma Access Token (PAT)을 입력해주세요.');
       return;
     }
+
+    const currentReqId = ++conversionReqIdRef.current;
+    setDocxBlob(null);
 
     try {
       setIsLoading(true);
@@ -203,6 +266,7 @@ export function App() {
       if (parsed.nodeId) {
         setStatus(`Figma 노드 [${parsed.nodeId}] 수신 중...`);
         const nodesRes = await client.fetchNodes(parsed.fileKey, [parsed.nodeId]);
+        if (currentReqId !== conversionReqIdRef.current) return;
         targetNode = findNodeEntry(nodesRes.nodes, parsed.nodeId)?.document;
         if (!targetNode) {
           throw new FigmaApiError(`노드 '${parsed.nodeId}'를 찾을 수 없습니다.`, 404);
@@ -210,11 +274,13 @@ export function App() {
       } else {
         setStatus(`Figma 파일 [${parsed.fileKey}] 전체 트리 수신 중...`);
         targetNode = await client.fetchFile(parsed.fileKey);
+        if (currentReqId !== conversionReqIdRef.current) return;
       }
 
       setStatus('이미지 에셋 확인 및 다운로드 중...');
       const rootNode = 'document' in targetNode ? targetNode.document : targetNode;
       const imageMap = await client.resolveImages(parsed.fileKey, rootNode);
+      if (currentReqId !== conversionReqIdRef.current) return;
 
       // Save to memory cache for repeated conversions without API calls
       setLoadedSnapshot({
@@ -252,6 +318,7 @@ export function App() {
       setStatus('Word (.docx) 렌더링 중...');
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
+      if (currentReqId !== conversionReqIdRef.current) return;
 
       const endTime = performance.now();
       setParseResult(result);
@@ -260,6 +327,7 @@ export function App() {
       setDuration(Math.round(endTime - startTime));
       setStatus('변환 완료');
     } catch (err: any) {
+      if (currentReqId !== conversionReqIdRef.current) return;
       console.error(err);
       if (err instanceof FigmaApiError && err.statusCode === 429) {
         const sec = err.rateLimitInfo?.retryAfterSeconds;
@@ -275,16 +343,21 @@ export function App() {
       }
       setStatus('오류 발생');
     } finally {
-      setIsLoading(false);
+      if (currentReqId === conversionReqIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleReuseAndConvert = async () => {
-    if (!loadedSnapshot) return;
+    if (isLoading || !loadedSnapshot) return;
     if (selectableFrames.length > 0 && selectedFrameIds.length === 0) {
       setErrorMsg('변환할 프레임이 선택되지 않았습니다. 최소 1개 이상의 프레임을 선택해주세요.');
       return;
     }
+    const currentReqId = ++conversionReqIdRef.current;
+    setDocxBlob(null);
+
     try {
       setIsLoading(true);
       setErrorMsg(null);
@@ -316,6 +389,7 @@ export function App() {
 
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
+      if (currentReqId !== conversionReqIdRef.current) return;
       const endTime = performance.now();
 
       setParseResult(result);
@@ -325,15 +399,22 @@ export function App() {
       setDuration(Math.round(endTime - startTime));
       setStatus(`메모리 재변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'}, ${selectedFrameIds.length > 0 ? `${selectedFrameIds.length}개 프레임` : '전체'})`);
     } catch (err: any) {
+      if (currentReqId !== conversionReqIdRef.current) return;
       console.error(err);
       setErrorMsg(err.message || '재변환 중 오류가 발생했습니다.');
       setStatus('오류 발생');
     } finally {
-      setIsLoading(false);
+      if (currentReqId === conversionReqIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleConvert = async () => {
+    if (isLoading) return;
+    const currentReqId = ++conversionReqIdRef.current;
+    setDocxBlob(null);
+
     try {
       setIsLoading(true);
       setErrorMsg(null);
@@ -402,6 +483,7 @@ export function App() {
 
       const renderer = new DocxRenderer();
       const blob = await renderer.renderToBlob(result.document);
+      if (currentReqId !== conversionReqIdRef.current) return;
 
       const endTime = performance.now();
 
@@ -412,11 +494,14 @@ export function App() {
       setDuration(Math.round(endTime - startTime));
       setStatus(`오프라인 변환 완료 (API 호출 0회, ${pageOrientation === 'landscape' ? '가로형' : '세로형'}, ${selectedFrameIds.length > 0 ? `${selectedFrameIds.length}개 프레임` : '전체'})`);
     } catch (err: any) {
+      if (currentReqId !== conversionReqIdRef.current) return;
       console.error(err);
       setErrorMsg(err.message || '변환 중 오류가 발생했습니다.');
       setStatus('오류 발생');
     } finally {
-      setIsLoading(false);
+      if (currentReqId === conversionReqIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -609,20 +694,58 @@ export function App() {
 
             <div style={{ marginBottom: 12 }}>
               <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 4 }}>
-                또는 Figma JSON 파일 업로드:
+                {uploadedFileInfo ? '다른 Figma JSON 파일로 교체:' : '또는 Figma JSON 파일 업로드:'}
               </label>
-              <input type="file" accept=".json" onChange={handleFileUpload} />
+              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileUpload} />
             </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <textarea
-                value={jsonInput}
-                onChange={(e) => setJsonInput(e.target.value)}
-                placeholder="Figma AST JSON을 여기에 붙여넣으세요..."
-                rows={6}
-                style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'monospace', fontSize: 11, padding: 8, border: '1px solid #d1d5db', borderRadius: 4 }}
-              />
-            </div>
+            {uploadedFileInfo ? (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: '12px 16px',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 6,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#166534' }}>
+                    📁 로드된 JSON 파일: {uploadedFileInfo.name}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearUploadedFile}
+                    style={{
+                      padding: '4px 8px',
+                      fontSize: 12,
+                      borderRadius: 4,
+                      border: '1px solid #d1d5db',
+                      background: '#fff',
+                      color: '#4b5563',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    파일 해제 / 직접 입력으로 전환
+                  </button>
+                </div>
+                <div style={{ fontSize: 12, color: '#15803d', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <span>크기: {(uploadedFileInfo.sizeBytes / (1024 * 1024)).toFixed(2)} MB</span>
+                  <span>감지된 프레임: {uploadedFileInfo.frameCount}개</span>
+                  <span style={{ color: '#047857', fontWeight: 600 }}>⚡ 메모리 최적화 모드 (44MB DOM textarea 렌더링 방지)</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 12 }}>
+                <textarea
+                  value={jsonInput}
+                  onChange={(e) => setJsonInput(e.target.value)}
+                  placeholder="Figma AST JSON을 여기에 붙여넣으세요..."
+                  rows={6}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'monospace', fontSize: 11, padding: 8, border: '1px solid #d1d5db', borderRadius: 4 }}
+                />
+              </div>
+            )}
 
             <button
               type="button"
@@ -726,15 +849,15 @@ export function App() {
         <h4 style={{ marginTop: 0, marginBottom: 10, fontSize: 14 }}>변환 모드 (Conversion Mode)</h4>
         <div style={{ display: 'flex', gap: 20, fontSize: 13 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="balanced" checked={mode === 'balanced'} onChange={() => { setMode('balanced'); setDocxBlob(null); }} />
+            <input type="radio" name="mode" value="balanced" checked={mode === 'balanced'} onChange={() => handleModeChange('balanced')} />
             <span><strong>Balanced</strong> (권장: 균형 모드)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="fidelity" checked={mode === 'fidelity'} onChange={() => { setMode('fidelity'); setDocxBlob(null); }} />
+            <input type="radio" name="mode" value="fidelity" checked={mode === 'fidelity'} onChange={() => handleModeChange('fidelity')} />
             <span><strong>Design Fidelity</strong> (디자인 우선)</span>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="radio" name="mode" value="editability" checked={mode === 'editability'} onChange={() => { setMode('editability'); setDocxBlob(null); }} />
+            <input type="radio" name="mode" value="editability" checked={mode === 'editability'} onChange={() => handleModeChange('editability')} />
             <span><strong>Editability</strong> (편집성 우선)</span>
           </label>
         </div>
@@ -750,10 +873,7 @@ export function App() {
               name="orientation"
               value="portrait"
               checked={pageOrientation === 'portrait'}
-              onChange={() => {
-                setPageOrientation('portrait');
-                setDocxBlob(null);
-              }}
+              onChange={() => handleOrientationChange('portrait')}
             />
             <span><strong>A4 세로형 (Portrait)</strong> (기본값, 본문 폭 451pt / 602px)</span>
           </label>
@@ -763,10 +883,7 @@ export function App() {
               name="orientation"
               value="landscape"
               checked={pageOrientation === 'landscape'}
-              onChange={() => {
-                setPageOrientation('landscape');
-                setDocxBlob(null);
-              }}
+              onChange={() => handleOrientationChange('landscape')}
             />
             <span><strong>A4 가로형 (Landscape)</strong> (데스크톱/와이드 디자인 권장, 본문 폭 698pt / 931px)</span>
           </label>
