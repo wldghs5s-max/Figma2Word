@@ -160,6 +160,18 @@ export class FigmaParser {
     };
 
 
+    const hasA4Screens = (node: FigmaNode): boolean => {
+      const b = node.absoluteBoundingBox;
+      if (b && b.width >= 550 && b.width <= 950 && b.height >= 800 && b.height <= 1350) {
+        return true;
+      }
+      if (node.children) {
+        return node.children.some(hasA4Screens);
+      }
+      return false;
+    };
+    const isA4Doc = hasA4Screens(rootNode);
+
     const document: InternalDocument = {
       version: "1.0.0",
       metadata: {
@@ -173,12 +185,19 @@ export class FigmaParser {
         widthMm: 210,
         heightMm: 297,
         orientation: "portrait",
-        marginsMm: {
-          top: 25.4,
-          right: 25.4,
-          bottom: 25.4,
-          left: 25.4,
-        },
+        marginsMm: isA4Doc
+          ? {
+              top: 5,
+              right: 8,
+              bottom: 5,
+              left: 8,
+            }
+          : {
+              top: 25.4,
+              right: 25.4,
+              bottom: 25.4,
+              left: 25.4,
+            },
       },
       sections,
     };
@@ -1027,6 +1046,7 @@ export class FigmaParser {
       backgroundImage: backgroundImage || undefined,
       border: stroke,
       cornerRadius: node.cornerRadius,
+      width: node.absoluteBoundingBox?.width,
       columnWidths: (node as any)._computedColumnWidths,
       children,
     };

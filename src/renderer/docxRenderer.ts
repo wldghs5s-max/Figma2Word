@@ -16,6 +16,7 @@ import {
   WidthType,
   ShadingType,
   BorderStyle as DocxBorderStyle,
+  LineRuleType,
   Packer,
 } from "docx";
 import {
@@ -141,8 +142,31 @@ export class DocxRenderer {
     // Sections
     const sections = (doc.sections.length > 0 ? doc.sections : [{ elements: [] }]).map(
       (sec, idx) => {
-        const children = this.renderElements(sec.elements);
         const secPageConfig = sec.pageConfig || pageConfig;
+        const isA4Doc = secPageConfig?.size === "A4" || (secPageConfig?.widthMm === 210 && secPageConfig?.heightMm === 297);
+        const hasPageBreaks = sec.elements.some((e) => e.type === "page_break");
+
+        // STEP 12C: In multi-page A4 documents, top-level containers represent individual page artboards.
+        // Unwrap page-level artboards so native flow (paragraphs, tables, images) renders directly to pages
+        // without wrapping the entire A4 page in a 1x1 table.
+        // Independent mobile screens (e.g. width < 500) remain wrapped in their individual screen card tables.
+        const effectiveElements = (isA4Doc && hasPageBreaks)
+          ? sec.elements.flatMap((el) => {
+              if (el.type === "container") {
+                const c = el as ContainerElement;
+                const isMobileScreen = typeof c.width === "number" && c.width < 500;
+                if (!isMobileScreen) {
+                  const items: DocElement[] = [];
+                  if (c.backgroundImage) items.push(c.backgroundImage);
+                  items.push(...c.children);
+                  return items;
+                }
+              }
+              return [el];
+            })
+          : sec.elements;
+
+        const children = this.renderElements(effectiveElements);
 
         const secMargins = {
           top: mmToDxa(secPageConfig?.marginsMm?.top ?? 25.4),
@@ -261,8 +285,8 @@ export class DocxRenderer {
       heading: levelMap[elem.level] || HeadingLevel.HEADING_1,
       alignment: alignmentMap[elem.alignment] || AlignmentType.LEFT,
       spacing: {
-        before: (elem.spacing?.top !== undefined ? ptToDxa(elem.spacing.top) : ptToDxa(6)) + (pad?.top ?? 0),
-        after: (elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(3)) + (pad?.bottom ?? 0),
+        before: (elem.spacing?.top !== undefined ? ptToDxa(elem.spacing.top) : ptToDxa(2)) + (pad?.top ?? 0),
+        after: (elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(1)) + (pad?.bottom ?? 0),
       },
       indent: pad ? { left: pad.left, right: pad.right } : undefined,
       border: this.chromeBorder(chrome?.border),
@@ -287,8 +311,8 @@ export class DocxRenderer {
       bullet: elem.isBullet ? { level: 0 } : undefined,
       spacing: {
         before: (elem.spacing?.top !== undefined ? ptToDxa(elem.spacing.top) : 0) + (pad?.top ?? 0),
-        after: (elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(3)) + (pad?.bottom ?? 0),
-        line: ptToDxa(14),
+        after: (elem.spacing?.bottom !== undefined ? ptToDxa(elem.spacing.bottom) : ptToDxa(1)) + (pad?.bottom ?? 0),
+        line: ptToDxa(12.5),
       },
       indent: pad
         ? {
@@ -419,10 +443,35 @@ export class DocxRenderer {
     });
   }
 
+  private renderCellElements(elements: DocElement[]): (Paragraph | Table)[] {
+    const compactElements = elements.map((el) => {
+      if (el.type === "paragraph") {
+        return {
+          ...el,
+          spacing: {
+            top: el.spacing?.top ? Math.min(el.spacing.top, 1) : 0,
+            bottom: el.spacing?.bottom ? Math.min(el.spacing.bottom, 1) : 0,
+          },
+        };
+      }
+      if (el.type === "heading") {
+        return {
+          ...el,
+          spacing: {
+            top: el.spacing?.top ? Math.min(el.spacing.top, 1.5) : 0,
+            bottom: el.spacing?.bottom ? Math.min(el.spacing.bottom, 1) : 0,
+          },
+        };
+      }
+      return el;
+    });
+    return this.renderElements(compactElements);
+  }
+
   private renderTable(elem: TableElement): Table {
     const rows = elem.rows.map((r) => {
       const cells = r.cells.map((c, colIdx) => {
-        const cellChildren = this.renderElements(c.children);
+        const cellChildren = this.renderCellElements(c.children);
 
         const borderDef = c.border ? toDocxBorder(c.border) : toDocxBorder(elem.borders);
         const borders = {
@@ -445,7 +494,12 @@ export class DocxRenderer {
           columnSpan: c.colSpan,
           rowSpan: c.rowSpan,
           borders,
-          margins: spacingToCellMargin(c.padding),
+          margins: spacingToCellMargin(c.padding) ?? {
+            top: ptToDxa(1.5),
+            bottom: ptToDxa(1.5),
+            left: ptToDxa(3),
+            right: ptToDxa(3),
+          },
           shading: hexBg
             ? {
                 fill: hexBg,
@@ -459,6 +513,7 @@ export class DocxRenderer {
 
       return new TableRow({
         tableHeader: r.isHeader,
+        cantSplit: true,
         children: cells,
       });
     });
@@ -710,6 +765,7 @@ export class DocxRenderer {
     if (elem.background || elem.border) {
       const hexBg = colorToHex(elem.background);
       const borderDef = toDocxBorder(elem.border);
+
       const children = this.renderSequence(elem.children, elem.gap);
 
       if (children.length === 0) {
@@ -919,6 +975,14 @@ export class DocxRenderer {
     return false;
   }
 
+  private hasNestedTable(element: DocElement): boolean {
+    if (element.type === "table") return true;
+    if (element.type === "container") {
+      return element.children.some((child) => this.hasNestedTable(child));
+    }
+    return false;
+  }
+
   private isCompactChipOrButton(child: DocElement): boolean {
     if (child.type !== "container") return false;
     if (child.backgroundImage) return false;
@@ -1041,26 +1105,53 @@ export class DocxRenderer {
 
   private renderSequence(elements: DocElement[], gapPt = 0): (Paragraph | Table)[] {
     const result: (Paragraph | Table)[] = [];
-    for (const elem of elements) {
+    const gapValuePt = gapPt > 0 ? pxToPt(gapPt) : 0;
+
+    for (let idx = 0; idx < elements.length; idx++) {
+      let elem = elements[idx];
+
+      // If gap is defined and this is not the last element, absorb gap into paragraph spacing directly
+      if (gapValuePt > 0 && idx < elements.length - 1) {
+        if (elem.type === "paragraph" || elem.type === "heading") {
+          elem = {
+            ...elem,
+            spacing: {
+              ...elem.spacing,
+              bottom: Math.max(elem.spacing?.bottom ?? 0, gapValuePt),
+            },
+          };
+        }
+      }
+
       const rendered = this.renderElement(elem);
       const pieces = Array.isArray(rendered) ? rendered : rendered ? [rendered] : [];
       if (pieces.length === 0) continue;
+
       if (result.length > 0) {
-        if (gapPt > 0) {
+        const lastPiece = result[result.length - 1];
+        const firstNewPiece = pieces[0];
+
+        const prevElem = elements[idx - 1];
+        const prevAbsorbed = prevElem && (prevElem.type === "paragraph" || prevElem.type === "heading");
+
+        if (!prevAbsorbed && gapValuePt > 0) {
           result.push(
             new Paragraph({
-              spacing: { before: ptToDxa(pxToPt(gapPt)), after: 0 },
+              spacing: { before: ptToDxa(gapValuePt), after: 0, line: 20, lineRule: LineRuleType.EXACT },
+              children: [new TextRun({ text: "", size: 2 })],
             })
           );
-        } else if (result[result.length - 1] instanceof Table && pieces[0] instanceof Table) {
-          // STEP 4B: Prevent Word from merging adjacent independent tables into a compound table
+        } else if (lastPiece instanceof Table && firstNewPiece instanceof Table) {
+          // Prevent Word from merging adjacent independent tables into a compound table
           result.push(
             new Paragraph({
-              spacing: { before: 0, after: 0 },
+              spacing: { before: 0, after: 0, line: 20, lineRule: LineRuleType.EXACT },
+              children: [new TextRun({ text: "", size: 2 })],
             })
           );
         }
       }
+
       for (let i = 0; i < pieces.length; i++) {
         if (
           i > 0 &&
@@ -1070,7 +1161,8 @@ export class DocxRenderer {
         ) {
           result.push(
             new Paragraph({
-              spacing: { before: 0, after: 0 },
+              spacing: { before: 0, after: 0, line: 20, lineRule: LineRuleType.EXACT },
+              children: [new TextRun({ text: "", size: 2 })],
             })
           );
         }
