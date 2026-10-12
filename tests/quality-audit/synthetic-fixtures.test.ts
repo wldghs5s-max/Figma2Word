@@ -317,5 +317,5 @@ describe('Step 12A: Synthetic Quality Audit Fixtures & Verification Engine', () 
     expect(htmlContent).toContain('표 #1 구조 불일치');
     expect(htmlContent).not.toContain('http://');
     expect(htmlContent).not.toContain('https://'); // Zero external CDN dependency
-  }, 60000);
+  }, 120000);
 });

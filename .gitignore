@@ -14,6 +14,8 @@ temp/
 debug/
 scratch/
 word/
+완성본-*/
+*.hwpx
 
 # Environment variables & secrets
 .env

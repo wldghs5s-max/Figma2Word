@@ -254,7 +254,7 @@ export class DocxRenderer {
       justify: AlignmentType.JUSTIFIED,
     };
 
-    const runs = elem.runs.map((r) => this.renderTextRun(r));
+    const runs = elem.runs.flatMap((r) => this.renderTextRun(r));
     const pad = spacingToCellMargin(chrome?.padding);
 
     return new Paragraph({
@@ -279,7 +279,7 @@ export class DocxRenderer {
       justify: AlignmentType.JUSTIFIED,
     };
 
-    const runs = elem.runs.map((r) => this.renderTextRun(r));
+    const runs = elem.runs.flatMap((r) => this.renderTextRun(r));
     const pad = spacingToCellMargin(chrome?.padding);
 
     return new Paragraph({
@@ -302,24 +302,59 @@ export class DocxRenderer {
     });
   }
 
-
-  private renderTextRun(modelRun: ModelTextRun): TextRun {
+  private renderTextRun(modelRun: ModelTextRun): TextRun[] {
     const style = modelRun.style;
     const isBold =
       style?.fontWeight === "bold" ||
       (typeof style?.fontWeight === "number" && style.fontWeight >= 600) ||
       (typeof style?.fontWeight === "string" && parseInt(style.fontWeight, 10) >= 600);
 
-    return new TextRun({
-      text: modelRun.text,
-      font: style?.fontFamily || "Calibri",
-      size: style?.fontSize ? ptToHalfPt(style.fontSize) : 22, // 11pt = 22 half-pts
-      bold: isBold,
-      italics: style?.italic,
-      underline: style?.underline ? {} : undefined,
-      strike: style?.strike,
-      color: colorToHex(style?.color),
-    });
+    const font = style?.fontFamily || "Calibri";
+    const size = style?.fontSize ? ptToHalfPt(style.fontSize) : 22; // 11pt = 22 half-pts
+    const color = colorToHex(style?.color);
+    const italics = style?.italic;
+    const underline = style?.underline ? {} : undefined;
+    const strike = style?.strike;
+
+    const text = modelRun.text;
+    if (!text.includes("\n")) {
+      return [
+        new TextRun({
+          text,
+          font,
+          size,
+          bold: isBold,
+          italics,
+          underline,
+          strike,
+          color,
+        }),
+      ];
+    }
+
+    const lines = text.split("\n");
+    const runs: TextRun[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (i > 0 && line === "") {
+        runs.push(new TextRun({ break: 1 }));
+      } else {
+        runs.push(
+          new TextRun({
+            text: line,
+            break: i > 0 ? 1 : undefined,
+            font,
+            size,
+            bold: isBold,
+            italics,
+            underline,
+            strike,
+            color,
+          })
+        );
+      }
+    }
+    return runs;
   }
 
   private renderImage(elem: ImageElement): Paragraph {
@@ -434,6 +469,12 @@ export class DocxRenderer {
       width: {
         size: 100,
         type: WidthType.PERCENTAGE,
+      },
+      margins: {
+        top: ptToDxa(5),
+        bottom: ptToDxa(5),
+        left: ptToDxa(8),
+        right: ptToDxa(8),
       },
       borders: {
         top: borderDef,

@@ -1101,14 +1101,24 @@ export class FigmaParser {
   private isHeadingText(node: FigmaNode, text: string, fontSizePt: number): boolean {
     if (fontSizePt >= 16) return true;
 
+    const trimmed = text.trim();
+    // A long text block (e.g. > 150 chars or containing multiple line breaks) is body content, not a heading.
+    if (trimmed.length > 150 || (trimmed.match(/\n/g) || []).length >= 2) {
+      return false;
+    }
+
     const name = (node.name || "").trim().toLowerCase();
-    const content = text.trim().toLowerCase();
+    const content = trimmed.toLowerCase();
     const explicitRole = /^(h[1-6]|heading|title|subtitle|제목|부제)(\b|\d|$)/.test(name);
+
+    // Normalize whitespace for mirror check (Figma layer names replace newlines with spaces)
+    const normName = name.replace(/\s+/g, " ");
+    const normContent = content.replace(/\s+/g, " ");
     const nameMirrorsText =
       !explicitRole &&
-      name.length >= 8 &&
-      content.length > 0 &&
-      (name === content || content.startsWith(name));
+      normName.length >= 8 &&
+      normContent.length > 0 &&
+      (normName === normContent || normContent.startsWith(normName));
 
     if (nameMirrorsText) return false;
     return name.includes("heading") || name.includes("title") || name.includes("제목");
