@@ -156,5 +156,31 @@ describe("Step 12B: Real Reference Document Quality Improvements", () => {
     expect(brMatches.length).toBeGreaterThan(15);
     expect(xml).toContain("2026년 연간 비즈니스 성과 보고서");
   });
+
+  it("Requirement 5: propagates custom page margins via marginsMm in pipeline options", async () => {
+    const pipeline = new ConversionPipeline();
+    const node: FigmaNode = {
+      id: "node-p1",
+      name: "Margin Node",
+      type: "FRAME",
+      children: [
+        {
+          id: "t1",
+          name: "Text",
+          type: "TEXT",
+          characters: "Sample Text",
+        },
+      ],
+    };
+
+    const result = await pipeline.convert(node, {
+      marginsMm: { top: 12, right: 12, bottom: 12, left: 12 },
+    });
+
+    const xml = await extractDocumentXml(result.docxBuffer);
+    // 12mm in dxa: Math.round(12 * 1440 / 25.4) = 680 dxa
+    expect(xml).toContain('w:top="680"');
+    expect(xml).toContain('w:bottom="680"');
+  });
 });
 

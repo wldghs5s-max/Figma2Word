@@ -21,6 +21,7 @@ export interface PipelineOptions {
   downloadImages?: boolean;
   pageOrientation?: "portrait" | "landscape";
   selectedFrameIds?: string[];
+  marginsMm?: { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 export interface SelectableFrame {
@@ -299,6 +300,23 @@ export class ConversionPipeline {
           sec.pageConfig.orientation = options.pageOrientation;
         } else {
           sec.pageConfig = { ...internalDoc.pageConfig, orientation: options.pageOrientation };
+        }
+      }
+    }
+
+    if (options?.marginsMm) {
+      const mergedMargins = {
+        top: options.marginsMm.top ?? internalDoc.pageConfig.marginsMm?.top ?? 25.4,
+        right: options.marginsMm.right ?? internalDoc.pageConfig.marginsMm?.right ?? 25.4,
+        bottom: options.marginsMm.bottom ?? internalDoc.pageConfig.marginsMm?.bottom ?? 25.4,
+        left: options.marginsMm.left ?? internalDoc.pageConfig.marginsMm?.left ?? 25.4,
+      };
+      internalDoc.pageConfig.marginsMm = mergedMargins;
+      for (const sec of internalDoc.sections) {
+        if (sec.pageConfig) {
+          sec.pageConfig.marginsMm = { ...mergedMargins };
+        } else {
+          sec.pageConfig = { ...internalDoc.pageConfig, marginsMm: { ...mergedMargins } };
         }
       }
     }
