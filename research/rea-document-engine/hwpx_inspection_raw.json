@@ -1,0 +1,1048 @@
+{
+  "archive_entries": [
+    "mimetype",
+    "version.xml",
+    "settings.xml",
+    "Contents/content.hpf",
+    "Contents/header.xml",
+    "Contents/section0.xml",
+    "META-INF/container.xml",
+    "META-INF/manifest.xml",
+    "Preview/PrvText.txt",
+    "BinData/BIN0001.png",
+    "BinData/BIN0002.png",
+    "BinData/BIN0003.png",
+    "BinData/BIN0004.png",
+    "BinData/BIN0005.png",
+    "BinData/BIN0006.png",
+    "BinData/BIN0007.png",
+    "BinData/BIN0008.png",
+    "BinData/BIN0009.png",
+    "BinData/BIN0010.png",
+    "BinData/BIN0011.png",
+    "BinData/BIN0012.png",
+    "BinData/BIN0013.png",
+    "BinData/BIN0014.png",
+    "BinData/FONT0001.ttf",
+    "BinData/FONT0002.ttf",
+    "BinData/FONT0003.ttf",
+    "BinData/FONT0004.ttf",
+    "BinData/FONT0005.ttf",
+    "BinData/FONT0006.ttf",
+    "BinData/FONT0007.ttf",
+    "BinData/FONT0008.ttf",
+    "BinData/FONT0009.ttf",
+    "BinData/FONT0010.ttf",
+    "BinData/FONT0011.ttf",
+    "BinData/FONT0012.ttf",
+    "BinData/FONT0013.ttf",
+    "BinData/FONT0014.ttf",
+    "BinData/FONT0015.ttf",
+    "BinData/FONT0016.ttf",
+    "BinData/FONT0017.ttf"
+  ],
+  "page_setup": {},
+  "counts": {
+    "paragraphs": 438,
+    "runs": 2101,
+    "shapes_rect": 837,
+    "shapes_drawText": 429,
+    "tables": 0,
+    "table_cells": 0,
+    "pictures": 22,
+    "page_breaks": 0
+  },
+  "sample_shapes": [
+    {
+      "index": 0,
+      "tag": "rect",
+      "id": "1",
+      "z_order": "1",
+      "width_hwpu": 51450,
+      "height_hwpu": 2850,
+      "width_pt": 514.5,
+      "height_pt": 28.5,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 4050,
+      "vertOffset_hwpu": 4050,
+      "horzOffset_pt": 40.5,
+      "vertOffset_pt": 40.5
+    },
+    {
+      "index": 1,
+      "tag": "rect",
+      "id": "3",
+      "z_order": "3",
+      "width_hwpu": 8025,
+      "height_hwpu": 1725,
+      "width_pt": 80.25,
+      "height_pt": 17.25,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 47475,
+      "vertOffset_hwpu": 4615,
+      "horzOffset_pt": 474.75,
+      "vertOffset_pt": 46.15
+    },
+    {
+      "index": 2,
+      "tag": "rect",
+      "id": "4",
+      "z_order": "4",
+      "width_hwpu": 7180,
+      "height_hwpu": 1638,
+      "width_pt": 71.8,
+      "height_pt": 16.38,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 48225,
+      "vertOffset_hwpu": 4915,
+      "horzOffset_pt": 482.25,
+      "vertOffset_pt": 49.15,
+      "text_preview": "드론 AI 외벽 진단"
+    },
+    {
+      "index": 3,
+      "tag": "rect",
+      "id": "5",
+      "z_order": "5",
+      "width_hwpu": 51450,
+      "height_hwpu": 13950,
+      "width_pt": 514.5,
+      "height_pt": 139.5,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 4050,
+      "vertOffset_hwpu": 9300,
+      "horzOffset_pt": 40.5,
+      "vertOffset_pt": 93.0
+    },
+    {
+      "index": 4,
+      "tag": "rect",
+      "id": "6",
+      "z_order": "6",
+      "width_hwpu": 5250,
+      "height_hwpu": 2100,
+      "width_pt": 52.5,
+      "height_pt": 21.0,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 4050,
+      "vertOffset_hwpu": 12300,
+      "horzOffset_pt": 40.5,
+      "vertOffset_pt": 123.0
+    },
+    {
+      "index": 5,
+      "tag": "rect",
+      "id": "7",
+      "z_order": "7",
+      "width_hwpu": 3770,
+      "height_hwpu": 1425,
+      "width_pt": 37.7,
+      "height_pt": 14.25,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 4950,
+      "vertOffset_hwpu": 12750,
+      "horzOffset_pt": 49.5,
+      "vertOffset_pt": 127.5,
+      "text_preview": "1차 진단"
+    },
+    {
+      "index": 6,
+      "tag": "rect",
+      "id": "8",
+      "z_order": "8",
+      "width_hwpu": 12260,
+      "height_hwpu": 1500,
+      "width_pt": 122.6,
+      "height_pt": 15.0,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 9900,
+      "vertOffset_hwpu": 12715,
+      "horzOffset_pt": 99.0,
+      "vertOffset_pt": 127.15,
+      "text_preview": "2026 정밀 진단 종합보고"
+    },
+    {
+      "index": 7,
+      "tag": "rect",
+      "id": "9",
+      "z_order": "9",
+      "width_hwpu": 51450,
+      "height_hwpu": 4365,
+      "width_pt": 514.5,
+      "height_pt": 43.65,
+      "treatAsChar": "0",
+      "horzRelTo": "PAPER",
+      "vertRelTo": "PAPER",
+      "horzAlign": "LEFT",
+      "vertAlign": "TOP",
+      "horzOffset_hwpu": 4050,
+      "vertOffset_hwpu": 16200,
+      "horzOffset_pt": 40.5,
+      "vertOffset_pt": 162.0,
+      "text_preview": "해운대동신아파트"
+    }
+  ],
+  "font_faces": [
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANGUL"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "LATIN"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "HANJA"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "JAPANESE"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "OTHER"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "SYMBOL"
+    },
+    {
+      "id": "0",
+      "face": "Pentech InstrumentSans 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "1",
+      "face": "Pentech InstrumentSans 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "2",
+      "face": "Pentech InstrumentSans 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "3",
+      "face": "Pentech InstrumentSans 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "4",
+      "face": "Pentech JetBrainsMono 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "5",
+      "face": "Pentech JetBrainsMono 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "6",
+      "face": "Pentech Manrope 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "7",
+      "face": "Pentech Manrope 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "8",
+      "face": "Pentech Manrope 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "9",
+      "face": "Pentech Manrope 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "10",
+      "face": "Pentech Inter 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "11",
+      "face": "Pentech Inter 500",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "12",
+      "face": "Pentech Inter 600",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "13",
+      "face": "Pentech Inter 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "14",
+      "face": "Pentech Inter 800",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "15",
+      "face": "Pentech NotoSansKR 400",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    },
+    {
+      "id": "16",
+      "face": "Pentech NotoSansKR 700",
+      "type": "TTF",
+      "isEmbedded": "1",
+      "lang": "USER"
+    }
+  ]
+}

@@ -1,0 +1,940 @@
+{
+  "reference": {
+    "file_name": "report-1차-진단-편집가능-Word보정-v3.docx",
+    "file_size_bytes": 9968291,
+    "parts": [
+      "[Content_Types].xml",
+      "_rels/.rels",
+      "docProps/core.xml",
+      "docProps/app.xml",
+      "word/document.xml",
+      "word/_rels/document.xml.rels",
+      "word/styles.xml",
+      "word/stylesWithEffects.xml",
+      "word/settings.xml",
+      "word/webSettings.xml",
+      "word/fontTable.xml",
+      "word/_rels/fontTable.xml.rels",
+      "word/fonts/font0.odttf",
+      "word/fonts/font1.odttf",
+      "word/fonts/font2.odttf",
+      "word/fonts/font3.odttf",
+      "word/fonts/font4.odttf",
+      "word/fonts/font5.odttf",
+      "word/fonts/font6.odttf",
+      "word/fonts/font7.odttf",
+      "word/fonts/font8.odttf",
+      "word/fonts/font9.odttf",
+      "word/fonts/font10.odttf",
+      "word/fonts/font11.odttf",
+      "word/fonts/font12.odttf",
+      "word/fonts/font13.odttf",
+      "word/fonts/font14.odttf",
+      "word/fonts/font15.odttf",
+      "word/fonts/font16.odttf",
+      "word/theme/theme1.xml",
+      "customXml/item1.xml",
+      "customXml/_rels/item1.xml.rels",
+      "customXml/itemProps1.xml",
+      "word/numbering.xml",
+      "word/media/image1.png",
+      "word/media/image2.png",
+      "word/media/image3.png",
+      "word/media/image4.png",
+      "word/media/image5.png",
+      "word/media/image6.png",
+      "word/media/image7.png",
+      "word/media/image8.png",
+      "docProps/thumbnail.jpeg",
+      "word/media/icon-87-763.png",
+      "word/media/icon-87-757.png",
+      "word/media/icon-87-760.png",
+      "word/media/icon-87-1007.png",
+      "word/media/icon-87-1010.png"
+    ],
+    "page_config": {
+      "width_dxa": 11906,
+      "height_dxa": 16838,
+      "orient": "portrait",
+      "margin_top": 0,
+      "margin_bottom": 0,
+      "margin_left": 0,
+      "margin_right": 0
+    },
+    "counts": {
+      "paragraphs": 433,
+      "tables": 0,
+      "max_table_depth": 0,
+      "table_rows": 0,
+      "table_cells": 0,
+      "inline_drawings": 0,
+      "anchor_drawings": 0,
+      "vml_shapes": 4,
+      "textboxes": 424,
+      "page_breaks": 0,
+      "images": 0
+    },
+    "drawings_summary": [],
+    "tables_summary": [],
+    "styles_summary": [
+      {
+        "id": "Normal",
+        "name": "Normal"
+      },
+      {
+        "id": "Header",
+        "name": "header"
+      },
+      {
+        "id": "HeaderChar",
+        "name": "Header Char"
+      },
+      {
+        "id": "Footer",
+        "name": "footer"
+      },
+      {
+        "id": "FooterChar",
+        "name": "Footer Char"
+      },
+      {
+        "id": "Heading1",
+        "name": "heading 1"
+      },
+      {
+        "id": "Heading2",
+        "name": "heading 2"
+      },
+      {
+        "id": "Heading3",
+        "name": "heading 3"
+      },
+      {
+        "id": "Heading4",
+        "name": "heading 4"
+      },
+      {
+        "id": "Heading5",
+        "name": "heading 5"
+      },
+      {
+        "id": "Heading6",
+        "name": "heading 6"
+      },
+      {
+        "id": "Heading7",
+        "name": "heading 7"
+      },
+      {
+        "id": "Heading8",
+        "name": "heading 8"
+      },
+      {
+        "id": "Heading9",
+        "name": "heading 9"
+      },
+      {
+        "id": "DefaultParagraphFont",
+        "name": "Default Paragraph Font"
+      },
+      {
+        "id": "TableNormal",
+        "name": "Normal Table"
+      },
+      {
+        "id": "NoList",
+        "name": "No List"
+      },
+      {
+        "id": "NoSpacing",
+        "name": "No Spacing"
+      },
+      {
+        "id": "Heading1Char",
+        "name": "Heading 1 Char"
+      },
+      {
+        "id": "Heading2Char",
+        "name": "Heading 2 Char"
+      },
+      {
+        "id": "Heading3Char",
+        "name": "Heading 3 Char"
+      },
+      {
+        "id": "Title",
+        "name": "Title"
+      },
+      {
+        "id": "TitleChar",
+        "name": "Title Char"
+      },
+      {
+        "id": "Subtitle",
+        "name": "Subtitle"
+      },
+      {
+        "id": "SubtitleChar",
+        "name": "Subtitle Char"
+      },
+      {
+        "id": "ListParagraph",
+        "name": "List Paragraph"
+      },
+      {
+        "id": "BodyText",
+        "name": "Body Text"
+      },
+      {
+        "id": "BodyTextChar",
+        "name": "Body Text Char"
+      },
+      {
+        "id": "BodyText2",
+        "name": "Body Text 2"
+      },
+      {
+        "id": "BodyText2Char",
+        "name": "Body Text 2 Char"
+      },
+      {
+        "id": "BodyText3",
+        "name": "Body Text 3"
+      },
+      {
+        "id": "BodyText3Char",
+        "name": "Body Text 3 Char"
+      },
+      {
+        "id": "List",
+        "name": "List"
+      },
+      {
+        "id": "List2",
+        "name": "List 2"
+      },
+      {
+        "id": "List3",
+        "name": "List 3"
+      },
+      {
+        "id": "ListBullet",
+        "name": "List Bullet"
+      },
+      {
+        "id": "ListBullet2",
+        "name": "List Bullet 2"
+      },
+      {
+        "id": "ListBullet3",
+        "name": "List Bullet 3"
+      },
+      {
+        "id": "ListNumber",
+        "name": "List Number"
+      },
+      {
+        "id": "ListNumber2",
+        "name": "List Number 2"
+      },
+      {
+        "id": "ListNumber3",
+        "name": "List Number 3"
+      },
+      {
+        "id": "ListContinue",
+        "name": "List Continue"
+      },
+      {
+        "id": "ListContinue2",
+        "name": "List Continue 2"
+      },
+      {
+        "id": "ListContinue3",
+        "name": "List Continue 3"
+      },
+      {
+        "id": "MacroText",
+        "name": "macro"
+      },
+      {
+        "id": "MacroTextChar",
+        "name": "Macro Text Char"
+      },
+      {
+        "id": "Quote",
+        "name": "Quote"
+      },
+      {
+        "id": "QuoteChar",
+        "name": "Quote Char"
+      },
+      {
+        "id": "Heading4Char",
+        "name": "Heading 4 Char"
+      },
+      {
+        "id": "Heading5Char",
+        "name": "Heading 5 Char"
+      },
+      {
+        "id": "Heading6Char",
+        "name": "Heading 6 Char"
+      },
+      {
+        "id": "Heading7Char",
+        "name": "Heading 7 Char"
+      },
+      {
+        "id": "Heading8Char",
+        "name": "Heading 8 Char"
+      },
+      {
+        "id": "Heading9Char",
+        "name": "Heading 9 Char"
+      },
+      {
+        "id": "Caption",
+        "name": "caption"
+      },
+      {
+        "id": "Strong",
+        "name": "Strong"
+      },
+      {
+        "id": "Emphasis",
+        "name": "Emphasis"
+      },
+      {
+        "id": "IntenseQuote",
+        "name": "Intense Quote"
+      },
+      {
+        "id": "IntenseQuoteChar",
+        "name": "Intense Quote Char"
+      },
+      {
+        "id": "SubtleEmphasis",
+        "name": "Subtle Emphasis"
+      },
+      {
+        "id": "IntenseEmphasis",
+        "name": "Intense Emphasis"
+      },
+      {
+        "id": "SubtleReference",
+        "name": "Subtle Reference"
+      },
+      {
+        "id": "IntenseReference",
+        "name": "Intense Reference"
+      },
+      {
+        "id": "BookTitle",
+        "name": "Book Title"
+      },
+      {
+        "id": "TOCHeading",
+        "name": "TOC Heading"
+      },
+      {
+        "id": "TableGrid",
+        "name": "Table Grid"
+      },
+      {
+        "id": "LightShading",
+        "name": "Light Shading"
+      },
+      {
+        "id": "LightShading-Accent1",
+        "name": "Light Shading Accent 1"
+      },
+      {
+        "id": "LightShading-Accent2",
+        "name": "Light Shading Accent 2"
+      },
+      {
+        "id": "LightShading-Accent3",
+        "name": "Light Shading Accent 3"
+      },
+      {
+        "id": "LightShading-Accent4",
+        "name": "Light Shading Accent 4"
+      },
+      {
+        "id": "LightShading-Accent5",
+        "name": "Light Shading Accent 5"
+      },
+      {
+        "id": "LightShading-Accent6",
+        "name": "Light Shading Accent 6"
+      },
+      {
+        "id": "LightList",
+        "name": "Light List"
+      },
+      {
+        "id": "LightList-Accent1",
+        "name": "Light List Accent 1"
+      },
+      {
+        "id": "LightList-Accent2",
+        "name": "Light List Accent 2"
+      },
+      {
+        "id": "LightList-Accent3",
+        "name": "Light List Accent 3"
+      },
+      {
+        "id": "LightList-Accent4",
+        "name": "Light List Accent 4"
+      },
+      {
+        "id": "LightList-Accent5",
+        "name": "Light List Accent 5"
+      },
+      {
+        "id": "LightList-Accent6",
+        "name": "Light List Accent 6"
+      },
+      {
+        "id": "LightGrid",
+        "name": "Light Grid"
+      },
+      {
+        "id": "LightGrid-Accent1",
+        "name": "Light Grid Accent 1"
+      },
+      {
+        "id": "LightGrid-Accent2",
+        "name": "Light Grid Accent 2"
+      },
+      {
+        "id": "LightGrid-Accent3",
+        "name": "Light Grid Accent 3"
+      },
+      {
+        "id": "LightGrid-Accent4",
+        "name": "Light Grid Accent 4"
+      },
+      {
+        "id": "LightGrid-Accent5",
+        "name": "Light Grid Accent 5"
+      },
+      {
+        "id": "LightGrid-Accent6",
+        "name": "Light Grid Accent 6"
+      },
+      {
+        "id": "MediumShading1",
+        "name": "Medium Shading 1"
+      },
+      {
+        "id": "MediumShading1-Accent1",
+        "name": "Medium Shading 1 Accent 1"
+      },
+      {
+        "id": "MediumShading1-Accent2",
+        "name": "Medium Shading 1 Accent 2"
+      },
+      {
+        "id": "MediumShading1-Accent3",
+        "name": "Medium Shading 1 Accent 3"
+      },
+      {
+        "id": "MediumShading1-Accent4",
+        "name": "Medium Shading 1 Accent 4"
+      },
+      {
+        "id": "MediumShading1-Accent5",
+        "name": "Medium Shading 1 Accent 5"
+      },
+      {
+        "id": "MediumShading1-Accent6",
+        "name": "Medium Shading 1 Accent 6"
+      },
+      {
+        "id": "MediumShading2",
+        "name": "Medium Shading 2"
+      },
+      {
+        "id": "MediumShading2-Accent1",
+        "name": "Medium Shading 2 Accent 1"
+      },
+      {
+        "id": "MediumShading2-Accent2",
+        "name": "Medium Shading 2 Accent 2"
+      },
+      {
+        "id": "MediumShading2-Accent3",
+        "name": "Medium Shading 2 Accent 3"
+      },
+      {
+        "id": "MediumShading2-Accent4",
+        "name": "Medium Shading 2 Accent 4"
+      },
+      {
+        "id": "MediumShading2-Accent5",
+        "name": "Medium Shading 2 Accent 5"
+      },
+      {
+        "id": "MediumShading2-Accent6",
+        "name": "Medium Shading 2 Accent 6"
+      },
+      {
+        "id": "MediumList1",
+        "name": "Medium List 1"
+      },
+      {
+        "id": "MediumList1-Accent1",
+        "name": "Medium List 1 Accent 1"
+      },
+      {
+        "id": "MediumList1-Accent2",
+        "name": "Medium List 1 Accent 2"
+      },
+      {
+        "id": "MediumList1-Accent3",
+        "name": "Medium List 1 Accent 3"
+      },
+      {
+        "id": "MediumList1-Accent4",
+        "name": "Medium List 1 Accent 4"
+      },
+      {
+        "id": "MediumList1-Accent5",
+        "name": "Medium List 1 Accent 5"
+      },
+      {
+        "id": "MediumList1-Accent6",
+        "name": "Medium List 1 Accent 6"
+      },
+      {
+        "id": "MediumList2",
+        "name": "Medium List 2"
+      },
+      {
+        "id": "MediumList2-Accent1",
+        "name": "Medium List 2 Accent 1"
+      },
+      {
+        "id": "MediumList2-Accent2",
+        "name": "Medium List 2 Accent 2"
+      },
+      {
+        "id": "MediumList2-Accent3",
+        "name": "Medium List 2 Accent 3"
+      },
+      {
+        "id": "MediumList2-Accent4",
+        "name": "Medium List 2 Accent 4"
+      },
+      {
+        "id": "MediumList2-Accent5",
+        "name": "Medium List 2 Accent 5"
+      },
+      {
+        "id": "MediumList2-Accent6",
+        "name": "Medium List 2 Accent 6"
+      },
+      {
+        "id": "MediumGrid1",
+        "name": "Medium Grid 1"
+      },
+      {
+        "id": "MediumGrid1-Accent1",
+        "name": "Medium Grid 1 Accent 1"
+      },
+      {
+        "id": "MediumGrid1-Accent2",
+        "name": "Medium Grid 1 Accent 2"
+      },
+      {
+        "id": "MediumGrid1-Accent3",
+        "name": "Medium Grid 1 Accent 3"
+      },
+      {
+        "id": "MediumGrid1-Accent4",
+        "name": "Medium Grid 1 Accent 4"
+      },
+      {
+        "id": "MediumGrid1-Accent5",
+        "name": "Medium Grid 1 Accent 5"
+      },
+      {
+        "id": "MediumGrid1-Accent6",
+        "name": "Medium Grid 1 Accent 6"
+      },
+      {
+        "id": "MediumGrid2",
+        "name": "Medium Grid 2"
+      },
+      {
+        "id": "MediumGrid2-Accent1",
+        "name": "Medium Grid 2 Accent 1"
+      },
+      {
+        "id": "MediumGrid2-Accent2",
+        "name": "Medium Grid 2 Accent 2"
+      },
+      {
+        "id": "MediumGrid2-Accent3",
+        "name": "Medium Grid 2 Accent 3"
+      },
+      {
+        "id": "MediumGrid2-Accent4",
+        "name": "Medium Grid 2 Accent 4"
+      },
+      {
+        "id": "MediumGrid2-Accent5",
+        "name": "Medium Grid 2 Accent 5"
+      },
+      {
+        "id": "MediumGrid2-Accent6",
+        "name": "Medium Grid 2 Accent 6"
+      },
+      {
+        "id": "MediumGrid3",
+        "name": "Medium Grid 3"
+      },
+      {
+        "id": "MediumGrid3-Accent1",
+        "name": "Medium Grid 3 Accent 1"
+      },
+      {
+        "id": "MediumGrid3-Accent2",
+        "name": "Medium Grid 3 Accent 2"
+      },
+      {
+        "id": "MediumGrid3-Accent3",
+        "name": "Medium Grid 3 Accent 3"
+      },
+      {
+        "id": "MediumGrid3-Accent4",
+        "name": "Medium Grid 3 Accent 4"
+      },
+      {
+        "id": "MediumGrid3-Accent5",
+        "name": "Medium Grid 3 Accent 5"
+      },
+      {
+        "id": "MediumGrid3-Accent6",
+        "name": "Medium Grid 3 Accent 6"
+      },
+      {
+        "id": "DarkList",
+        "name": "Dark List"
+      },
+      {
+        "id": "DarkList-Accent1",
+        "name": "Dark List Accent 1"
+      },
+      {
+        "id": "DarkList-Accent2",
+        "name": "Dark List Accent 2"
+      },
+      {
+        "id": "DarkList-Accent3",
+        "name": "Dark List Accent 3"
+      },
+      {
+        "id": "DarkList-Accent4",
+        "name": "Dark List Accent 4"
+      },
+      {
+        "id": "DarkList-Accent5",
+        "name": "Dark List Accent 5"
+      },
+      {
+        "id": "DarkList-Accent6",
+        "name": "Dark List Accent 6"
+      },
+      {
+        "id": "ColorfulShading",
+        "name": "Colorful Shading"
+      },
+      {
+        "id": "ColorfulShading-Accent1",
+        "name": "Colorful Shading Accent 1"
+      },
+      {
+        "id": "ColorfulShading-Accent2",
+        "name": "Colorful Shading Accent 2"
+      },
+      {
+        "id": "ColorfulShading-Accent3",
+        "name": "Colorful Shading Accent 3"
+      },
+      {
+        "id": "ColorfulShading-Accent4",
+        "name": "Colorful Shading Accent 4"
+      },
+      {
+        "id": "ColorfulShading-Accent5",
+        "name": "Colorful Shading Accent 5"
+      },
+      {
+        "id": "ColorfulShading-Accent6",
+        "name": "Colorful Shading Accent 6"
+      },
+      {
+        "id": "ColorfulList",
+        "name": "Colorful List"
+      },
+      {
+        "id": "ColorfulList-Accent1",
+        "name": "Colorful List Accent 1"
+      },
+      {
+        "id": "ColorfulList-Accent2",
+        "name": "Colorful List Accent 2"
+      },
+      {
+        "id": "ColorfulList-Accent3",
+        "name": "Colorful List Accent 3"
+      },
+      {
+        "id": "ColorfulList-Accent4",
+        "name": "Colorful List Accent 4"
+      },
+      {
+        "id": "ColorfulList-Accent5",
+        "name": "Colorful List Accent 5"
+      },
+      {
+        "id": "ColorfulList-Accent6",
+        "name": "Colorful List Accent 6"
+      },
+      {
+        "id": "ColorfulGrid",
+        "name": "Colorful Grid"
+      },
+      {
+        "id": "ColorfulGrid-Accent1",
+        "name": "Colorful Grid Accent 1"
+      },
+      {
+        "id": "ColorfulGrid-Accent2",
+        "name": "Colorful Grid Accent 2"
+      },
+      {
+        "id": "ColorfulGrid-Accent3",
+        "name": "Colorful Grid Accent 3"
+      },
+      {
+        "id": "ColorfulGrid-Accent4",
+        "name": "Colorful Grid Accent 4"
+      },
+      {
+        "id": "ColorfulGrid-Accent5",
+        "name": "Colorful Grid Accent 5"
+      },
+      {
+        "id": "ColorfulGrid-Accent6",
+        "name": "Colorful Grid Accent 6"
+      }
+    ],
+    "fonts_used": [
+      "Pentech Inter 400",
+      "Pentech Inter 600",
+      "Pentech JetBrainsMono 400",
+      "Pentech Manrope 700",
+      "Pentech NotoSansKR 400",
+      "Pentech InstrumentSans 400",
+      "Pentech Inter 500",
+      "Pentech Inter 800",
+      "Pentech InstrumentSans 500",
+      "Pentech NotoSansKR 700",
+      "Pentech JetBrainsMono 700",
+      "Pentech Manrope 400",
+      "Pentech Manrope 600",
+      "Pentech Manrope 800",
+      "Pentech InstrumentSans 600",
+      "Pentech Inter 700",
+      "Pentech InstrumentSans 700"
+    ]
+  },
+  "generated": {
+    "file_name": "report-1차-정식개선.docx",
+    "file_size_bytes": 14196008,
+    "parts": [
+      "word/",
+      "word/_rels/",
+      "word/_rels/document.xml.rels",
+      "word/document.xml",
+      "word/styles.xml",
+      "docProps/",
+      "docProps/core.xml",
+      "_rels/",
+      "_rels/.rels",
+      "docProps/custom.xml",
+      "docProps/app.xml",
+      "word/footnotes.xml",
+      "word/_rels/footnotes.xml.rels",
+      "word/endnotes.xml",
+      "word/_rels/endnotes.xml.rels",
+      "word/settings.xml",
+      "word/fontTable.xml",
+      "word/_rels/fontTable.xml.rels",
+      "word/theme/",
+      "word/theme/theme1.xml",
+      "word/numbering.xml",
+      "[Content_Types].xml",
+      "word/media/",
+      "word/media/0329ded48ec2aa4502c86c258074bdf6f4cb084f.png",
+      "word/media/2d1662aa31b4dab881de9a4aff399b4bd4153dbd.png",
+      "word/media/950b4d9336dc2a8a2ae8ff81201ed8aae152b213.png",
+      "word/media/8e60af5efe887570b6239f7d894eb28d58a922db.png",
+      "word/media/c1e3680c39380186e2149afa46ed093b51f449b5.png",
+      "word/media/85a9fcdc935bd8342cfc3c273b882418a2ec2b84.png",
+      "word/media/08467a4f5fec22c074025220b1a75d065b4a9871.png",
+      "word/media/9c43f8830c8c225e91af1ab7fd5d75a489e0a95c.png",
+      "word/media/ec5c16074ce723649523a2206664d182737551bc.png",
+      "word/media/45d30a3dbaba424daad85ccbe18b0efdbce1e6ab.png",
+      "word/media/64963202fa3b5681157365e5358727cb7b574af9.png",
+      "word/media/0cce34f8ecb1a7e6ff997e1ca117a59bb60f118c.png",
+      "word/media/ed5124e670ce5eb33ec54f285b36b6b50bda6934.png",
+      "word/media/049a75cae2daf744f3c8c839d69338e749dde1b7.png",
+      "word/media/43b52ceaaffcc797eb32636c1b313205a5b75f8e.png",
+      "word/media/3b06d11545c800c4bcd261a5916b4b95750ee262.png",
+      "word/media/8cebfd95fe55bfe79fa385fa6c3d372c2cf89fe3.png",
+      "word/media/964cca111cfec6bee6268294cbbee5f8c6a90d68.png"
+    ],
+    "page_config": {
+      "width_dxa": 11906,
+      "height_dxa": 16838,
+      "orient": "portrait",
+      "margin_top": 283,
+      "margin_bottom": 283,
+      "margin_left": 454,
+      "margin_right": 454
+    },
+    "counts": {
+      "paragraphs": 661,
+      "tables": 144,
+      "max_table_depth": 4,
+      "table_rows": 0,
+      "table_cells": 0,
+      "inline_drawings": 26,
+      "anchor_drawings": 0,
+      "vml_shapes": 0,
+      "textboxes": 0,
+      "page_breaks": 8,
+      "images": 26
+    },
+    "drawings_summary": [
+      {
+        "index": 0,
+        "type": "inline",
+        "cx_pt": 51.75,
+        "cy_pt": 28.5
+      },
+      {
+        "index": 1,
+        "type": "inline",
+        "cx_pt": 514.5,
+        "cy_pt": 165.0
+      },
+      {
+        "index": 2,
+        "type": "inline",
+        "cx_pt": 60.0,
+        "cy_pt": 15.0
+      },
+      {
+        "index": 3,
+        "type": "inline",
+        "cx_pt": 60.0,
+        "cy_pt": 15.0
+      },
+      {
+        "index": 4,
+        "type": "inline",
+        "cx_pt": 60.0,
+        "cy_pt": 15.0
+      }
+    ],
+    "tables_summary": [],
+    "styles_summary": [
+      {
+        "id": "Normal",
+        "name": "Normal"
+      },
+      {
+        "id": "TableNormal",
+        "name": "Normal Table"
+      },
+      {
+        "id": "Title",
+        "name": "Title"
+      },
+      {
+        "id": "Heading1",
+        "name": "Heading 1"
+      },
+      {
+        "id": "Heading2",
+        "name": "Heading 2"
+      },
+      {
+        "id": "Heading3",
+        "name": "Heading 3"
+      },
+      {
+        "id": "Heading4",
+        "name": "Heading 4"
+      },
+      {
+        "id": "Heading5",
+        "name": "Heading 5"
+      },
+      {
+        "id": "Heading6",
+        "name": "Heading 6"
+      },
+      {
+        "id": "Strong",
+        "name": "Strong"
+      },
+      {
+        "id": "ListParagraph",
+        "name": "List Paragraph"
+      },
+      {
+        "id": "Hyperlink",
+        "name": "Hyperlink"
+      },
+      {
+        "id": "FootnoteReference",
+        "name": "footnote reference"
+      },
+      {
+        "id": "FootnoteText",
+        "name": "footnote text"
+      },
+      {
+        "id": "FootnoteTextChar",
+        "name": "Footnote Text Char"
+      },
+      {
+        "id": "EndnoteReference",
+        "name": "endnote reference"
+      },
+      {
+        "id": "EndnoteText",
+        "name": "endnote text"
+      },
+      {
+        "id": "EndnoteTextChar",
+        "name": "Endnote Text Char"
+      }
+    ],
+    "fonts_used": [
+      "JetBrains Mono",
+      "Manrope",
+      "Inter",
+      "Instrument Sans",
+      "Calibri"
+    ]
+  }
+}

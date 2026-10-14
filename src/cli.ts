@@ -1,4 +1,5 @@
 import { ConversionPipeline } from "./pipeline/index.js";
+import { CanvasPipeline } from "./canvas/pipeline/canvasPipeline.js";
 import { parseFigmaUrl, FigmaApiError } from "./api/index.js";
 import * as path from "path";
 import * as fs from "fs";
@@ -9,8 +10,11 @@ function parseCliArgs(args: string[]) {
     token?: string;
     output?: string;
     orientation?: "portrait" | "landscape";
+    engine?: "flow" | "canvas";
+    format?: "docx" | "hwpx" | "both";
+    scale?: "fit-a4" | "css-96dpi" | "1:1";
     files: string[];
-  } = { files: [] };
+  } = { files: [], engine: "flow", format: "docx" };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -25,6 +29,21 @@ function parseCliArgs(args: string[]) {
       if (val === "landscape" || val === "portrait") {
         result.orientation = val;
       }
+    } else if (arg === "--engine" || arg === "-e") {
+      const val = args[++i]?.toLowerCase();
+      if (val === "canvas" || val === "flow") {
+        result.engine = val;
+      }
+    } else if (arg === "--format" || arg === "-f") {
+      const val = args[++i]?.toLowerCase();
+      if (val === "docx" || val === "hwpx" || val === "both") {
+        result.format = val;
+      }
+    } else if (arg === "--scale" || arg === "-s") {
+      const val = args[++i]?.toLowerCase();
+      if (val === "fit-a4" || val === "css-96dpi" || val === "1:1") {
+        result.scale = val as any;
+      }
     } else if (!arg.startsWith("-")) {
       result.files.push(arg);
     }
@@ -35,10 +54,9 @@ function parseCliArgs(args: string[]) {
 
 async function main() {
   const parsedArgs = parseCliArgs(process.argv.slice(2));
-  const pipeline = new ConversionPipeline();
 
   console.log("=================================================");
-  console.log("       Figma2Word Local Conversion CLI           ");
+  console.log(`  Figma2Word Conversion CLI (Engine: ${parsedArgs.engine?.toUpperCase()})`);
   console.log("=================================================");
 
   // Mode 1: Convert live Figma design by URL
@@ -60,6 +78,7 @@ async function main() {
 
     console.log(`\nFetching Figma URL: ${parsedArgs.url}`);
     try {
+      const pipeline = new ConversionPipeline();
       const res = await pipeline.convertFigmaUrl(parsedArgs.url, token, {
         outputPath: parsedArgs.output,
         pageOrientation: parsedArgs.orientation,
@@ -95,7 +114,7 @@ async function main() {
     return;
   }
 
-  // Mode 2: Local JSON file conversion
+  // Mode 2: Local file conversion
   const filesToConvert: string[] = [];
 
   if (parsedArgs.files.length > 0) {
@@ -110,32 +129,72 @@ async function main() {
   }
 
   if (filesToConvert.length === 0) {
-    console.error("No Figma JSON files found to convert.");
+    console.error("No files found to convert.");
     console.error("Usage:");
-    console.error("  npm run convert -- <file.json>");
+    console.error("  npm run convert -- <file.json> [--engine canvas|flow] [--format docx|hwpx|both]");
+    console.error("  npm run convert -- <file.docx> --engine canvas (DOCX -> HWPX)");
     console.error("  npm run convert -- --url <FIGMA_URL> [--token <TOKEN>] [--output <FILE.docx>]");
     process.exit(1);
   }
 
-  for (const file of filesToConvert) {
-    console.log(`\nProcessing: ${path.basename(file)}...`);
-    try {
-      const res = await pipeline.convertFile(file, parsedArgs.output, {
-        pageOrientation: parsedArgs.orientation,
-      });
-      console.log(`[SUCCESS] Converted in ${res.durationMs}ms`);
-      console.log(`Output: ${res.outputPath}`);
-      console.log(
-        `Stats: Total Nodes=${res.stats.totalNodes} | Supported=${res.stats.supportedNodes} | Partial=${res.stats.partiallySupportedNodes} | Unsupported=${res.stats.unsupportedNodes} | Fallback=${res.stats.fallbackNodes}`
-      );
-      if (res.notices.length > 0) {
-        console.log(`Conversion Notices:`);
-        for (const notice of res.notices) {
-          console.log(`  - [${notice.status}] ${notice.nodeName} (${notice.nodeType}): ${notice.message}`);
+  if (parsedArgs.engine === "canvas") {
+    const canvasPipeline = new CanvasPipeline();
+    for (const file of filesToConvert) {
+      console.log(`\nProcessing (Canvas Engine): ${path.basename(file)}...`);
+      try {
+        const ext = path.extname(file).toLowerCase();
+        let defaultOutput = parsedArgs.output;
+        if (!defaultOutput) {
+          if (ext === ".docx") {
+            defaultOutput = file.replace(/\.docx$/i, ".hwpx");
+          } else {
+            defaultOutput = file.replace(/\.json$/i, "");
+          }
         }
+
+        const res = ext === ".docx"
+          ? await canvasPipeline.convertDocxToHwpx(file, {
+              outputPath: defaultOutput,
+            })
+          : await canvasPipeline.convertFigma(JSON.parse(fs.readFileSync(file, "utf-8")), {
+              outputPath: defaultOutput,
+              format: parsedArgs.format,
+              scalePolicy: parsedArgs.scale,
+            });
+
+        console.log(`[SUCCESS] Converted in ${res.durationMs}ms`);
+        if (res.canvasDocument) {
+          console.log(`Pages: ${res.canvasDocument.pages.length} | PageSize: ${res.canvasDocument.pageSize?.name || "A4"}`);
+          console.log(`Stats: Pages=${res.stats.pageCount} | Elements=${res.stats.elementCount} | Resources=${res.stats.resourceCount}`);
+        }
+        if (res.outputDocxPath) console.log(`DOCX: ${res.outputDocxPath}`);
+        if (res.outputHwpxPath) console.log(`HWPX: ${res.outputHwpxPath}`);
+      } catch (err: any) {
+        console.error(`[ERROR] Failed to convert ${file}:`, err.message || err);
       }
-    } catch (err) {
-      console.error(`[ERROR] Failed to convert ${file}:`, err);
+    }
+  } else {
+    const pipeline = new ConversionPipeline();
+    for (const file of filesToConvert) {
+      console.log(`\nProcessing (Flow Engine): ${path.basename(file)}...`);
+      try {
+        const res = await pipeline.convertFile(file, parsedArgs.output, {
+          pageOrientation: parsedArgs.orientation,
+        });
+        console.log(`[SUCCESS] Converted in ${res.durationMs}ms`);
+        console.log(`Output: ${res.outputPath}`);
+        console.log(
+          `Stats: Total Nodes=${res.stats.totalNodes} | Supported=${res.stats.supportedNodes} | Partial=${res.stats.partiallySupportedNodes} | Unsupported=${res.stats.unsupportedNodes} | Fallback=${res.stats.fallbackNodes}`
+        );
+        if (res.notices.length > 0) {
+          console.log(`Conversion Notices:`);
+          for (const notice of res.notices) {
+            console.log(`  - [${notice.status}] ${notice.nodeName} (${notice.nodeType}): ${notice.message}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[ERROR] Failed to convert ${file}:`, err);
+      }
     }
   }
 

@@ -4,5 +4,6 @@ export * from "./layout/index.js";
 export * from "./renderer/index.js";
 export * from "./pipeline/index.js";
 export * from "./api/index.js";
+export * from "./canvas/index.js";
 
 

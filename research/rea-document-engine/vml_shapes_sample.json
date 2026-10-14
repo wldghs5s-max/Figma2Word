@@ -1,0 +1,112 @@
+[
+  {
+    "index": 0,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s160",
+      "style": "position:absolute;left:0;top:0;margin-left:482.250pt;margin-top:49.125pt;width:71.808pt;height:13.500pt;z-index:160;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "드론 AI 외벽 진단"
+  },
+  {
+    "index": 1,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s200",
+      "style": "position:absolute;left:0;top:0;margin-left:49.500pt;margin-top:127.500pt;width:37.707pt;height:14.250pt;z-index:200;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "1차 진단"
+  },
+  {
+    "index": 2,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s210",
+      "style": "position:absolute;left:0;top:0;margin-left:99.000pt;margin-top:127.125pt;width:122.595pt;height:15.000pt;z-index:210;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "2026 정밀 진단 종합보고"
+  },
+  {
+    "index": 3,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s230",
+      "style": "position:absolute;left:0;top:0;margin-left:40.500pt;margin-top:162.000pt;width:514.500pt;height:43.650pt;z-index:230;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "해운대동신아파트"
+  },
+  {
+    "index": 4,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s240",
+      "style": "position:absolute;left:0;top:0;margin-left:40.500pt;margin-top:212.250pt;width:514.500pt;height:22.500pt;z-index:240;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "외벽 균열 진단 종합보고서 · 9개 동 · 기준 2026"
+  },
+  {
+    "index": 5,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s290",
+      "style": "position:absolute;left:0;top:0;margin-left:52.500pt;margin-top:457.500pt;width:58.605pt;height:12.150pt;z-index:290;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "균열밀도 (CDI)"
+  },
+  {
+    "index": 6,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s300",
+      "style": "position:absolute;left:0;top:0;margin-left:52.500pt;margin-top:473.250pt;width:64.032pt;height:20.250pt;z-index:300;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "0.031%"
+  },
+  {
+    "index": 7,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s310",
+      "style": "position:absolute;left:0;top:0;margin-left:52.500pt;margin-top:497.250pt;width:63.789pt;height:12.150pt;z-index:310;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "안전 기준선 이하"
+  },
+  {
+    "index": 8,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s330",
+      "style": "position:absolute;left:0;top:0;margin-left:183.375pt;margin-top:457.500pt;width:68.487pt;height:12.150pt;z-index:330;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "건전성 지수 (BHI)"
+  },
+  {
+    "index": 9,
+    "shape_tag": "{urn:schemas-microsoft-com:vml}rect",
+    "shape_attrib": {
+      "id": "s340",
+      "style": "position:absolute;left:0;top:0;margin-left:183.375pt;margin-top:473.250pt;width:59.415pt;height:20.250pt;z-index:340;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none",
+      "filled": "f",
+      "stroked": "f"
+    },
+    "text_preview": "84/100"
+  }
+]
