@@ -16,6 +16,7 @@ scratch/
 word/
 완성본-*/
 *.hwpx
+review-packages/
 
 # Environment variables & secrets
 .env

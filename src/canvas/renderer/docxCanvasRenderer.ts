@@ -27,6 +27,33 @@ function cleanHex(color?: string, fallback: string = "000000"): string {
   return color.replace("#", "").trim().toUpperCase();
 }
 
+export function resolveEastAsiaFont(fontFamily?: string): { ascii: string; eastAsia: string } {
+  if (!fontFamily) {
+    return { ascii: "Pretendard", eastAsia: "맑은 고딕" };
+  }
+  const f = fontFamily.trim();
+  const isKoreanFont =
+    f.includes("맑은 고딕") ||
+    f.includes("Malgun") ||
+    f.includes("Pretendard") ||
+    f.includes("Noto Sans KR") ||
+    f.includes("Nanum") ||
+    f.includes("나눔") ||
+    f.includes("돋움") ||
+    f.includes("Dotum") ||
+    f.includes("굴림") ||
+    f.includes("Gulim") ||
+    f.includes("바탕") ||
+    f.includes("Batang") ||
+    f.includes("Gungsuh") ||
+    f.includes("KoPub");
+
+  if (isKoreanFont) {
+    return { ascii: f, eastAsia: f };
+  }
+  return { ascii: f, eastAsia: "맑은 고딕" };
+}
+
 export class DocxCanvasRenderer {
   private creator: string;
 
@@ -290,6 +317,9 @@ export class DocxCanvasRenderer {
       3
     )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none`;
 
+    const altAttr = elem.id ? `alt="${escapeXml(elem.id)}"` : "";
+    const titleAttr = `o:title="${escapeXml(elem.name || elem.id || "")}"`;
+
     // 1. Line
     if (elem.type === "line") {
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");
@@ -297,6 +327,8 @@ export class DocxCanvasRenderer {
       return `<w:r>
   <w:pict>
     <v:line id="${shapeId}"
+            ${altAttr}
+            ${titleAttr}
             from="${x.toFixed(3)}pt,${y.toFixed(3)}pt"
             to="${(x + width).toFixed(3)}pt,${(y + height).toFixed(3)}pt"
             style="position:absolute;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page"
@@ -312,6 +344,8 @@ export class DocxCanvasRenderer {
       return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
+             ${altAttr}
+             ${titleAttr}
              style="${baseStyle}"
              filled="f"
              stroked="f">
@@ -351,7 +385,9 @@ export class DocxCanvasRenderer {
       const runsXml: string[] = [];
 
       for (const run of elem.textRuns) {
-        const fontAscii = escapeXml(run.fontFamily || "Inter");
+        const { ascii, eastAsia } = resolveEastAsiaFont(run.fontFamily);
+        const fontAscii = escapeXml(ascii);
+        const fontEastAsia = escapeXml(eastAsia);
         const fontSizeHalfPt = Math.round((run.fontSizePt || 10) * 2);
         const colorHex = cleanHex(run.color, "000000");
 
@@ -362,7 +398,7 @@ export class DocxCanvasRenderer {
 
         runsXml.push(`<w:r>
   <w:rPr>
-    <w:rFonts w:ascii="${fontAscii}" w:hAnsi="${fontAscii}" w:eastAsia="맑은 고딕"/>
+    <w:rFonts w:ascii="${fontAscii}" w:hAnsi="${fontAscii}" w:eastAsia="${fontEastAsia}" w:cs="${fontAscii}"/>
     <w:sz w:val="${fontSizeHalfPt}"/>
     <w:szCs w:val="${fontSizeHalfPt}"/>
     <w:color w:val="${colorHex}"/>
@@ -375,13 +411,25 @@ export class DocxCanvasRenderer {
 </w:r>`);
       }
 
+      const pad = elem.innerPaddingPt || {};
+      const padTop = pad.top ?? 0;
+      const padRight = pad.right ?? 0;
+      const padBottom = pad.bottom ?? 0;
+      const padLeft = pad.left ?? 0;
+      const insetAttr = `inset="${padLeft.toFixed(2)}pt,${padTop.toFixed(2)}pt,${padRight.toFixed(2)}pt,${padBottom.toFixed(2)}pt"`;
+
+      const firstLineHeight = elem.textRuns.find((r) => r.lineHeightPt)?.lineHeightPt;
+      const spacingXml = firstLineHeight
+        ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="exact"/>`
+        : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
+
       textboxContentXml = `
-      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;mso-wrap-style:none">
+      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;mso-wrap-style:none" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>
               <w:jc w:val="${jcVal}"/>
-              <w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>
+              ${spacingXml}
             </w:pPr>
             ${runsXml.join("\n            ")}
           </w:p>
@@ -392,6 +440,8 @@ export class DocxCanvasRenderer {
     return `<w:r>
   <w:pict>
     <${tag} id="${shapeId}"
+            ${altAttr}
+            ${titleAttr}
             style="${baseStyle}"
             ${filledAttr}
             ${fillcolorAttr}

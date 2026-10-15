@@ -28,6 +28,7 @@ function cleanHex(color?: string, fallback: string = "000000"): string {
 }
 
 interface CharPrKey {
+  fontId: number;
   fontSizePt: number;
   colorHex: string;
   bold: boolean;
@@ -73,18 +74,38 @@ export class HwpxCanvasRenderer {
     zip.file("META-INF/manifest.xml", this.buildManifestXml(imageBinMap));
     zip.file("Contents/content.hpf", this.buildContentHpf(doc, imageBinMap));
 
+    // 6. Dynamic Font Registry (7 OWPML languages)
+    const fontRegistry = new Map<string, number>();
+    fontRegistry.set("맑은 고딕", 0); // Default fallback at index 0
+
+    for (const page of doc.pages) {
+      for (const elem of page.elements) {
+        if (elem.textRuns) {
+          for (const run of elem.textRuns) {
+            const font = run.fontFamily?.trim() || "맑은 고딕";
+            if (!fontRegistry.has(font)) {
+              fontRegistry.set(font, fontRegistry.size);
+            }
+          }
+        }
+      }
+    }
+
     // Dynamic style registries
     const charPrRegistry = new Map<string, number>(); // serializedKey -> id
     const charPrList: { id: number; key: CharPrKey }[] = [];
 
     const getCharPrId = (run: CanvasTextRun): number => {
+      const font = run.fontFamily?.trim() || "맑은 고딕";
+      const fontId = fontRegistry.get(font) ?? 0;
       const key: CharPrKey = {
+        fontId,
         fontSizePt: Math.round((run.fontSizePt || 10) * 10) / 10,
         colorHex: cleanHex(run.color, "000000"),
         bold: (run.fontWeight || 400) >= 600,
         italic: !!run.italic,
       };
-      const serialized = `${key.fontSizePt}_${key.colorHex}_${key.bold}_${key.italic}`;
+      const serialized = `${fontId}_${key.fontSizePt}_${key.colorHex}_${key.bold}_${key.italic}`;
       if (charPrRegistry.has(serialized)) {
         return charPrRegistry.get(serialized)!;
       }
@@ -94,12 +115,12 @@ export class HwpxCanvasRenderer {
       return newId;
     };
 
-    // 6. Contents/section0.xml (builds shapes & populates charPrRegistry)
+    // 7. Contents/section0.xml (builds shapes & populates charPrRegistry)
     const section0Xml = this.buildSection0Xml(doc, imageBinMap, getCharPrId);
     zip.file("Contents/section0.xml", section0Xml);
 
-    // 7. Contents/header.xml (outputs registered charPr styles)
-    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList));
+    // 8. Contents/header.xml (outputs registered fontfaces & charPr styles)
+    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry));
 
     // Generate binary buffer
     const content = await zip.generateAsync({
@@ -176,7 +197,8 @@ ${items}
   }
 
   private buildHeaderXml(
-    charPrList: { id: number; key: CharPrKey }[]
+    charPrList: { id: number; key: CharPrKey }[],
+    fontRegistry: Map<string, number>
   ): string {
     let charPrEntries = "";
     for (const { id, key } of charPrList) {
@@ -184,7 +206,7 @@ ${items}
       const boldAttr = key.bold ? ' bold="1"' : "";
       const italicAttr = key.italic ? ' italic="1"' : "";
       charPrEntries += `\n    <hh:charPr id="${id}" height="${heightHwpu}" textColor="#${key.colorHex}" shadeColor="none" useFontSpace="1" useKerning="1" symMark="NONE" borderFillIDRef="1"${boldAttr}${italicAttr}>
-      <hh:fontRef hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:fontRef hangul="${key.fontId}" latin="${key.fontId}" hanja="${key.fontId}" japanese="${key.fontId}" other="${key.fontId}" symbol="${key.fontId}" user="${key.fontId}"/>
       <hh:ratio hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
       <hh:spacing hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
       <hh:relSz hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
@@ -198,14 +220,26 @@ ${items}
     </hh:charPr>`;
     }
 
+    const langs = ["hangul", "latin", "hanja", "japanese", "other", "symbol", "user"];
+    const fontCnt = fontRegistry.size;
+    const fontXmlEntries = Array.from(fontRegistry.entries())
+      .map(([face, id]) => `<hh:font id="${id}" face="${escapeXml(face)}" type="TTF" isEmbedded="0"/>`)
+      .join("\n        ");
+
+    const fontfaceBlocks = langs
+      .map(
+        (lang) => `<hh:fontface lang="${lang}" fontCnt="${fontCnt}">
+        ${fontXmlEntries}
+      </hh:fontface>`
+      )
+      .join("\n      ");
+
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <hh:head xmlns:hh="http://www.hancom.co.kr/hwpml/2011/head" xmlns:hc="http://www.hancom.co.kr/hwpml/2011/core" version="1.0">
   <hh:beginNum page="1" footnote="1" endnote="1" pic="1" tbl="1" equation="1"/>
   <hh:refList>
-    <hh:fontfaces itemCnt="1">
-      <hh:fontface lang="hangul" fontCnt="1">
-        <hh:font id="0" face="맑은 고딕" type="TTF" isEmbedded="0"/>
-      </hh:fontface>
+    <hh:fontfaces itemCnt="7">
+      ${fontfaceBlocks}
     </hh:fontfaces>
     <hh:borderFills itemCnt="1">
       <hh:borderFill id="1" threeD="0" shadow="0" centerLine="NONE" breakCellSeparateLine="0">
@@ -373,6 +407,10 @@ ${items}
       ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
       : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
 
+    const isLine = elem.type === "line";
+    const shapeW = isLine ? Math.max(10, wHwpu) : wHwpu;
+    const shapeH = isLine ? Math.max(10, hHwpu) : hHwpu;
+
     let drawTextPart = "";
     if (isText && elem.textRuns && elem.textRuns.length > 0) {
       let paraPrId = 0;
@@ -388,9 +426,10 @@ ${items}
         );
       }
 
+      const drawName = escapeXml(elem.name || elem.id || "");
       drawTextPart = `
-  <hp:drawText lastWidth="${wHwpu}" name="" editable="1">
-    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="${wHwpu}" textHeight="${hHwpu}" hasTextRef="0" hasNumRef="0">
+  <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
       <hp:p id="0" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">
         ${runsXml.join("")}
       </hp:p>
@@ -400,10 +439,10 @@ ${items}
 
     return `<hp:rect id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
   <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${wHwpu}" height="${hHwpu}"/>
-  <hp:curSz width="${wHwpu}" height="${hHwpu}"/>
+  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
+  <hp:curSz width="${shapeW}" height="${shapeH}"/>
   <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(wHwpu / 2)}" centerY="${Math.round(hHwpu / 2)}" rotateimage="1"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
   <hp:renderingInfo>
     <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
