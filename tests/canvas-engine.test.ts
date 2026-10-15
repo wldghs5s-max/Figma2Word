@@ -529,5 +529,65 @@ describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", ()
     expect(sectionXml).toContain("<hp:oval");
     expect(sectionXml).toContain("</hp:oval>");
   });
+
+  it("parses Figma VECTOR node with icon context into vector CanvasElement with native VML path", async () => {
+    const parser = new FigmaCanvasParser();
+    const mockDoc = {
+      document: {
+        id: "0:0",
+        name: "Doc",
+        type: "DOCUMENT",
+        children: [
+          {
+            id: "0:1",
+            name: "Page",
+            type: "CANVAS",
+            children: [
+              {
+                id: "1:1",
+                name: "Frame",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 0, width: 794, height: 1123 },
+                children: [
+                  {
+                    id: "1:2",
+                    name: "alert-triangle",
+                    type: "FRAME",
+                    absoluteBoundingBox: { x: 50, y: 50, width: 14, height: 14 },
+                    children: [
+                      {
+                        id: "1:3",
+                        name: "Vector",
+                        type: "VECTOR",
+                        absoluteBoundingBox: { x: 50, y: 50, width: 14, height: 14 },
+                        strokes: [{ type: "SOLID", color: { r: 0.9, g: 0.2, b: 0.2, a: 1 } }],
+                        strokeWeight: 2,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const canvasDoc = parser.parse(mockDoc as any);
+    const vecEl = canvasDoc.pages[0].elements.find((e) => e.name === "Vector");
+    expect(vecEl).toBeDefined();
+    expect(vecEl?.type).toBe("vector");
+    expect(vecEl?.vectorPath).toBeDefined();
+    expect(vecEl?.vectorPath).toContain("m 500,60");
+
+    const docxRenderer = new DocxCanvasRenderer();
+    const docxBuf = await docxRenderer.renderToBuffer(canvasDoc);
+    const docxZip = await JSZip.loadAsync(docxBuf);
+    const docXml = await docxZip.file("word/document.xml")!.async("string");
+    expect(docXml).toContain("<v:shape");
+    expect(docXml).toContain('coordsize="1000,1000"');
+    expect(docXml).toContain('path="m 500,60');
+  });
 });
+
 

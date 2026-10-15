@@ -201,7 +201,7 @@ export interface CanvasTableData {
   cells: CanvasTableCell[][];
 }
 
-export type CanvasElementType = "card" | "text" | "image" | "line" | "table" | "group" | "oval";
+export type CanvasElementType = "card" | "text" | "image" | "line" | "table" | "group" | "oval" | "vector";
 
 export interface CanvasPadding {
   top?: number;
@@ -227,6 +227,9 @@ export interface CanvasElement {
 
   // Image details
   imageRef?: string; // key into CanvasDocument.resources
+
+  // Vector Path details
+  vectorPath?: string; // Normalized VML or SVG path string
 
   // Structured Table details
   tableData?: CanvasTableData;

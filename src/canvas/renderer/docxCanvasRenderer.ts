@@ -346,6 +346,40 @@ export class DocxCanvasRenderer {
 </w:r>`;
     }
 
+    // 1b. Vector Shape
+    if (elem.type === "vector") {
+      const hasFill = !!elem.style.fillColor;
+      const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
+      const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
+      const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(elem.style.fillColor)}"` : "";
+      const strokedAttr = hasStroke ? 'stroked="t"' : 'stroked="f"';
+      const strokecolorAttr = hasStroke ? `strokecolor="#${cleanHex(elem.style.strokeColor)}"` : "";
+      const strokeweightAttr = hasStroke
+        ? `strokeweight="${(elem.style.strokeWidth || 1).toFixed(2)}pt"`
+        : "";
+
+      const pathStr = elem.vectorPath || "";
+      if (!pathStr) {
+        return "";
+      }
+
+      return `<w:r>
+  <w:pict>
+    <v:shape id="${shapeId}"
+             ${altAttr}
+             ${titleAttr}
+             style="${baseStyle}"
+             coordsize="1000,1000"
+             path="${pathStr}"
+             ${filledAttr}
+             ${fillcolorAttr}
+             ${strokedAttr}
+             ${strokecolorAttr}
+             ${strokeweightAttr}/>
+  </w:pict>
+</w:r>`;
+    }
+
     // 2. Image
     if (elem.type === "image" && elem.imageRef) {
       const relId = imageRelMap.get(elem.imageRef) || "rId1";

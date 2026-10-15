@@ -1,0 +1,12 @@
+import zipfile, re, os
+
+ref_dir = [d.name for d in os.scandir(".") if "20261012" in d.name][0]
+doc1_path = [os.path.join(ref_dir, x.name) for x in os.scandir(ref_dir) if "report-1" in x.name and x.name.endswith(".docx")][0]
+
+with zipfile.ZipFile(doc1_path) as z:
+    xml = z.read("word/document.xml").decode("utf-8")
+
+m = re.search(r'<v:rect id="s41100"[^>]*>.*?</v:rect>', xml, re.DOTALL)
+if m:
+    print(m.group(0))
+

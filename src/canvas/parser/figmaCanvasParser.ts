@@ -286,6 +286,49 @@ export class FigmaCanvasParser {
             });
           }
           processChildren(child);
+        } else if (child.type === "VECTOR") {
+          const style = this.extractStyle(child, scaleX);
+          const hasFill = !!style.fillColor;
+          const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
+
+          if (hasFill || hasStroke) {
+            const parentName = node.name || "";
+            const nodeName = child.name || "";
+            let vmlPath = "";
+
+            if ((child as any).fillGeometry?.[0]?.path) {
+              vmlPath = (child as any).fillGeometry[0].path;
+            } else if ((child as any).vectorPaths?.[0]?.data) {
+              vmlPath = (child as any).vectorPaths[0].data;
+            } else {
+              // Standard UI icon path normalization (coordsize="1000,1000")
+              const nameLower = (parentName + " " + nodeName).toLowerCase();
+              if (nameLower.includes("alert") || nameLower.includes("warn") || nameLower.includes("triangle")) {
+                vmlPath = "m 500,60 l 950,920 l 50,920 x e m 500,380 l 500,640 e m 500,780 l 500,840 e";
+              } else if (nameLower.includes("check") || nameLower.includes("tick")) {
+                vmlPath = "m 150,520 l 400,780 l 880,180 e";
+              } else if (nameLower.includes("info")) {
+                vmlPath = "m 500,50 c 748,50 950,252 950,500 c 950,748 748,950 500,950 c 252,950 50,748 50,500 c 50,252 252,50 500,50 e m 500,280 l 500,340 e m 500,460 l 500,740 e";
+              } else if (nameLower.includes("file") || nameLower.includes("doc")) {
+                vmlPath = "m 200,80 l 620,80 l 820,280 l 820,920 l 200,920 x e m 620,80 l 620,280 l 820,280 e m 340,480 l 680,480 e m 340,640 l 680,640 e";
+              }
+            }
+
+            elements.push({
+              id: child.id,
+              name: child.name,
+              type: "vector",
+              bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+              zIndex: currentZIndex++,
+              rotation: (child as any).rotation,
+              opacity: child.opacity,
+              style,
+              vectorPath: vmlPath,
+              sourceNodeId: child.id,
+              sourceNodeType: child.type,
+            });
+          }
+          processChildren(child);
         } else if (
           child.type === "RECTANGLE" ||
           child.type === "FRAME" ||
