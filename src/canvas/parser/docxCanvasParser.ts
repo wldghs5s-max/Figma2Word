@@ -9,7 +9,7 @@ import {
   CanvasStyle,
   CanvasPadding,
 } from "../types.js";
-import { SvgPath } from "../geometry/svgPathParser.js";
+import { SvgPath, vmlToSvgPath } from "../geometry/svgPathParser.js";
 
 /**
  * Parses XML attributes of an opening or self-closing XML tag into a key-value record,
@@ -57,14 +57,46 @@ function parseCoordPair(coordStr?: string): [number, number] {
 export class DocxCanvasParser {
   public async parse(input: Buffer | Uint8Array | ArrayBuffer | string): Promise<CanvasDocument> {
     let buffer: Buffer | Uint8Array | ArrayBuffer;
+    const MAX_INPUT_SIZE = 100 * 1024 * 1024; // 100 MB
+
     if (typeof input === "string") {
+      if (input.includes("\0")) {
+        throw new Error("Invalid DOCX path: Null byte detected.");
+      }
       const fs = await import("fs");
+      const stat = await fs.promises.stat(input);
+      if (stat.size > MAX_INPUT_SIZE) {
+        throw new Error(`DOCX file exceeds maximum allowed size of 100MB: ${stat.size} bytes`);
+      }
       buffer = await fs.promises.readFile(input);
     } else {
       buffer = input;
+      const byteLength = "byteLength" in buffer ? buffer.byteLength : (buffer as any).length;
+      if (byteLength > MAX_INPUT_SIZE) {
+        throw new Error(`DOCX buffer exceeds maximum allowed size of 100MB: ${byteLength} bytes`);
+      }
     }
 
+    // ZIP Bomb & entry count protection
+    const MAX_ZIP_ENTRIES = 5000;
+    const MAX_TOTAL_UNCOMPRESSED_SIZE = 250 * 1024 * 1024; // 250 MB
+
     const zip = await JSZip.loadAsync(buffer);
+    const entries = Object.keys(zip.files);
+    if (entries.length > MAX_ZIP_ENTRIES) {
+      throw new Error(`DOCX package contains excessive entry count (${entries.length} > ${MAX_ZIP_ENTRIES}). Possible ZIP bomb.`);
+    }
+
+    let totalDecompressedBytes = 0;
+    for (const filename of entries) {
+      const fileEntry = zip.files[filename];
+      if (fileEntry && (fileEntry as any)._data && typeof (fileEntry as any)._data.uncompressedSize === "number") {
+        totalDecompressedBytes += (fileEntry as any)._data.uncompressedSize;
+        if (totalDecompressedBytes > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+          throw new Error(`DOCX package uncompressed size exceeds safety limit of 250MB. Possible ZIP bomb.`);
+        }
+      }
+    }
 
     const docXmlFile = zip.file("word/document.xml");
     if (!docXmlFile) {
@@ -74,6 +106,17 @@ export class DocxCanvasParser {
     const docXml = await docXmlFile.async("string");
     const warnings: string[] = [];
     const notices: string[] = [];
+
+    // Diagnostic Scope Checks (F-14):
+    if (docXml.includes("<w:tbl")) {
+      warnings.push("[SCOPE_NOTICE] Document contains native Word tables (<w:tbl>). Canvas 2D engine targets absolute canvas layouts; flow tables are preserved only as background/container cards.");
+    }
+    if (docXml.includes("<c:chart") || (docXml.includes("<w:drawing") && docXml.includes("chart"))) {
+      warnings.push("[SCOPE_NOTICE] Document contains embedded ChartML (<c:chart>). Embedded office charts are outside Canvas IR shape scope.");
+    }
+    if (docXml.includes("<w:object") || docXml.includes("<o:OLEObject")) {
+      warnings.push("[SCOPE_NOTICE] Document contains embedded OLE objects. OLE binary packages are outside Canvas IR scope.");
+    }
 
     // 1. Load relationships for images with attribute-order agnostic XML parsing
     const relsMap = new Map<string, string>(); // rId -> targetPath
@@ -375,60 +418,84 @@ export class DocxCanvasParser {
       }
     }
 
-    const rRegex = /<w:r[\s>][\s\S]*?<\/w:r>/g;
-    const runs = Array.from(shapeXml.matchAll(rRegex)).map((m) => m[0]);
+    const pRegex = /<w:p[\s>][\s\S]*?<\/w:p>/g;
+    const paragraphs = Array.from(shapeXml.matchAll(pRegex)).map((m) => m[0]);
+    const parasToProcess = paragraphs.length > 0 ? paragraphs : [shapeXml];
 
-    for (const rXml of runs) {
-      const tMatch = rXml.match(/<w:t[^>]*>([\s\S]*?)<\/w:t>/);
-      if (tMatch) {
-        const text = tMatch[1]
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&apos;/g, "'");
-
-        const rFontsMatch = rXml.match(/<w:rFonts\b[\s\S]*?>/);
-        let fontFamily = "Pretendard";
-        if (rFontsMatch) {
-          const fAttrs = parseXmlAttributes(rFontsMatch[0]);
-          fontFamily = fAttrs["w:eastAsia"] || fAttrs["w:ascii"] || "Pretendard";
+    for (let pIdx = 0; pIdx < parasToProcess.length; pIdx++) {
+      const pXml = parasToProcess[pIdx];
+      if (pIdx > 0 && textRuns.length > 0) {
+        const lastRun = textRuns[textRuns.length - 1];
+        if (!lastRun.text.endsWith("\n")) {
+          lastRun.text += "\n";
         }
+      }
 
-        const szMatch = rXml.match(/<w:sz\b[\s\S]*?>/);
-        let fontSizePt = 10;
-        if (szMatch) {
-          const szAttrs = parseXmlAttributes(szMatch[0]);
-          if (szAttrs["w:val"]) {
-            fontSizePt = parseInt(szAttrs["w:val"], 10) / 2;
+      const rRegex = /<w:r[\s>][\s\S]*?<\/w:r>/g;
+      const runs = Array.from(pXml.matchAll(rRegex)).map((m) => m[0]);
+
+      for (const rXml of runs) {
+        const tokenRegex = /<w:t[^>]*>([\s\S]*?)<\/w:t>|<w:br\b[^>]*\/?>|<w:cr\b[^>]*\/?>/g;
+        let text = "";
+        let tokenMatch: RegExpExecArray | null;
+        let hasContent = false;
+        while ((tokenMatch = tokenRegex.exec(rXml)) !== null) {
+          hasContent = true;
+          if (tokenMatch[1] !== undefined) {
+            text += tokenMatch[1]
+              .replace(/&amp;/g, "&")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .replace(/&quot;/g, '"')
+              .replace(/&apos;/g, "'");
+          } else {
+            text += "\n";
           }
         }
 
-        const colorMatch = rXml.match(/<w:color\b[\s\S]*?>/);
-        let color = "#000000";
-        if (colorMatch) {
-          const cAttrs = parseXmlAttributes(colorMatch[0]);
-          if (cAttrs["w:val"]) {
-            color = `#${cAttrs["w:val"]}`;
+        if (hasContent && text.length > 0) {
+          const rFontsMatch = rXml.match(/<w:rFonts\b[\s\S]*?>/);
+          let fontFamily = "Pretendard";
+          if (rFontsMatch) {
+            const fAttrs = parseXmlAttributes(rFontsMatch[0]);
+            fontFamily = fAttrs["w:eastAsia"] || fAttrs["w:ascii"] || "Pretendard";
           }
+
+          const szMatch = rXml.match(/<w:sz\b[\s\S]*?>/);
+          let fontSizePt = 10;
+          if (szMatch) {
+            const szAttrs = parseXmlAttributes(szMatch[0]);
+            if (szAttrs["w:val"]) {
+              fontSizePt = parseInt(szAttrs["w:val"], 10) / 2;
+            }
+          }
+
+          const colorMatch = rXml.match(/<w:color\b[\s\S]*?>/);
+          let color = "#000000";
+          if (colorMatch) {
+            const cAttrs = parseXmlAttributes(colorMatch[0]);
+            if (cAttrs["w:val"]) {
+              color = `#${cAttrs["w:val"]}`;
+            }
+          }
+
+          const bold = rXml.includes("<w:b/>") || rXml.includes("<w:b ");
+          const italic = rXml.includes("<w:i/>") || rXml.includes("<w:i ");
+          const underline = rXml.includes("<w:u ") || rXml.includes("<w:u/>");
+          const strike = rXml.includes("<w:strike ") || rXml.includes("<w:strike/>");
+
+          textRuns.push({
+            text,
+            fontFamily,
+            fontSizePt,
+            fontWeight: bold ? 700 : 400,
+            italic: italic || undefined,
+            underline: underline || undefined,
+            strike: strike || undefined,
+            color,
+            lineHeightPt,
+          });
         }
-
-        const bold = rXml.includes("<w:b/>") || rXml.includes("<w:b ");
-        const italic = rXml.includes("<w:i/>") || rXml.includes("<w:i ");
-        const underline = rXml.includes("<w:u ") || rXml.includes("<w:u/>");
-        const strike = rXml.includes("<w:strike ") || rXml.includes("<w:strike/>");
-
-        textRuns.push({
-          text,
-          fontFamily,
-          fontSizePt,
-          fontWeight: bold ? 700 : 400,
-          italic: italic || undefined,
-          underline: underline || undefined,
-          strike: strike || undefined,
-          color,
-          lineHeightPt,
-        });
       }
     }
 
@@ -444,7 +511,7 @@ export class DocxCanvasParser {
     let vectorPath: string | undefined;
     if (type === "vector" && attrs["path"]) {
       vectorPath = attrs["path"];
-      const cleanPath = vectorPath.replace(/x/g, "z").replace(/e/g, "");
+      const cleanPath = vmlToSvgPath(vectorPath);
       const parsed = SvgPath.parse(cleanPath);
       const wHwpu = Math.max(10, Math.round(width * 100));
       const hHwpu = Math.max(10, Math.round(height * 100));

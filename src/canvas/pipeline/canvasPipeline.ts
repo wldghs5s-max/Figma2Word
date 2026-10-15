@@ -7,6 +7,8 @@ import { DocxCanvasRenderer } from "../renderer/docxCanvasRenderer.js";
 import { HwpxCanvasRenderer } from "../renderer/hwpxCanvasRenderer.js";
 import { FigmaNode, FigmaFileResponse } from "../../parser/types.js";
 import { FigmaSnapshot, isFigmaSnapshot } from "../../pipeline/index.js";
+import { FigmaClient, parseFigmaUrl } from "../../api/index.js";
+import { resolveImageMapUrls } from "../utils/imageResolver.js";
 
 export interface CanvasPipelineOptions {
   format?: "docx" | "hwpx" | "both";
@@ -205,5 +207,56 @@ export class CanvasPipeline {
     }
 
     throw new Error(`Unsupported file extension for Canvas Engine: ${ext}`);
+  }
+
+  /**
+   * Fetches a live Figma design via Figma REST API, downloads image fills,
+   * and converts to Canvas IR output (DOCX, HWPX, or Both).
+   */
+  public async convertFigmaUrl(
+    figmaUrl: string,
+    accessToken: string,
+    options?: CanvasPipelineOptions
+  ): Promise<CanvasPipelineResult> {
+    const urlInfo = parseFigmaUrl(figmaUrl);
+    const client = new FigmaClient({ accessToken });
+
+    // 1. Fetch file
+    const fileResponse = await client.fetchFile(urlInfo.fileKey);
+
+    // 2. Fetch and resolve remote image fills to Base64
+    let imageMap: Record<string, string> = options?.imageMap || {};
+    try {
+      const rawImageMap = await client.fetchImageFills(urlInfo.fileKey);
+      const resolved = await resolveImageMapUrls(rawImageMap, (url) =>
+        client.downloadImageAsBase64(url)
+      );
+      imageMap = { ...imageMap, ...resolved };
+    } catch {
+      // Continue if image download fails
+    }
+
+    let targetNode: FigmaNode | FigmaFileResponse = fileResponse;
+    if (urlInfo.nodeId && fileResponse.document) {
+      const findNode = (n: any, id: string): any => {
+        if (!n) return undefined;
+        if (n.id === id || n.id.replace(/:/g, "-") === id || n.id.replace(/-/g, ":") === id) return n;
+        if (n.children) {
+          for (const child of n.children) {
+            const res = findNode(child, id);
+            if (res) return res;
+          }
+        }
+        return undefined;
+      };
+      const found = findNode(fileResponse.document, urlInfo.nodeId);
+      if (found) targetNode = found;
+    }
+
+    return this.convertFigma(targetNode, {
+      ...options,
+      imageMap,
+      titleOverride: options?.titleOverride || fileResponse.name,
+    });
   }
 }

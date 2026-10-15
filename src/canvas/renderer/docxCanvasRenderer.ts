@@ -278,9 +278,11 @@ export class DocxCanvasRenderer {
 </w:p>`);
     }
 
-    // Section properties (A4, 0 margins)
+    // Section properties (dynamic size and orientation)
+    const isLandscape = doc.pageSize.widthPt > doc.pageSize.heightPt;
+    const orient = isLandscape ? "landscape" : "portrait";
     const sectPrXml = `<w:sectPr>
-  <w:pgSz w:w="${widthTwips}" w:h="${heightTwips}" w:orient="portrait"/>
+  <w:pgSz w:w="${widthTwips}" w:h="${heightTwips}" w:orient="${orient}"/>
   <w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/>
 </w:sectPr>`;
 
@@ -506,6 +508,10 @@ export class DocxCanvasRenderer {
         const uXml = run.underline ? '<w:u w:val="single"/>' : "";
         const strikeXml = run.strike ? "<w:strike/>" : "";
 
+        const lines = run.text.split(/\r\n|\r|\n/);
+        const textParts = lines.map((l) => `<w:t xml:space="preserve">${escapeXml(l)}</w:t>`);
+        const textXml = textParts.join("<w:br/>");
+
         runsXml.push(`<w:r>
   <w:rPr>
     <w:rFonts w:ascii="${fontAscii}" w:hAnsi="${fontAscii}" w:eastAsia="${fontEastAsia}" w:cs="${fontAscii}"/>
@@ -517,7 +523,7 @@ export class DocxCanvasRenderer {
     ${uXml}
     ${strikeXml}
   </w:rPr>
-  <w:t xml:space="preserve">${escapeXml(run.text)}</w:t>
+  ${textXml}
 </w:r>`);
       }
 

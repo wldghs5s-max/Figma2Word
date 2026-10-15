@@ -39,15 +39,29 @@ export interface PathBounds {
 }
 
 /**
+ * Normalize SVG path string to unpack compact arc flags and consecutive signs.
+ */
+function normalizeSvgPathString(d: string): string {
+  // Normalize compact arc flags:
+  // e.g. "A 25 25 0 11 150 150" or "A 25 25 0 01 150 150"
+  // Match 'A' or 'a', followed by 3 numbers (rx ry rot), then two flags (0 or 1).
+  return d.replace(
+    /([Aa])((?:\s*[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?[\s,]*){3})\s*([01])[\s,]*([01])/gi,
+    (_m, cmd, first3, f1, f2) => `${cmd}${first3} ${f1} ${f2} `
+  );
+}
+
+/**
  * Tokenize an SVG path string into command letters and numerical tokens.
  */
 function tokenizeSvgPath(d: string): (string | number)[] {
+  const normalizedD = normalizeSvgPathString(d);
   const tokens: (string | number)[] = [];
   // Matches command letters, or floats including scientific notation and negative numbers
   const regex = /([a-df-z])|([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)/gi;
   let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(d)) !== null) {
+  while ((match = regex.exec(normalizedD)) !== null) {
     if (match[1] !== undefined) {
       tokens.push(match[1]);
     } else if (match[2] !== undefined) {
@@ -189,6 +203,46 @@ function arcToCubicBeziers(
   }
 
   return commands;
+}
+
+/**
+ * Compute the analytical minimum and maximum coordinates of a 1D cubic Bezier curve segment.
+ */
+function getCubicBezierExtrema(p0: number, p1: number, p2: number, p3: number): [number, number] {
+  let min = Math.min(p0, p3);
+  let max = Math.max(p0, p3);
+
+  const a = 3 * (-p0 + 3 * p1 - 3 * p2 + p3);
+  const b = 6 * (p0 - 2 * p1 + p2);
+  const c = 3 * (p1 - p0);
+
+  const testT = (t: number) => {
+    if (t > 0 && t < 1) {
+      const omt = 1 - t;
+      const val =
+        omt * omt * omt * p0 +
+        3 * omt * omt * t * p1 +
+        3 * omt * t * t * p2 +
+        t * t * t * p3;
+      if (val < min) min = val;
+      if (val > max) max = val;
+    }
+  };
+
+  if (Math.abs(a) < 1e-12) {
+    if (Math.abs(b) > 1e-12) {
+      testT(-c / b);
+    }
+  } else {
+    const disc = b * b - 4 * a * c;
+    if (disc >= 0) {
+      const sqrtDisc = Math.sqrt(disc);
+      testT((-b - sqrtDisc) / (2 * a));
+      testT((-b + sqrtDisc) / (2 * a));
+    }
+  }
+
+  return [min, max];
 }
 
 export class SvgPath {
@@ -437,7 +491,7 @@ export class SvgPath {
   }
 
   /**
-   * Compute exact bounding box across all points.
+   * Compute exact bounding box across all path commands, accounting for cubic Bezier extrema.
    */
   public getBounds(): PathBounds {
     if (this.commands.length === 0) {
@@ -449,12 +503,37 @@ export class SvgPath {
     let maxX = -Infinity;
     let maxY = -Infinity;
 
+    let curX = 0;
+    let curY = 0;
+
     for (const cmd of this.commands) {
-      for (const pt of cmd.points) {
-        if (pt.x < minX) minX = pt.x;
-        if (pt.x > maxX) maxX = pt.x;
-        if (pt.y < minY) minY = pt.y;
-        if (pt.y > maxY) maxY = pt.y;
+      switch (cmd.type) {
+        case "M":
+        case "L": {
+          const pt = cmd.points[0];
+          if (pt.x < minX) minX = pt.x;
+          if (pt.x > maxX) maxX = pt.x;
+          if (pt.y < minY) minY = pt.y;
+          if (pt.y > maxY) maxY = pt.y;
+          curX = pt.x;
+          curY = pt.y;
+          break;
+        }
+        case "C": {
+          const [cp1, cp2, ep] = cmd.points;
+          const [xMin, xMax] = getCubicBezierExtrema(curX, cp1.x, cp2.x, ep.x);
+          const [yMin, yMax] = getCubicBezierExtrema(curY, cp1.y, cp2.y, ep.y);
+          if (xMin < minX) minX = xMin;
+          if (xMax > maxX) maxX = xMax;
+          if (yMin < minY) minY = yMin;
+          if (yMax > maxY) maxY = yMax;
+          curX = ep.x;
+          curY = ep.y;
+          break;
+        }
+        case "Z": {
+          break;
+        }
       }
     }
 
@@ -529,14 +608,13 @@ export class SvgPath {
   }
 
   /**
-   * Sample path into discrete polygon vertices for HWPX (<hp:pt x="..." y="..."/>).
-   * Cubic curves are sampled into intermediate vertices based on steps.
+   * Sample path into separate subpaths for HWPX, preserving multi-contour shapes.
    */
-  public toHwpxPolygonPoints(
+  public toHwpxSubpaths(
     targetWidthHwpu: number,
     targetHeightHwpu: number,
     stepsPerCurve = 6
-  ): Point2D[] {
+  ): Point2D[][] {
     if (this.commands.length === 0) {
       return [];
     }
@@ -545,18 +623,32 @@ export class SvgPath {
     const scaleX = targetWidthHwpu / bounds.width;
     const scaleY = targetHeightHwpu / bounds.height;
 
-    const pts: Point2D[] = [];
+    const subpaths: Point2D[][] = [];
+    let currentPath: Point2D[] = [];
     let curX = bounds.minX;
     let curY = bounds.minY;
 
     for (const cmd of this.commands) {
       switch (cmd.type) {
-        case "M":
+        case "M": {
+          if (currentPath.length > 0) {
+            subpaths.push(currentPath);
+            currentPath = [];
+          }
+          const p = cmd.points[0];
+          curX = p.x;
+          curY = p.y;
+          currentPath.push({
+            x: Math.round((p.x - bounds.minX) * scaleX),
+            y: Math.round((p.y - bounds.minY) * scaleY),
+          });
+          break;
+        }
         case "L": {
           const p = cmd.points[0];
           curX = p.x;
           curY = p.y;
-          pts.push({
+          currentPath.push({
             x: Math.round((p.x - bounds.minX) * scaleX),
             y: Math.round((p.y - bounds.minY) * scaleY),
           });
@@ -564,7 +656,6 @@ export class SvgPath {
         }
         case "C": {
           const [cp1, cp2, ep] = cmd.points;
-          // Sample cubic Bezier B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3
           for (let step = 1; step <= stepsPerCurve; step++) {
             const t = step / stepsPerCurve;
             const omt = 1 - t;
@@ -576,7 +667,7 @@ export class SvgPath {
             const px = b0 * curX + b1 * cp1.x + b2 * cp2.x + b3 * ep.x;
             const py = b0 * curY + b1 * cp1.y + b2 * cp2.y + b3 * ep.y;
 
-            pts.push({
+            currentPath.push({
               x: Math.round((px - bounds.minX) * scaleX),
               y: Math.round((py - bounds.minY) * scaleY),
             });
@@ -586,13 +677,80 @@ export class SvgPath {
           break;
         }
         case "Z": {
-          // Polygon is closed automatically in HWPX
+          if (currentPath.length > 0) {
+            subpaths.push(currentPath);
+            currentPath = [];
+          }
           break;
         }
       }
     }
 
-    return pts;
+    if (currentPath.length > 0) {
+      subpaths.push(currentPath);
+    }
+
+    return subpaths;
   }
+
+  /**
+   * Sample path into discrete polygon vertices for HWPX (<hp:pt x="..." y="..."/>).
+   * Cubic curves are sampled into intermediate vertices based on steps.
+   */
+  public toHwpxPolygonPoints(
+    targetWidthHwpu: number,
+    targetHeightHwpu: number,
+    stepsPerCurve = 6
+  ): Point2D[] {
+    const subpaths = this.toHwpxSubpaths(targetWidthHwpu, targetHeightHwpu, stepsPerCurve);
+    return subpaths.flat();
+  }
+
+  /**
+   * Parse a VML path string into an SvgPath, correctly translating VML coordinate semantics.
+   */
+  public static fromVml(vmlPath: string): SvgPath {
+    return SvgPath.parse(vmlToSvgPath(vmlPath));
+  }
+}
+
+/**
+ * Converts a VML path string to a standard SVG path string.
+ * In VML, lowercase commands (m, l, c) are ABSOLUTE coordinates,
+ * whereas in SVG lowercase commands are RELATIVE.
+ * In VML, relative commands are r (rel lineto), t (rel moveto), v (rel curveto).
+ * Also VML uses x for closepath and e for end of path.
+ */
+export function vmlToSvgPath(vmlPath: string): string {
+  if (!vmlPath) return "";
+
+  // Strip standalone formatting flags (nf = nofill, ns = nostroke)
+  let s = vmlPath.replace(/\b(nf|ns)\b/gi, " ");
+
+  // Strip path end marker 'e' (standalone or at end of segment)
+  s = s.replace(/(^|[\s,])e(?=[\s,]|$)/gi, " ");
+
+  // In VML:
+  // m -> M (absolute moveto)
+  // l -> L (absolute lineto)
+  // c -> C (absolute curveto)
+  // r -> l (relative lineto)
+  // t -> m (relative moveto)
+  // v -> c (relative curveto)
+  // x -> Z (closepath)
+  // z -> Z (closepath)
+  return s.replace(/([a-df-wyzA-DF-WYZ])/g, (cmd) => {
+    switch (cmd.toLowerCase()) {
+      case "m": return "M";
+      case "l": return "L";
+      case "c": return "C";
+      case "r": return "l";
+      case "t": return "m";
+      case "v": return "c";
+      case "x":
+      case "z": return "Z";
+      default: return cmd;
+    }
+  });
 }
 

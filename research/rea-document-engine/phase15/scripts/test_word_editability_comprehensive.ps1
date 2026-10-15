@@ -1,4 +1,4 @@
-# Comprehensive Word COM Editability & Persistence Verification Script (Phase 15)
+﻿# Comprehensive Word COM Editability & Persistence Verification Script (Phase 15)
 param()
 
 $ErrorActionPreference = "Stop"

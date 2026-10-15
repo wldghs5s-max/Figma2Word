@@ -6,6 +6,7 @@ import { DocxCanvasRenderer } from '../../../src/canvas/renderer/docxCanvasRende
 import { HwpxCanvasRenderer } from '../../../src/canvas/renderer/hwpxCanvasRenderer';
 import { DocxCanvasParser } from '../../../src/canvas/parser/docxCanvasParser';
 import { CanvasDocument } from '../../../src/canvas/types';
+import { resolveImageMapUrls } from '../../../src/canvas/utils/imageResolver';
 import { FigmaClient, parseFigmaUrl, FigmaApiError } from '../../../src/api/index';
 import {
   FigmaSnapshot,
@@ -444,7 +445,10 @@ export function App() {
 
       let imageMap: Record<string, string> = {};
       try {
-        imageMap = await client.fetchImageFills(urlInfo.fileKey);
+        setStatus('Figma 이미지 리소스 확인 중...');
+        const rawImageMap = await client.fetchImageFills(urlInfo.fileKey);
+        setStatus('Figma 이미지 다운로드 중...');
+        imageMap = await resolveImageMapUrls(rawImageMap, (imgUrl) => client.downloadImageAsBase64(imgUrl));
       } catch {
         // Continue if images fail
       }

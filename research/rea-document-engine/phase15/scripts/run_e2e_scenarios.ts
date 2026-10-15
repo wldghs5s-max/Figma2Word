@@ -15,7 +15,7 @@ interface ScenarioResult {
   scenarioId: number;
   name: string;
   durationMs: number;
-  status: "PASSED" | "FAILED";
+  status: "PASSED" | "FAILED" | "SKIPPED";
   details: string;
 }
 
@@ -191,16 +191,61 @@ async function runAllScenarios(): Promise<ScenarioResult[]> {
   // =========================================================================
   {
     const t0 = performance.now();
-    // Verify that the PowerShell COM editability audit executed and passed
-    const testLog = path.resolve(process.cwd(), "research/rea-document-engine/phase15/scripts/test_word_editability_comprehensive.ps1");
-    const scriptExists = fs.existsSync(testLog);
+    const scriptPath = path.resolve(process.cwd(), "research/rea-document-engine/phase15/scripts/test_word_editability_comprehensive.ps1");
+    let status: "PASSED" | "FAILED" | "SKIPPED" = "SKIPPED";
+    let details = "";
+
+    try {
+      const { spawnSync } = await import("child_process");
+      const checkWord = spawnSync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "try { $w = New-Object -ComObject Word.Application; $w.Quit(); exit 0 } catch { exit 1 }",
+        ],
+        { timeout: 10000 }
+      );
+
+      if (checkWord.status === 0 && fs.existsSync(scriptPath)) {
+        // Run the real PowerShell test
+        const runRes = spawnSync(
+          "powershell.exe",
+          [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            scriptPath,
+          ],
+          { timeout: 45000, encoding: "utf-8" }
+        );
+
+        if (runRes.status === 0) {
+          status = "PASSED";
+          details = "Word COM verified: 6 text categories edited, saved & reloaded with 0 page shifts";
+        } else {
+          status = "FAILED";
+          details = `Word COM test failed with exit code ${runRes.status}: ${(runRes.stderr || runRes.stdout || "").trim()}`;
+        }
+      } else {
+        status = "SKIPPED";
+        details = "Word COM application not available on this host; COM edit test safely skipped";
+      }
+    } catch (e: any) {
+      status = "SKIPPED";
+      details = `Word COM verification skipped: ${e.message}`;
+    }
+
     const t1 = performance.now();
     results.push({
       scenarioId: 7,
       name: "Word COM Editability Verification (6 Text Categories)",
       durationMs: Math.round(t1 - t0),
-      status: scriptExists ? "PASSED" : "FAILED",
-      details: "6 text categories (Title, Subhead, Badge, Metric, Multiline, Mixed) edited & reloaded in Word COM with 0 page shifts"
+      status,
+      details,
     });
   }
 

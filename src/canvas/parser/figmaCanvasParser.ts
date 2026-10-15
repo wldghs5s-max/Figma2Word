@@ -11,6 +11,7 @@ import {
 import { FigmaNode, FigmaFileResponse, FigmaColor, FigmaPaint } from "../../parser/types.js";
 import { isA4Ratio } from "../../pipeline/index.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
+import { decodeBase64, decodeDataUrl } from "../utils/binaryUtils.js";
 
 export interface FigmaCanvasParserOptions {
   imageMap?: Record<string, string>;
@@ -287,7 +288,12 @@ export class FigmaCanvasParser {
             });
           }
           processChildren(child);
-        } else if (child.type === "VECTOR") {
+        } else if (
+          child.type === "VECTOR" ||
+          child.type === "STAR" ||
+          child.type === "POLYGON" ||
+          child.type === "BOOLEAN_OPERATION"
+        ) {
           const style = this.extractStyle(child, scaleX);
           const hasFill = !!style.fillColor;
           const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
@@ -299,8 +305,14 @@ export class FigmaCanvasParser {
 
             if ((child as any).fillGeometry?.[0]?.path) {
               rawPath = (child as any).fillGeometry[0].path;
+            } else if ((child as any).strokeGeometry?.[0]?.path) {
+              rawPath = (child as any).strokeGeometry[0].path;
             } else if ((child as any).vectorPaths?.[0]?.data) {
               rawPath = (child as any).vectorPaths[0].data;
+            } else if (child.type === "STAR") {
+              rawPath = "M 500 0 L 618 353 L 990 353 L 689 572 L 804 925 L 500 706 L 196 925 L 311 572 L 10 353 L 382 353 Z";
+            } else if (child.type === "POLYGON") {
+              rawPath = "M 500 0 L 1000 866 L 0 866 Z";
             } else {
               // Standard UI icon path normalization (SVG format)
               const nameLower = (parentName + " " + nodeName).toLowerCase();
@@ -426,22 +438,21 @@ export class FigmaCanvasParser {
     const resId = `image${this.imageCounter}.png`;
     const dataUrl = this.imageMap[imageRef];
 
-    let buffer: Buffer;
+    let data: Uint8Array;
     let mimeType = "image/png";
 
     if (dataUrl && dataUrl.startsWith("data:")) {
-      const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
-        mimeType = match[1];
-        buffer = Buffer.from(match[2], "base64");
+      const decoded = decodeDataUrl(dataUrl);
+      if (decoded) {
+        mimeType = decoded.mime || "image/png";
+        data = decoded.bytes;
       } else {
-        buffer = Buffer.alloc(0);
+        data = new Uint8Array(0);
       }
     } else {
       // 1x1 transparent placeholder
-      buffer = Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-        "base64"
+      data = decodeBase64(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
       );
     }
 
@@ -449,7 +460,7 @@ export class FigmaCanvasParser {
       id: resId,
       name: resId,
       mimeType,
-      data: buffer,
+      data,
     };
 
     this.imageRefMap.set(imageRef, resId);

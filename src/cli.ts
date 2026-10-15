@@ -52,6 +52,13 @@ function parseCliArgs(args: string[]) {
   return result;
 }
 
+function validateSafePath(targetPath: string): string {
+  if (targetPath.includes("\0")) {
+    throw new Error("Invalid file path: Null byte detected.");
+  }
+  return path.resolve(process.cwd(), targetPath);
+}
+
 async function main() {
   const parsedArgs = parseCliArgs(process.argv.slice(2));
 
@@ -78,26 +85,44 @@ async function main() {
 
     console.log(`\nFetching Figma URL: ${parsedArgs.url}`);
     try {
-      const pipeline = new ConversionPipeline();
-      const res = await pipeline.convertFigmaUrl(parsedArgs.url, token, {
-        outputPath: parsedArgs.output,
-        pageOrientation: parsedArgs.orientation,
-      });
+      if (parsedArgs.engine === "canvas") {
+        const canvasPipeline = new CanvasPipeline();
+        const res = await canvasPipeline.convertFigmaUrl(parsedArgs.url, token, {
+          outputPath: parsedArgs.output,
+          format: parsedArgs.format,
+          scalePolicy: parsedArgs.scale,
+        });
 
-      console.log(`\n[SUCCESS] Converted in ${res.durationMs}ms`);
-      console.log(`Output: ${res.outputPath}`);
-      console.log(
-        `Stats: Total Nodes=${res.stats.totalNodes} | Supported=${res.stats.supportedNodes} | Partial=${res.stats.partiallySupportedNodes} | Unsupported=${res.stats.unsupportedNodes} | Fallback=${res.stats.fallbackNodes}`
-      );
-      if (res.notices.length > 0) {
-        console.log(`Conversion Notices (${res.notices.length}):`);
-        for (const notice of res.notices.slice(0, 10)) {
+        console.log(`\n[SUCCESS] Converted in ${res.durationMs}ms`);
+        if (res.outputDocxPath) console.log(`DOCX: ${res.outputDocxPath}`);
+        if (res.outputHwpxPath) console.log(`HWPX: ${res.outputHwpxPath}`);
+        if (res.canvasDocument) {
           console.log(
-            `  - [${notice.status}] ${notice.nodeName} (${notice.nodeType}): ${notice.message}`
+            `Stats: Pages=${res.stats.pageCount} | Elements=${res.stats.elementCount} | Resources=${res.stats.resourceCount}`
           );
         }
-        if (res.notices.length > 10) {
-          console.log(`  ... and ${res.notices.length - 10} more notices.`);
+      } else {
+        const pipeline = new ConversionPipeline();
+        const res = await pipeline.convertFigmaUrl(parsedArgs.url, token, {
+          outputPath: parsedArgs.output,
+          pageOrientation: parsedArgs.orientation,
+        });
+
+        console.log(`\n[SUCCESS] Converted in ${res.durationMs}ms`);
+        console.log(`Output: ${res.outputPath}`);
+        console.log(
+          `Stats: Total Nodes=${res.stats.totalNodes} | Supported=${res.stats.supportedNodes} | Partial=${res.stats.partiallySupportedNodes} | Unsupported=${res.stats.unsupportedNodes} | Fallback=${res.stats.fallbackNodes}`
+        );
+        if (res.notices.length > 0) {
+          console.log(`Conversion Notices (${res.notices.length}):`);
+          for (const notice of res.notices.slice(0, 10)) {
+            console.log(
+              `  - [${notice.status}] ${notice.nodeName} (${notice.nodeType}): ${notice.message}`
+            );
+          }
+          if (res.notices.length > 10) {
+            console.log(`  ... and ${res.notices.length - 10} more notices.`);
+          }
         }
       }
     } catch (err: any) {
@@ -118,7 +143,17 @@ async function main() {
   const filesToConvert: string[] = [];
 
   if (parsedArgs.files.length > 0) {
-    filesToConvert.push(...parsedArgs.files.map((f) => path.resolve(process.cwd(), f)));
+    for (const rawFile of parsedArgs.files) {
+      const safePath = validateSafePath(rawFile);
+      if (!fs.existsSync(safePath)) {
+        throw new Error(`Input file not found: ${safePath}`);
+      }
+      const stat = fs.statSync(safePath);
+      if (stat.size > 100 * 1024 * 1024) {
+        throw new Error(`Input file exceeds maximum allowed size of 100MB: ${stat.size} bytes`);
+      }
+      filesToConvert.push(safePath);
+    }
   } else {
     // Default: convert all samples in samples/figma/
     const fixtureDir = path.resolve(process.cwd(), "samples/figma");

@@ -58,14 +58,19 @@ export class HwpxCanvasRenderer {
     zip.file("META-INF/container.xml", this.buildContainerXml());
 
     // 4. BinData/
-    const imageBinMap = new Map<string, string>(); // resourceId -> BIN0001
+    const imageBinMap = new Map<string, { binId: string; ext: string; mimeType: string }>();
     let binCounter = 1;
 
     for (const [resId, res] of Object.entries(doc.resources)) {
       const binId = `BIN${binCounter.toString().padStart(4, "0")}`;
-      const ext = res.mimeType === "image/jpeg" ? "jpg" : "png";
+      const isJpeg =
+        res.mimeType === "image/jpeg" ||
+        res.mimeType === "image/jpg" ||
+        (res.data && res.data.length >= 3 && res.data[0] === 0xff && res.data[1] === 0xd8);
+      const ext = isJpeg ? "jpg" : "png";
+      const mimeType = isJpeg ? "image/jpeg" : "image/png";
       const binFileName = `${binId}.${ext}`;
-      imageBinMap.set(resId, binId);
+      imageBinMap.set(resId, { binId, ext, mimeType });
       zip.file(`BinData/${binFileName}`, res.data);
       binCounter++;
     }
@@ -167,15 +172,17 @@ export class HwpxCanvasRenderer {
 </container>`.trim();
   }
 
-  private buildManifestXml(imageBinMap: Map<string, string>): string {
+  private buildManifestXml(
+    imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>
+  ): string {
     let items = `  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/hwp+zip"/>
   <manifest:file-entry manifest:full-path="Contents/content.hpf" manifest:media-type="application/hwpml-package+xml"/>
   <manifest:file-entry manifest:full-path="Contents/header.xml" manifest:media-type="application/xml"/>
   <manifest:file-entry manifest:full-path="Contents/section0.xml" manifest:media-type="application/xml"/>
   <manifest:file-entry manifest:full-path="settings.xml" manifest:media-type="application/xml"/>`;
 
-    for (const binId of imageBinMap.values()) {
-      items += `\n  <manifest:file-entry manifest:full-path="BinData/${binId}.png" manifest:media-type="image/png"/>`;
+    for (const { binId, ext, mimeType } of imageBinMap.values()) {
+      items += `\n  <manifest:file-entry manifest:full-path="BinData/${binId}.${ext}" manifest:media-type="${mimeType}"/>`;
     }
 
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -186,11 +193,11 @@ ${items}
 
   private buildContentHpf(
     doc: CanvasDocument,
-    imageBinMap: Map<string, string>
+    imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>
   ): string {
     let binItems = "";
-    for (const binId of imageBinMap.values()) {
-      binItems += `\n    <opf:item id="${binId}" href="BinData/${binId}.png" media-type="image/png" isEmbeded="1"/>`;
+    for (const { binId, ext, mimeType } of imageBinMap.values()) {
+      binItems += `\n    <opf:item id="${binId}" href="BinData/${binId}.${ext}" media-type="${mimeType}" isEmbeded="1"/>`;
     }
 
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -296,7 +303,7 @@ ${items}
 
   private buildSection0Xml(
     doc: CanvasDocument,
-    imageBinMap: Map<string, string>,
+    imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number
   ): string {
     const pageParas: string[] = [];
@@ -344,6 +351,12 @@ ${items}
         }
       }
 
+      // Dynamic page size and orientation
+      const isLandscape = doc.pageSize.widthPt > doc.pageSize.heightPt;
+      const landscapeAttr = isLandscape ? "WIDELY" : "NARROWLY";
+      const widthHwpu = Math.round(doc.pageSize.widthPt * 100);
+      const heightHwpu = Math.round(doc.pageSize.heightPt * 100);
+
       // First page includes secPr
       const secPrXml =
         pIdx === 0
@@ -351,7 +364,7 @@ ${items}
   <hp:grid char="0" line="0"/>
   <hp:startNum pageStartsOn="BOTH" page="1" pic="1" tbl="1" equation="1"/>
   <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="SHOW_ALL" fill="SHOW_ALL" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
-  <hp:pagePr landscape="WIDELY" width="59530" height="84190" gutterType="LEFT_ONLY">
+  <hp:pagePr landscape="${landscapeAttr}" width="${widthHwpu}" height="${heightHwpu}" gutterType="LEFT_ONLY">
     <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
   </hp:pagePr>
 </hp:secPr>`
@@ -374,7 +387,7 @@ ${items}
   private renderElement(
     shapeId: number,
     elem: CanvasElement,
-    imageBinMap: Map<string, string>,
+    imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number
   ): string {
     const xHwpu = ptToHwpu(elem.bounds.x);
@@ -385,8 +398,9 @@ ${items}
 
     // 1. Image
     if (elem.type === "image" && elem.imageRef) {
-      const binId = imageBinMap.get(elem.imageRef);
-      if (binId) {
+      const binEntry = imageBinMap.get(elem.imageRef);
+      if (binEntry) {
+        const binId = binEntry.binId;
         return `<hp:pic id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${wHwpu}" height="${hHwpu}"/>
@@ -432,21 +446,37 @@ ${items}
       else if (elem.paragraphAlign === "right") paraPrId = 2;
       else if (elem.paragraphAlign === "justify") paraPrId = 3;
 
-      const runsXml: string[] = [];
+      // Split runs across lines into separate paragraphs
+      const paragraphs: Array<Array<{ charPrId: number; text: string }>> = [[]];
+
       for (const run of elem.textRuns) {
         const charPrId = getCharPrId(run);
-        runsXml.push(
-          `<hp:run charPrIDRef="${charPrId}"><hp:t>${escapeXml(run.text)}</hp:t></hp:run>`
-        );
+        const lines = run.text.split(/\r\n|\r|\n/);
+        for (let i = 0; i < lines.length; i++) {
+          if (i > 0) {
+            paragraphs.push([]);
+          }
+          if (lines[i].length > 0 || lines.length === 1) {
+            paragraphs[paragraphs.length - 1].push({ charPrId, text: lines[i] });
+          }
+        }
       }
+
+      const parasXml: string[] = paragraphs.map((paraRuns, pIdx) => {
+        const runsStr =
+          paraRuns.length > 0
+            ? paraRuns
+                .map((r) => `<hp:run charPrIDRef="${r.charPrId}"><hp:t>${escapeXml(r.text)}</hp:t></hp:run>`)
+                .join("")
+            : `<hp:run charPrIDRef="0"><hp:t/></hp:run>`;
+        return `<hp:p id="${pIdx}" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">${runsStr}</hp:p>`;
+      });
 
       const drawName = escapeXml(elem.name || elem.id || "");
       drawTextPart = `
   <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
     <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
-      <hp:p id="0" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">
-        ${runsXml.join("")}
-      </hp:p>
+      ${parasXml.join("\n      ")}
     </hp:subList>
   </hp:drawText>`;
     }
