@@ -34,3 +34,4 @@ for y in range(375, 420, 10):
         r1, g1, b1 = raw1[off], raw1[off+1], raw1[off+2]
         r2, g2, b2 = raw2[off], raw2[off+1], raw2[off+2]
         print(f"At ({x}, {y}): Ref RGB=({r1:3d},{g1:3d},{b1:3d}) | Canvas RGB=({r2:3d},{g2:3d},{b2:3d})")
+

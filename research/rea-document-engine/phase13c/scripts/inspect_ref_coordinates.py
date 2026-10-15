@@ -30,3 +30,4 @@ for t in tops:
 print("\nRef DOCX Shape distribution across A4 height multiples (continuous coordinate space):")
 for p, count in sorted(page_dist.items()):
     print(f"  A4 Page {p} (Y={ (p-1)*842 }..{ p*842 }pt): {count} shapes")
+

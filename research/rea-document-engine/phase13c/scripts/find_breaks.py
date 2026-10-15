@@ -18,3 +18,4 @@ for idx, p in enumerate(p_list):
 print(f"Paragraphs with pict or pageBreakBefore: {len(break_paragraphs)}")
 for b in break_paragraphs:
     print(f"  P {b[0]:3d}: pict={b[1]}, break={b[2]}, len={b[3]}")
+

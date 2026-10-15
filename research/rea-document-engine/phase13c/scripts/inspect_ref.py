@@ -24,3 +24,4 @@ for name, path in docs:
         texts = [t for t in re.findall(r'<w:t[^>]*>([^<]+)</w:t>', doc_xml) if len(t.strip()) > 3]
         print(f"  Total text elements: {len(texts)}")
         print(f"  Sample texts: {texts[:6]}")
+

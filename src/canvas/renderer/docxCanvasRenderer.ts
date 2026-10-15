@@ -424,9 +424,10 @@ export class DocxCanvasRenderer {
       ? `strokeweight="${(elem.style.strokeWidth || 1).toFixed(2)}pt"`
       : "";
 
-    // Corner radius
-    const isRound = !!elem.style.cornerRadius && elem.style.cornerRadius > 0;
-    const tag = isRound ? "v:roundrect" : "v:rect";
+    // Corner radius or Oval
+    const isOval = elem.type === "oval";
+    const isRound = !isOval && !!elem.style.cornerRadius && elem.style.cornerRadius > 0;
+    const tag = isOval ? "v:oval" : isRound ? "v:roundrect" : "v:rect";
     const arcsizeAttr = isRound
       ? `arcsize="${Math.min(
           0.5,
@@ -479,7 +480,7 @@ export class DocxCanvasRenderer {
         : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
 
       textboxContentXml = `
-      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;mso-wrap-style:none" ${insetAttr}>
+      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>

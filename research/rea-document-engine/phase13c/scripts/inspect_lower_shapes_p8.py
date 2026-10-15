@@ -25,3 +25,4 @@ for m in re.finditer(r'<v:(rect|shape|roundrect)\b([^>]*)>([\s\S]*?)<\/v:\1>', p
         has_img = '<v:imagedata' in inner
         fill = re.search(r'fillcolor="([^"]*)"', attrs)
         print(f"Ref Shape at ({left:.1f}, {top:.1f}, {width:.1f}x{height:.1f}): img={has_img}, fill={fill.group(1) if fill else None}, texts={texts[:2]}")
+

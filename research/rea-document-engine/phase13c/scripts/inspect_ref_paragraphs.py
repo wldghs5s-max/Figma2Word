@@ -20,3 +20,4 @@ for idx, p in enumerate(p_list[:20]):
     print(f"Paragraph {idx}: pict={has_pict}, br={has_br}, pageBreak={has_page_break}, len={len(p)}")
     if has_br or has_page_break:
         print(f"   Break details: {re.findall(r'<w:[a-zA-Z]+Break[^>]*>', p)} {re.findall(r'<w:br[^>]*>', p)}")
+

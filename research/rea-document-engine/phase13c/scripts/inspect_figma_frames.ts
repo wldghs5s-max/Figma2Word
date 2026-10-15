@@ -52,3 +52,4 @@ for (const r of reports) {
     console.log(`  - [${f.id}] "${f.name}" (${f.bounds?.width}x${f.bounds?.height} at (${f.bounds?.x}, ${f.bounds?.y}))`);
   }
 }
+

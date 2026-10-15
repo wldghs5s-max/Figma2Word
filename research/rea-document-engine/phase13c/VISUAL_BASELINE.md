@@ -108,3 +108,4 @@ From the baseline data, two key areas showed significant visual error across all
 1. **Cover Page (Page 1) Discrepancy**: Lowest SSIM across all standard pages (0.7759 ~ 0.7769) with ~22% pixel mismatch.
 2. **Text Background Darkening**: Widespread gray box artifacts appearing behind text lines across multiple pages.
 3. **Hero Image Aspect Distortion**: Hero image on the cover appeared vertically stretched compared to the reference DOCX.
+

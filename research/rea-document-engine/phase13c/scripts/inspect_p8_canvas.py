@@ -32,3 +32,4 @@ for m in re.finditer(r'<v:(rect|shape|roundrect|line)\b([^>]*)>([\s\S]*?)<\/v:\1
         title_match = re.search(r'o:title="([^"]*)"', attrs)
         title = title_match.group(1) if title_match else ''
         print(f"  Shape <v:{tag}> title='{title}': style='{style}'")
+

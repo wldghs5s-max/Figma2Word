@@ -19,3 +19,4 @@ for idx, p_xml in enumerate(page_splits):
     texts = re.findall(r'<w:t[^>]*>([^<]+)<\/w:t>', p_xml)
     title = texts[0] if texts else "No Text"
     print(f"Page {idx+1}: {len(shapes)} shapes, {len(images)} images, {len(texts)} text runs (First: '{title[:30]}')")
+

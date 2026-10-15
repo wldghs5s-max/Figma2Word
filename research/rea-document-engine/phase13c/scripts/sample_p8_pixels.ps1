@@ -27,3 +27,4 @@ foreach ($pt in $points) {
 
 $b1.Dispose()
 $b2.Dispose()
+

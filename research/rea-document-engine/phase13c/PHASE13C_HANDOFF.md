@@ -66,3 +66,4 @@ Phase 13C successfully established an objective, mathematically rigorous visual 
    Fine-tune inner table borders, cell padding twips, and stroke colors on complex data grid pages (e.g., Page 5 and Page 7) to push SSIM beyond the 0.900 threshold.
 3. **Web UI Pipeline Integration**:
    Add an engine selection toggle (`Flow` vs `Canvas Dual Engine`) in `apps/web/` so users can choose between standard text flow and high-fidelity canvas rendering.
+

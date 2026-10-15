@@ -46,3 +46,4 @@ print(f"Figma Node Solid Fills count: {len(fills)}")
 print(f"Figma Node Texts count: {len(texts)}")
 for t in texts[:8]:
     print(f"  TEXT: '{t[1][:30]}' at {t[2]}")
+

@@ -52,3 +52,4 @@ for s in canvas_p8[:12]:
 print(f"\nRef Page 8 Shapes Count: {len(ref_p8)}")
 for s in ref_p8[:12]:
     print(f"  Ref: <v:{s['tag']}> fill={s['fillcolor']} img={s['has_image']} text={s['texts'][:2]} style={s['style'][:90]}")
+

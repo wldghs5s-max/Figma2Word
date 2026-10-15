@@ -105,3 +105,4 @@ The Cover Page had been the worst-scoring standard page across all reports in th
 1. **Monotonic Improvement**: Every single one of the 30 pages tested demonstrated a positive increase in SSIM and a marked reduction in MAE and mismatch pixels.
 2. **Generalizability**: The fixes operated identically across all 3 distinct customer reports, proving they are completely general layout principles rather than document-specific overfitting.
 3. **Automated Test Suite**: Vitest suite with 14 unit and regression tests in `tests/canvas-engine.test.ts` passed 100%, alongside the full 48 test suites across the repository.
+

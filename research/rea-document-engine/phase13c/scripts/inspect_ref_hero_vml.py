@@ -14,3 +14,4 @@ else:
     for im in re.finditer(r'<v:[^>]*>[\s\S]*?<v:imagedata[\s\S]*?<\/v:[^>]*>', doc):
         print("---")
         print(im.group(0)[:300])
+

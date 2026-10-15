@@ -2,7 +2,7 @@
     "totalComparedPages":  10,
     "pageCountMatch":  true,
     "reportName":  "Canvas vs Ref Report 3",
-    "meanSsim":  0.8708,
+    "meanSsim":  0.8712,
     "pages":  [
                   {
                       "backgroundMismatchRatio":  0.0511,
@@ -112,15 +112,15 @@
                   {
                       "backgroundMismatchRatio":  0.0304,
                       "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page04.png",
-                      "textDetailMismatchRatio":  0.0413,
-                      "rmse":  32.37,
+                      "textDetailMismatchRatio":  0.0365,
+                      "rmse":  31.18,
                       "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report3\\canvas-Page04.png",
-                      "normalizedMae":  0.0293,
+                      "normalizedMae":  0.0269,
                       "totalPixels":  2772000,
-                      "mae":  7.46,
-                      "mismatchPixelCount":  198516,
+                      "mae":  6.86,
+                      "mismatchPixelCount":  185497,
                       "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_canvas_vs_ref_report3\\Page04-diff.png",
-                      "mismatchRatio":  0.0716,
+                      "mismatchRatio":  0.0669,
                       "bbox2":  {
                                     "y":  84,
                                     "w":  1317,
@@ -133,7 +133,7 @@
                                     "h":  2,
                                     "x":  0
                                 },
-                      "ssim":  0.8723,
+                      "ssim":  0.877,
                       "page":  4,
                       "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_canvas_vs_ref_report3\\Page04-overlay.png",
                       "status":  "COMPARED",
@@ -355,10 +355,10 @@
                                 }
                   }
               ],
-    "meanMae":  7.07,
+    "meanMae":  7.01,
     "refPages":  10,
     "minSsim":  0.7976,
-    "meanMismatchRatio":  0.0742,
+    "meanMismatchRatio":  0.0737,
     "worstPage":  9,
     "testPages":  10
 }

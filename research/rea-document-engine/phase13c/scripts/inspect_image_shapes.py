@@ -31,3 +31,4 @@ for s in canvas_shapes[:6]:
 print(f"\nRef DOCX image/fill shapes: {len(ref_shapes)}, drawings: {ref_drawings}")
 for s in ref_shapes[:6]:
     print(f"  Ref Shape: <v:{s[0]} {s[1]}> -> inner: {s[2]}")
+

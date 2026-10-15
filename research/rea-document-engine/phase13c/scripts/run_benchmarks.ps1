@@ -119,3 +119,4 @@ Write-Host "=================================================="
 Write-Host "Master summary written to $summaryPath"
 Write-Host "=================================================="
 $masterResults | Format-Table name, engine, reportId, pageCountMatch, meanSsim, minSsim, worstPage, meanMae, meanMismatchRatio
+

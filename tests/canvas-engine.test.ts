@@ -471,5 +471,63 @@ describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", ()
     expect(docXml).toContain("cropleft=");
     expect(docXml).toContain("cropright=");
   });
+
+  it("parses Figma ELLIPSE into oval CanvasElement and renders native v:oval in DOCX and hp:oval in HWPX", async () => {
+    const parser = new FigmaCanvasParser();
+    const mockDoc = {
+      document: {
+        id: "0:0",
+        name: "Doc",
+        type: "DOCUMENT",
+        children: [
+          {
+            id: "0:1",
+            name: "Page",
+            type: "CANVAS",
+            children: [
+              {
+                id: "1:1",
+                name: "Frame",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 0, width: 794, height: 1123 },
+                children: [
+                  {
+                    id: "1:2",
+                    name: "Status Circle",
+                    type: "ELLIPSE",
+                    absoluteBoundingBox: { x: 100, y: 100, width: 40, height: 40 },
+                    fills: [{ type: "SOLID", color: { r: 0.2, g: 0.6, b: 0.2, a: 1 } }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const canvasDoc = parser.parse(mockDoc as any);
+    const ovalEl = canvasDoc.pages[0].elements.find((e) => e.name === "Status Circle");
+    expect(ovalEl).toBeDefined();
+    expect(ovalEl?.type).toBe("oval");
+
+    // Render DOCX
+    const docxRenderer = new DocxCanvasRenderer();
+    const docxBuf = await docxRenderer.renderToBuffer(canvasDoc);
+    const docxZip = await JSZip.loadAsync(docxBuf);
+    const docXml = await docxZip.file("word/document.xml")!.async("string");
+    expect(docXml).toContain("<v:oval");
+    expect(docXml).toContain("</v:oval>");
+    // Textbox should not have mso-wrap-style:none
+    expect(docXml).not.toContain("<v:textbox style=\"mso-fit-shape-to-text:f;mso-next-textbox:none;mso-wrap-style:none\"");
+
+    // Render HWPX
+    const hwpxRenderer = new HwpxCanvasRenderer();
+    const hwpxBuf = await hwpxRenderer.renderToBuffer(canvasDoc);
+    const hwpxZip = await JSZip.loadAsync(hwpxBuf);
+    const sectionXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
+    expect(sectionXml).toContain("<hp:oval");
+    expect(sectionXml).toContain("</hp:oval>");
+  });
 });
 

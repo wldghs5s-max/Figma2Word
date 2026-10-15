@@ -72,3 +72,4 @@ for idx, s in enumerate(canvas_shapes):
     fill_str = f" fill={s['fill']}" if s['fill'] else ""
     sz_str = f" sz={s['sz']}pt" if s['sz'] else ""
     print(f"  Canvas {idx:2d}: <v:{s['tag']}> ({s['x']:5.1f}, {s['y']:5.1f}, {s['w']:5.1f}x{s['h']:5.1f}){sz_str}{fill_str}{img_str}{t_str}")
+

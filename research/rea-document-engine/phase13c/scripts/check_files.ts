@@ -46,3 +46,4 @@ for (const r of reports) {
     console.log(`     Exists: ${exists}, Size: ${(size / 1024).toFixed(1)} KB (${size} bytes)`);
   }
 }
+

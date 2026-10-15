@@ -139,3 +139,4 @@ if ($RefDir -and $TestDir -and $OutDir) {
 
     Write-Output ($summary | ConvertTo-Json -Depth 3)
 }
+

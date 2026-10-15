@@ -22,3 +22,4 @@ for report_idx in [1, 2, 3]:
         bmr, imr = b_pg['mismatchRatio']*100, i_pg['mismatchRatio']*100
         print(f'{p:4d} | {bs:.4f}    | {is_:.4f}    | {is_-bs:+.4f}    | {bm:6.2f}   | {im:6.2f}   | {bmr:6.2f}%   | {imr:6.2f}%')
     print()
+

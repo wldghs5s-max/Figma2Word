@@ -48,3 +48,4 @@ def analyze_diff_pixel_locations(diff_path):
 
 analyze_diff_pixel_locations("research/rea-document-engine/phase13c/comparisons/baseline_canvas_vs_ref_report1/Page01-diff.png")
 analyze_diff_pixel_locations("research/rea-document-engine/phase13c/comparisons/baseline_canvas_vs_ref_report2/Page08-diff.png")
+

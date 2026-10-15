@@ -70,3 +70,4 @@ print("\n--- Ref Text Shapes on Page 1 ---")
 for s in r_p1:
     if s['texts']:
         print(f"  Ref:    ({s['x']:5.1f}, {s['y']:5.1f}, {s['w']:5.1f}x{s['h']:5.1f}) sz={s['sz']} col={s['color']} fill={s['fill']} txt={' '.join(s['texts'])[:30]}")
+

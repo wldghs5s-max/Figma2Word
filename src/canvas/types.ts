@@ -201,7 +201,7 @@ export interface CanvasTableData {
   cells: CanvasTableCell[][];
 }
 
-export type CanvasElementType = "card" | "text" | "image" | "line" | "table" | "group";
+export type CanvasElementType = "card" | "text" | "image" | "line" | "table" | "group" | "oval";
 
 export interface CanvasPadding {
   top?: number;

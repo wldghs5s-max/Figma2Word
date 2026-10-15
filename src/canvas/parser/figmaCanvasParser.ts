@@ -267,6 +267,25 @@ export class FigmaCanvasParser {
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
+        } else if (child.type === "ELLIPSE") {
+          const style = this.extractStyle(child, scaleX);
+          const hasFill = !!style.fillColor;
+          const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
+          if (hasFill || hasStroke) {
+            elements.push({
+              id: child.id,
+              name: child.name,
+              type: "oval",
+              bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+              zIndex: currentZIndex++,
+              rotation: (child as any).rotation,
+              opacity: child.opacity,
+              style,
+              sourceNodeId: child.id,
+              sourceNodeType: child.type,
+            });
+          }
+          processChildren(child);
         } else if (
           child.type === "RECTANGLE" ||
           child.type === "FRAME" ||

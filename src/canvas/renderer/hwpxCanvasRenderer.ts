@@ -437,7 +437,9 @@ ${items}
   </hp:drawText>`;
     }
 
-    return `<hp:rect id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
+    const shapeTag = elem.type === "oval" ? "hp:oval" : "hp:rect";
+
+    return `<${shapeTag} id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${shapeW}" height="${shapeH}"/>
   <hp:curSz width="${shapeW}" height="${shapeH}"/>
@@ -451,6 +453,6 @@ ${items}
   <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
   <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${fillBrush}${drawTextPart}
-</hp:rect>`;
+</${shapeTag}>`;
   }
 }

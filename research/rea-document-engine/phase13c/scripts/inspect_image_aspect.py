@@ -13,3 +13,4 @@ rw, rh, rsize = get_png_size(r'완성본-20261012\report-1차-진단-편집가�
 print(f"Canvas image2.png: {cw}x{ch} (aspect: {cw/ch:.3f}), size={csize} bytes")
 print(f"Ref image2.png:    {rw}x{rh} (aspect: {rw/rh:.3f}), size={rsize} bytes")
 print(f"Node in Figma:    686x220 (aspect: {686/220:.3f})")
+

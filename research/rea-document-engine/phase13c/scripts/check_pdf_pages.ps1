@@ -25,3 +25,4 @@ foreach ($pdf in $canvasPdfs) {
     $doc = Await ([Windows.Data.Pdf.PdfDocument]::LoadFromFileAsync($storageFile)) ([Windows.Data.Pdf.PdfDocument])
     Write-Host "$($pdf.Name): $($doc.PageCount) pages"
 }
+

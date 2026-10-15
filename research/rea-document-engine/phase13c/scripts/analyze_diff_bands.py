@@ -73,3 +73,4 @@ for b in range(bands):
                 diffs += 1
     pct = (diffs / total) * 100
     print(f"Band {b} (Y: {start_y*4:4d}..{end_y*4:4d}): {pct:5.1f}% diff | avg L1={avg_lum1/total:5.1f}, avg L2={avg_lum2/total:5.1f}")
+

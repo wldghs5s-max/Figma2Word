@@ -31,3 +31,4 @@ const testXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 console.log("Testing VML crop attributes syntax...");
 console.log(testXml.slice(0, 300));
+

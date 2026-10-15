@@ -45,3 +45,4 @@ for s in c_shapes[:10]:
 print(f"\n=== Ref Cover Shapes (first 10 of {len(r_shapes)}) ===")
 for s in r_shapes[:10]:
     print(f"  <v:{s['tag']}> title='{s['title']}' img={s['has_img']} fill={s['fill']} texts={s['texts'][:2]} | style={s['style']}")
+

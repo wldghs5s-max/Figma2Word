@@ -20,3 +20,4 @@ for rId in imgs:
     m = re.search(r'<Relationship\s+Id="' + rId + r'"[^>]*Target="([^"]+)"', ref_rels)
     target = m.group(1) if m else "unknown"
     print(f"  {rId} -> {target}")
+

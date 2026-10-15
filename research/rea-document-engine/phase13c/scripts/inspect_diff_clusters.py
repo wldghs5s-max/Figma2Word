@@ -69,3 +69,4 @@ for name, path in diff_paths:
     print(f"=== {name} ===")
     print(f"  Diff Pixels: {info['total_diff_pixels']} ({info['diff_ratio']*100:.2f}%)")
     print(f"  Diff BBox (X1, Y1, X2, Y2): {info['diff_bbox']}")
+

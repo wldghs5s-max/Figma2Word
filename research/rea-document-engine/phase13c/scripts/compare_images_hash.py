@@ -21,3 +21,4 @@ for name, (size, h) in sorted(c_imgs.items()):
 print(f"\nRef images ({len(r_imgs)}):")
 for name, (size, h) in sorted(r_imgs.items()):
     print(f"  {name}: {size} bytes, md5={h}")
+
