@@ -1,0 +1,1415 @@
+{
+  "name": "Synthetic 07 - Table-Card Hybrid",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-07",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-tbl-p1",
+        "name": "Table Card Hybrid Report",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "tbl-title",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "2026년 3분기 디지털 전환 과제 현황",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 40,
+              "width": 515,
+              "height": 30
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-sub",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "부서별 프로젝트 진척도 및 예산 집행 현황 요약",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 72,
+              "width": 515,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-kpi1",
+            "name": "KPI 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 105,
+              "width": 160,
+              "height": 75
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.98,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.75,
+                  "g": 0.85,
+                  "b": 0.98
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "tbl-k1-lbl",
+            "name": "K1 Label",
+            "type": "TEXT",
+            "characters": "전체 추진 과제",
+            "absoluteBoundingBox": {
+              "x": 52,
+              "y": 118,
+              "width": 136,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.4,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-k1-val",
+            "name": "K1 Value",
+            "type": "TEXT",
+            "characters": "48 건",
+            "absoluteBoundingBox": {
+              "x": 52,
+              "y": 138,
+              "width": 136,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.25,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-kpi2",
+            "name": "KPI 2",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 217,
+              "y": 105,
+              "width": 160,
+              "height": 75
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.99,
+                  "b": 0.96
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.75,
+                  "g": 0.9,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "tbl-k2-lbl",
+            "name": "K2 Label",
+            "type": "TEXT",
+            "characters": "완료 및 결재 완료",
+            "absoluteBoundingBox": {
+              "x": 229,
+              "y": 118,
+              "width": 136,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.55,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-k2-val",
+            "name": "K2 Value",
+            "type": "TEXT",
+            "characters": "39 건",
+            "absoluteBoundingBox": {
+              "x": 229,
+              "y": 138,
+              "width": 136,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.45,
+                  "b": 0.2
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-kpi3",
+            "name": "KPI 3",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 395,
+              "y": 105,
+              "width": 160,
+              "height": 75
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 0.97,
+                  "b": 0.95
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.8,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "tbl-k3-lbl",
+            "name": "K3 Label",
+            "type": "TEXT",
+            "characters": "평균 달성률",
+            "absoluteBoundingBox": {
+              "x": 407,
+              "y": 118,
+              "width": 136,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.7,
+                  "g": 0.35,
+                  "b": 0.1
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-k3-val",
+            "name": "K3 Value",
+            "type": "TEXT",
+            "characters": "88.5 %",
+            "absoluteBoundingBox": {
+              "x": 407,
+              "y": 138,
+              "width": 136,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.6,
+                  "g": 0.25,
+                  "b": 0.05
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-sec-t",
+            "name": "Section Title",
+            "type": "TEXT",
+            "characters": "주요 프로젝트 세부 내역 (Project Details)",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 205,
+              "width": 515,
+              "height": 22
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 12,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.12,
+                  "g": 0.2,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-th-bg",
+            "name": "Header Row BG",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 235,
+              "width": 515,
+              "height": 34
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.12,
+                  "g": 0.2,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "th-c1",
+            "name": "TH 1",
+            "type": "TEXT",
+            "characters": "과제 번호",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 244,
+              "width": 70,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "th-c2",
+            "name": "TH 2",
+            "type": "TEXT",
+            "characters": "프로젝트명",
+            "absoluteBoundingBox": {
+              "x": 130,
+              "y": 244,
+              "width": 180,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "th-c3",
+            "name": "TH 3",
+            "type": "TEXT",
+            "characters": "담당부서",
+            "absoluteBoundingBox": {
+              "x": 320,
+              "y": 244,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "th-c4",
+            "name": "TH 4",
+            "type": "TEXT",
+            "characters": "진척률",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 244,
+              "width": 50,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "th-c5",
+            "name": "TH 5",
+            "type": "TEXT",
+            "characters": "상태",
+            "absoluteBoundingBox": {
+              "x": 470,
+              "y": 244,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr1-bg",
+            "name": "TR1 BG",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 269,
+              "width": 515,
+              "height": 36
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "tr1-c1",
+            "name": "TR1 C1",
+            "type": "TEXT",
+            "characters": "PJ-2026-01",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 279,
+              "width": 70,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr1-c2",
+            "name": "TR1 C2",
+            "type": "TEXT",
+            "characters": "Figma2Word Canvas 듀얼 엔진 구축",
+            "absoluteBoundingBox": {
+              "x": 130,
+              "y": 279,
+              "width": 180,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr1-c3",
+            "name": "TR1 C3",
+            "type": "TEXT",
+            "characters": "플랫폼개발팀",
+            "absoluteBoundingBox": {
+              "x": 320,
+              "y": 279,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr1-c4",
+            "name": "TR1 C4",
+            "type": "TEXT",
+            "characters": "100%",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 279,
+              "width": 50,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.55,
+                  "b": 0.2
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr1-chip",
+            "name": "TR1 Chip",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 276,
+              "width": 55,
+              "height": 22
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.98,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 11
+          },
+          {
+            "id": "tr1-chip-t",
+            "name": "TR1 Chip Text",
+            "type": "TEXT",
+            "characters": "완료",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 280,
+              "width": 55,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.55,
+                  "b": 0.2
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr2-bg",
+            "name": "TR2 BG",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 305,
+              "width": 515,
+              "height": 36
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "tr2-c1",
+            "name": "TR2 C1",
+            "type": "TEXT",
+            "characters": "PJ-2026-02",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 315,
+              "width": 70,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr2-c2",
+            "name": "TR2 C2",
+            "type": "TEXT",
+            "characters": "KS X 6101 HWPX 표준 검증기 개발",
+            "absoluteBoundingBox": {
+              "x": 130,
+              "y": 315,
+              "width": 180,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr2-c3",
+            "name": "TR2 C3",
+            "type": "TEXT",
+            "characters": "품질보증팀",
+            "absoluteBoundingBox": {
+              "x": 320,
+              "y": 315,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr2-c4",
+            "name": "TR2 C4",
+            "type": "TEXT",
+            "characters": "95%",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 315,
+              "width": 50,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.4,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr2-chip",
+            "name": "TR2 Chip",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 312,
+              "width": 55,
+              "height": 22
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.9,
+                  "g": 0.95,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 11
+          },
+          {
+            "id": "tr2-chip-t",
+            "name": "TR2 Chip Text",
+            "type": "TEXT",
+            "characters": "진행중",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 316,
+              "width": 55,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.4,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr3-bg",
+            "name": "TR3 BG",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 341,
+              "width": 515,
+              "height": 36
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "tr3-c1",
+            "name": "TR3 C1",
+            "type": "TEXT",
+            "characters": "PJ-2026-03",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 351,
+              "width": 70,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr3-c2",
+            "name": "TR3 C2",
+            "type": "TEXT",
+            "characters": "웹 UI 원클릭 변환기 고도화",
+            "absoluteBoundingBox": {
+              "x": 130,
+              "y": 351,
+              "width": 180,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr3-c3",
+            "name": "TR3 C3",
+            "type": "TEXT",
+            "characters": "UX디자인팀",
+            "absoluteBoundingBox": {
+              "x": 320,
+              "y": 351,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr3-c4",
+            "name": "TR3 C4",
+            "type": "TEXT",
+            "characters": "80%",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 351,
+              "width": 50,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.8,
+                  "g": 0.45,
+                  "b": 0.1
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr3-chip",
+            "name": "TR3 Chip",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 348,
+              "width": 55,
+              "height": 22
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 0.95,
+                  "b": 0.9
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 11
+          },
+          {
+            "id": "tr3-chip-t",
+            "name": "TR3 Chip Text",
+            "type": "TEXT",
+            "characters": "진행중",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 352,
+              "width": 55,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.8,
+                  "g": 0.45,
+                  "b": 0.1
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr4-bg",
+            "name": "TR4 BG",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 377,
+              "width": 515,
+              "height": 36
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "tr4-c1",
+            "name": "TR4 C1",
+            "type": "TEXT",
+            "characters": "PJ-2026-04",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 387,
+              "width": 70,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr4-c2",
+            "name": "TR4 C2",
+            "type": "TEXT",
+            "characters": "전사 보안 인증 및 온프레미스 배포",
+            "absoluteBoundingBox": {
+              "x": 130,
+              "y": 387,
+              "width": 180,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr4-c3",
+            "name": "TR4 C3",
+            "type": "TEXT",
+            "characters": "인프라보안팀",
+            "absoluteBoundingBox": {
+              "x": 320,
+              "y": 387,
+              "width": 75,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr4-c4",
+            "name": "TR4 C4",
+            "type": "TEXT",
+            "characters": "40%",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 387,
+              "width": 50,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.5,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tr4-chip",
+            "name": "TR4 Chip",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 384,
+              "width": 55,
+              "height": 22
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.94,
+                  "g": 0.94,
+                  "b": 0.96
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 11
+          },
+          {
+            "id": "tr4-chip-t",
+            "name": "TR4 Chip Text",
+            "type": "TEXT",
+            "characters": "검토대기",
+            "absoluteBoundingBox": {
+              "x": 480,
+              "y": 388,
+              "width": 55,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.4,
+                  "b": 0.45
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "tbl-note",
+            "name": "Table Note",
+            "type": "TEXT",
+            "characters": "※ 진척률 90% 이상 과제는 차주 정기 회의에서 최종 산출물 시연을 진행합니다.",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 430,
+              "width": 515,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.45,
+                  "g": 0.5,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

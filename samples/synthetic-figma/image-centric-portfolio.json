@@ -1,0 +1,441 @@
+{
+  "name": "Synthetic 03 - Image-Centric Portfolio",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "images": {
+    "img_hero": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "img_card1": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "img_card2": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "img_sq1": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "img_sq2": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "img_sq3": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+  },
+  "document": {
+    "id": "doc-syn-03",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-img-p1",
+        "name": "Image-Centric Design Portfolio",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "txt-img-title",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "2026 디자인 시스템 갤러리 및 비주얼 쇼케이스",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 40,
+              "width": 515,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-img-sub",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "다양한 화면 비율과 이미지 배치를 검증하는 포트폴리오 레이아웃",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 75,
+              "width": 515,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-hero",
+            "name": "Hero Banner (16:9)",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 110,
+              "width": 515,
+              "height": 180
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_hero",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-hero-cap",
+            "name": "Hero Caption",
+            "type": "TEXT",
+            "characters": "▲ 대표 배너 이미지 (16:9 비율) - 와이드 뷰포트 배색 및 그라데이션 검증",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 296,
+              "width": 515,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.45,
+                  "g": 0.5,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-card1",
+            "name": "Card Image 1 (4:3)",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 330,
+              "width": 245,
+              "height": 160
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_card1",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-card1-t",
+            "name": "Card 1 Title",
+            "type": "TEXT",
+            "characters": "제품 인터페이스 디자인 #1",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 496,
+              "width": 245,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-card1-d",
+            "name": "Card 1 Desc",
+            "type": "TEXT",
+            "characters": "모바일 대시보드 화면 및 그리드 정렬",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 516,
+              "width": 245,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-card2",
+            "name": "Card Image 2 (4:3)",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 310,
+              "y": 330,
+              "width": 245,
+              "height": 160
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_card2",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-card2-t",
+            "name": "Card 2 Title",
+            "type": "TEXT",
+            "characters": "데이터 시각화 컴포넌트 #2",
+            "absoluteBoundingBox": {
+              "x": 310,
+              "y": 496,
+              "width": 245,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-card2-d",
+            "name": "Card 2 Desc",
+            "type": "TEXT",
+            "characters": "인터랙티브 차트 및 원형 게이지",
+            "absoluteBoundingBox": {
+              "x": 310,
+              "y": 516,
+              "width": 245,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-sq1",
+            "name": "Square 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 560,
+              "width": 155,
+              "height": 155
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_sq1",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-sq1-c",
+            "name": "Sq1 Caption",
+            "type": "TEXT",
+            "characters": "아이콘 세트 A (1:1)",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 720,
+              "width": 155,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-sq2",
+            "name": "Square 2",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 220,
+              "y": 560,
+              "width": 155,
+              "height": 155
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_sq2",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-sq2-c",
+            "name": "Sq2 Caption",
+            "type": "TEXT",
+            "characters": "디자인 토큰 B (1:1)",
+            "absoluteBoundingBox": {
+              "x": 220,
+              "y": 720,
+              "width": 155,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "img-sq3",
+            "name": "Square 3",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 400,
+              "y": 560,
+              "width": 155,
+              "height": 155
+            },
+            "fills": [
+              {
+                "type": "IMAGE",
+                "imageRef": "img_sq3",
+                "scaleMode": "FILL"
+              }
+            ]
+          },
+          {
+            "id": "txt-sq3-c",
+            "name": "Sq3 Caption",
+            "type": "TEXT",
+            "characters": "컬러 팔레트 C (1:1)",
+            "absoluteBoundingBox": {
+              "x": 400,
+              "y": 720,
+              "width": 155,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

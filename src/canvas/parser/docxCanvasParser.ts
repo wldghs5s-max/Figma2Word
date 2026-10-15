@@ -1,15 +1,15 @@
 import JSZip from "jszip";
-import * as fs from "fs";
-import * as path from "path";
 import {
   CanvasDocument,
   CanvasPage,
   CanvasElement,
+  CanvasElementType,
   CanvasTextRun,
   CanvasResource,
   CanvasStyle,
   CanvasPadding,
 } from "../types.js";
+import { SvgPath } from "../geometry/svgPathParser.js";
 
 /**
  * Parses XML attributes of an opening or self-closing XML tag into a key-value record,
@@ -55,9 +55,14 @@ function parseCoordPair(coordStr?: string): [number, number] {
 }
 
 export class DocxCanvasParser {
-  public async parse(input: Buffer | string): Promise<CanvasDocument> {
-    const buffer =
-      typeof input === "string" ? await fs.promises.readFile(input) : input;
+  public async parse(input: Buffer | Uint8Array | ArrayBuffer | string): Promise<CanvasDocument> {
+    let buffer: Buffer | Uint8Array | ArrayBuffer;
+    if (typeof input === "string") {
+      const fs = await import("fs");
+      buffer = await fs.promises.readFile(input);
+    } else {
+      buffer = input;
+    }
 
     const zip = await JSZip.loadAsync(buffer);
 
@@ -86,8 +91,7 @@ export class DocxCanvasParser {
             continue;
           }
           // Sanitize target path against directory traversal
-          const cleanTarget = path
-            .normalize(attrs.Target)
+          const cleanTarget = attrs.Target
             .replace(/\\/g, "/")
             .replace(/^(\.\.\/)+/, "")
             .replace(/^(\.\/)+/, "");
@@ -103,9 +107,10 @@ export class DocxCanvasParser {
         const zipPath = target.startsWith("word/") ? target : `word/${target}`;
         const imgFile = zip.file(zipPath);
         if (imgFile) {
-          const imgData = await imgFile.async("nodebuffer");
-          const resId = path.basename(target);
-          const ext = path.extname(target).toLowerCase();
+          const imgData = await imgFile.async("uint8array");
+          const resId = target.split("/").pop() || target;
+          const extIdx = resId.lastIndexOf(".");
+          const ext = extIdx !== -1 ? resId.substring(extIdx).toLowerCase() : "";
           let mimeType = "image/png";
           if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
           else if (ext === ".gif") mimeType = "image/gif";
@@ -317,7 +322,7 @@ export class DocxCanvasParser {
       const rId = imgAttrs["r:id"] || imgAttrs["id"];
       if (rId) {
         const target = relsMap.get(rId);
-        const resId = target ? path.basename(target) : rId;
+        const resId = target ? (target.split("/").pop() || target) : rId;
         return {
           id: elementId,
           name: elementName || imgAttrs["o:title"] || "image",
@@ -428,7 +433,23 @@ export class DocxCanvasParser {
     }
 
     const hasText = textRuns.length > 0;
-    const type = hasText ? "text" : "card";
+    let type: CanvasElementType = hasText ? "text" : "card";
+    if (tag === "oval") {
+      type = "oval";
+    } else if (tag === "shape" && attrs["path"]) {
+      type = "vector";
+    }
+
+    let vectorPoints: { x: number; y: number }[] | undefined;
+    let vectorPath: string | undefined;
+    if (type === "vector" && attrs["path"]) {
+      vectorPath = attrs["path"];
+      const cleanPath = vectorPath.replace(/x/g, "z").replace(/e/g, "");
+      const parsed = SvgPath.parse(cleanPath);
+      const wHwpu = Math.max(10, Math.round(width * 100));
+      const hHwpu = Math.max(10, Math.round(height * 100));
+      vectorPoints = parsed.toHwpxPolygonPoints(wHwpu, hHwpu);
+    }
 
     return {
       id: elementId,
@@ -440,6 +461,8 @@ export class DocxCanvasParser {
       innerPaddingPt,
       textRuns: hasText ? textRuns : undefined,
       paragraphAlign: align,
+      vectorPath,
+      vectorPoints,
     };
   }
 }

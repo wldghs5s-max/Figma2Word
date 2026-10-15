@@ -1,0 +1,1200 @@
+{
+  "name": "Synthetic 06 - Complex Nested Dashboard",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-06",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-dash-p1",
+        "name": "Complex Nested Dashboard",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 842,
+          "height": 595
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 0.97,
+              "g": 0.98,
+              "b": 0.99
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "dash-topbar",
+            "name": "Top Bar",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 0,
+              "y": 0,
+              "width": 842,
+              "height": 56
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "dash-logo",
+            "name": "Logo Text",
+            "type": "TEXT",
+            "characters": "⚡ Enterprise Office Analytics",
+            "absoluteBoundingBox": {
+              "x": 24,
+              "y": 18,
+              "width": 250,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-user-avatar",
+            "name": "Avatar",
+            "type": "ELLIPSE",
+            "absoluteBoundingBox": {
+              "x": 800,
+              "y": 14,
+              "width": 28,
+              "height": 28
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.5,
+                  "b": 0.9
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-sidebar",
+            "name": "Sidebar",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 0,
+              "y": 56,
+              "width": 180,
+              "height": 539
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1
+          },
+          {
+            "id": "dash-menu-act",
+            "name": "Active Menu",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 12,
+              "y": 76,
+              "width": 156,
+              "height": 36
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.92,
+                  "g": 0.95,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 6
+          },
+          {
+            "id": "dash-m1",
+            "name": "Menu 1",
+            "type": "TEXT",
+            "characters": "📊 대시보드 개요",
+            "absoluteBoundingBox": {
+              "x": 24,
+              "y": 86,
+              "width": 130,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10.5,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.35,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-m2",
+            "name": "Menu 2",
+            "type": "TEXT",
+            "characters": "📁 변환 문서 관리",
+            "absoluteBoundingBox": {
+              "x": 24,
+              "y": 130,
+              "width": 130,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-m3",
+            "name": "Menu 3",
+            "type": "TEXT",
+            "characters": "⚙️ 엔진 품질 설정",
+            "absoluteBoundingBox": {
+              "x": 24,
+              "y": 170,
+              "width": 130,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-m4",
+            "name": "Menu 4",
+            "type": "TEXT",
+            "characters": "📈 성능 벤치마크",
+            "absoluteBoundingBox": {
+              "x": 24,
+              "y": 210,
+              "width": 130,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w1-bg",
+            "name": "Widget 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 204,
+              "y": 76,
+              "width": 145,
+              "height": 90
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "dash-w1-lbl",
+            "name": "W1 Label",
+            "type": "TEXT",
+            "characters": "총 변환 완료 건수",
+            "absoluteBoundingBox": {
+              "x": 218,
+              "y": 90,
+              "width": 120,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w1-val",
+            "name": "W1 Value",
+            "type": "TEXT",
+            "characters": "12,480",
+            "absoluteBoundingBox": {
+              "x": 218,
+              "y": 110,
+              "width": 120,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w1-sub",
+            "name": "W1 Sub",
+            "type": "TEXT",
+            "characters": "▲ 전월대비 24% 증가",
+            "absoluteBoundingBox": {
+              "x": 218,
+              "y": 140,
+              "width": 120,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.6,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w2-bg",
+            "name": "Widget 2",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 365,
+              "y": 76,
+              "width": 145,
+              "height": 90
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "dash-w2-lbl",
+            "name": "W2 Label",
+            "type": "TEXT",
+            "characters": "평균 처리 속도",
+            "absoluteBoundingBox": {
+              "x": 379,
+              "y": 90,
+              "width": 120,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w2-val",
+            "name": "W2 Value",
+            "type": "TEXT",
+            "characters": "142 ms",
+            "absoluteBoundingBox": {
+              "x": 379,
+              "y": 110,
+              "width": 120,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w2-sub",
+            "name": "W2 Sub",
+            "type": "TEXT",
+            "characters": "▼ 지연시간 35ms 개선",
+            "absoluteBoundingBox": {
+              "x": 379,
+              "y": 140,
+              "width": 120,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.6,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w3-bg",
+            "name": "Widget 3",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 526,
+              "y": 76,
+              "width": 145,
+              "height": 90
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "dash-w3-lbl",
+            "name": "W3 Label",
+            "type": "TEXT",
+            "characters": "시각 정밀도 지수",
+            "absoluteBoundingBox": {
+              "x": 540,
+              "y": 90,
+              "width": 120,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w3-val",
+            "name": "W3 Value",
+            "type": "TEXT",
+            "characters": "99.4 %",
+            "absoluteBoundingBox": {
+              "x": 540,
+              "y": 110,
+              "width": 120,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w3-sub",
+            "name": "W3 Sub",
+            "type": "TEXT",
+            "characters": "무결성 검증 통과",
+            "absoluteBoundingBox": {
+              "x": 540,
+              "y": 140,
+              "width": 120,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.4,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w4-bg",
+            "name": "Widget 4",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 687,
+              "y": 76,
+              "width": 135,
+              "height": 90
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "dash-w4-lbl",
+            "name": "W4 Label",
+            "type": "TEXT",
+            "characters": "시스템 가용성",
+            "absoluteBoundingBox": {
+              "x": 701,
+              "y": 90,
+              "width": 110,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w4-val",
+            "name": "W4 Value",
+            "type": "TEXT",
+            "characters": "99.99 %",
+            "absoluteBoundingBox": {
+              "x": 701,
+              "y": 110,
+              "width": 110,
+              "height": 26
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-w4-sub",
+            "name": "W4 Sub",
+            "type": "TEXT",
+            "characters": "정상 운영 중",
+            "absoluteBoundingBox": {
+              "x": 701,
+              "y": 140,
+              "width": 110,
+              "height": 14
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.6,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-chart-card",
+            "name": "Chart Container",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 204,
+              "y": 185,
+              "width": 618,
+              "height": 380
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "dash-c-t",
+            "name": "Chart Title",
+            "type": "TEXT",
+            "characters": "월별 문서 변환 처리량 추이 (Monthly Conversion Trend)",
+            "absoluteBoundingBox": {
+              "x": 224,
+              "y": 205,
+              "width": 400,
+              "height": 22
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 12,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-c-sub",
+            "name": "Chart Sub",
+            "type": "TEXT",
+            "characters": "2026년 상반기 DOCX 및 HWPX 생성 건수 비교 분석",
+            "absoluteBoundingBox": {
+              "x": 224,
+              "y": 228,
+              "width": 400,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-1",
+            "name": "Bar Jan",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 260,
+              "y": 420,
+              "width": 40,
+              "height": 100
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.45,
+                  "b": 0.85
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b1-lbl",
+            "name": "Jan Lbl",
+            "type": "TEXT",
+            "characters": "1월",
+            "absoluteBoundingBox": {
+              "x": 260,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-2",
+            "name": "Bar Feb",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 350,
+              "y": 370,
+              "width": 40,
+              "height": 150
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.45,
+                  "b": 0.85
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b2-lbl",
+            "name": "Feb Lbl",
+            "type": "TEXT",
+            "characters": "2월",
+            "absoluteBoundingBox": {
+              "x": 350,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-3",
+            "name": "Bar Mar",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 440,
+              "y": 330,
+              "width": 40,
+              "height": 190
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.45,
+                  "b": 0.85
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b3-lbl",
+            "name": "Mar Lbl",
+            "type": "TEXT",
+            "characters": "3월",
+            "absoluteBoundingBox": {
+              "x": 440,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-4",
+            "name": "Bar Apr",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 530,
+              "y": 290,
+              "width": 40,
+              "height": 230
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.45,
+                  "b": 0.85
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b4-lbl",
+            "name": "Apr Lbl",
+            "type": "TEXT",
+            "characters": "4월",
+            "absoluteBoundingBox": {
+              "x": 530,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-5",
+            "name": "Bar May",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 620,
+              "y": 270,
+              "width": 40,
+              "height": 250
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.45,
+                  "b": 0.85
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b5-lbl",
+            "name": "May Lbl",
+            "type": "TEXT",
+            "characters": "5월",
+            "absoluteBoundingBox": {
+              "x": 620,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "dash-bar-6",
+            "name": "Bar Jun",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 710,
+              "y": 250,
+              "width": 40,
+              "height": 270
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 4
+          },
+          {
+            "id": "dash-b6-lbl",
+            "name": "Jun Lbl",
+            "type": "TEXT",
+            "characters": "6월",
+            "absoluteBoundingBox": {
+              "x": 710,
+              "y": 526,
+              "width": 40,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -578,15 +578,56 @@ describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", ()
     expect(vecEl).toBeDefined();
     expect(vecEl?.type).toBe("vector");
     expect(vecEl?.vectorPath).toBeDefined();
-    expect(vecEl?.vectorPath).toContain("m 500,60");
+    expect(vecEl?.vectorPath).toContain("m 500,0");
+    expect(vecEl?.vectorPoints).toBeDefined();
+    expect(vecEl?.vectorPoints!.length).toBeGreaterThan(0);
 
+    // Verify DOCX VML rendering
     const docxRenderer = new DocxCanvasRenderer();
     const docxBuf = await docxRenderer.renderToBuffer(canvasDoc);
     const docxZip = await JSZip.loadAsync(docxBuf);
     const docXml = await docxZip.file("word/document.xml")!.async("string");
     expect(docXml).toContain("<v:shape");
     expect(docXml).toContain('coordsize="1000,1000"');
-    expect(docXml).toContain('path="m 500,60');
+    expect(docXml).toContain('path="m 500,0');
+
+    // Verify HWPX OWPML hp:polygon rendering (Problem A resolved)
+    const hwpxRenderer = new HwpxCanvasRenderer();
+    const hwpxBuf = await hwpxRenderer.renderToBuffer(canvasDoc);
+    const hwpxZip = await JSZip.loadAsync(hwpxBuf);
+    const secXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
+    expect(secXml).toContain("<hp:polygon");
+    expect(secXml).toContain("<hp:pt");
+    expect(secXml).toContain("</hp:polygon>");
+  });
+
+  it("SvgPath correctly parses complex SVG paths with bezier, arcs, and relative commands", async () => {
+    const { SvgPath } = await import("../src/canvas/geometry/svgPathParser.js");
+
+    // 1. Line and polygon with relative coords
+    const polySvg = "M 10 10 l 50 0 l 0 50 l -50 0 Z";
+    const parsedPoly = SvgPath.parse(polySvg);
+    expect(parsedPoly.commands.length).toBe(5);
+    const vmlPoly = parsedPoly.toVmlPath(1000, 1000);
+    expect(vmlPoly).toContain("m 0,0");
+    expect(vmlPoly).toContain("l 1000,0");
+    expect(vmlPoly).toContain("l 1000,1000");
+    expect(vmlPoly).toContain("l 0,1000");
+    expect(vmlPoly).toContain("x e");
+
+    // 2. Smooth bezier, quadratic, and arc
+    const curveSvg = "M 0 0 C 10 20 30 20 40 0 S 70 -20 80 0 Q 90 20 100 0 A 10 10 0 0 1 120 0 Z";
+    const parsedCurve = SvgPath.parse(curveSvg);
+    expect(parsedCurve.commands.length).toBeGreaterThan(5);
+    const hwpxPts = parsedCurve.toHwpxPolygonPoints(1200, 400, 4);
+    expect(hwpxPts.length).toBeGreaterThan(10);
+    expect(hwpxPts[0].x).toBe(0);
+
+    // 3. Robustness on empty or invalid input
+    const emptyParsed = SvgPath.parse("");
+    expect(emptyParsed.commands.length).toBe(0);
+    expect(emptyParsed.toVmlPath()).toBe("");
+    expect(emptyParsed.toHwpxPolygonPoints(100, 100)).toEqual([]);
   });
 });
 

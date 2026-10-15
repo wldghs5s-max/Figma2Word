@@ -10,6 +10,7 @@ import {
 } from "../types.js";
 import { FigmaNode, FigmaFileResponse, FigmaColor, FigmaPaint } from "../../parser/types.js";
 import { isA4Ratio } from "../../pipeline/index.js";
+import { SvgPath } from "../geometry/svgPathParser.js";
 
 export interface FigmaCanvasParserOptions {
   imageMap?: Record<string, string>;
@@ -294,24 +295,35 @@ export class FigmaCanvasParser {
           if (hasFill || hasStroke) {
             const parentName = node.name || "";
             const nodeName = child.name || "";
-            let vmlPath = "";
+            let rawPath = "";
 
             if ((child as any).fillGeometry?.[0]?.path) {
-              vmlPath = (child as any).fillGeometry[0].path;
+              rawPath = (child as any).fillGeometry[0].path;
             } else if ((child as any).vectorPaths?.[0]?.data) {
-              vmlPath = (child as any).vectorPaths[0].data;
+              rawPath = (child as any).vectorPaths[0].data;
             } else {
-              // Standard UI icon path normalization (coordsize="1000,1000")
+              // Standard UI icon path normalization (SVG format)
               const nameLower = (parentName + " " + nodeName).toLowerCase();
               if (nameLower.includes("alert") || nameLower.includes("warn") || nameLower.includes("triangle")) {
-                vmlPath = "m 500,60 l 950,920 l 50,920 x e m 500,380 l 500,640 e m 500,780 l 500,840 e";
+                rawPath = "M 500 60 L 950 920 L 50 920 Z M 500 380 L 500 640 M 500 780 L 500 840";
               } else if (nameLower.includes("check") || nameLower.includes("tick")) {
-                vmlPath = "m 150,520 l 400,780 l 880,180 e";
+                rawPath = "M 150 520 L 400 780 L 880 180";
               } else if (nameLower.includes("info")) {
-                vmlPath = "m 500,50 c 748,50 950,252 950,500 c 950,748 748,950 500,950 c 252,950 50,748 50,500 c 50,252 252,50 500,50 e m 500,280 l 500,340 e m 500,460 l 500,740 e";
+                rawPath = "M 500 50 C 748 50 950 252 950 500 C 950 748 748 950 500 950 C 252 950 50 748 50 500 C 50 252 252 50 500 50 Z M 500 280 L 500 340 M 500 460 L 500 740";
               } else if (nameLower.includes("file") || nameLower.includes("doc")) {
-                vmlPath = "m 200,80 l 620,80 l 820,280 l 820,920 l 200,920 x e m 620,80 l 620,280 l 820,280 e m 340,480 l 680,480 e m 340,640 l 680,640 e";
+                rawPath = "M 200 80 L 620 80 L 820 280 L 820 920 L 200 920 Z M 620 80 L 620 280 L 820 280 M 340 480 L 680 480 M 340 640 L 680 640";
               }
+            }
+
+            let vmlPath = "";
+            let vectorPoints: { x: number; y: number }[] | undefined;
+
+            if (rawPath) {
+              const parsed = SvgPath.parse(rawPath);
+              vmlPath = parsed.toVmlPath(1000, 1000);
+              const wHwpu = Math.max(10, Math.round(wPt * 100));
+              const hHwpu = Math.max(10, Math.round(hPt * 100));
+              vectorPoints = parsed.toHwpxPolygonPoints(wHwpu, hHwpu);
             }
 
             elements.push({
@@ -324,6 +336,8 @@ export class FigmaCanvasParser {
               opacity: child.opacity,
               style,
               vectorPath: vmlPath,
+              rawSvgPath: rawPath,
+              vectorPoints,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
             });

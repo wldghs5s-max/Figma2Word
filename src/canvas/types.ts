@@ -229,7 +229,9 @@ export interface CanvasElement {
   imageRef?: string; // key into CanvasDocument.resources
 
   // Vector Path details
-  vectorPath?: string; // Normalized VML or SVG path string
+  vectorPath?: string; // Normalized VML path string (coordsize="1000,1000")
+  rawSvgPath?: string; // Original SVG path string
+  vectorPoints?: { x: number; y: number }[]; // Sampled polygon points for HWPX (<hp:polygon>)
 
   // Structured Table details
   tableData?: CanvasTableData;
@@ -253,7 +255,7 @@ export interface CanvasResource {
   id: string;
   name: string;
   mimeType: string; // 'image/png', 'image/jpeg'
-  data: Buffer;
+  data: Buffer | Uint8Array;
 }
 
 export interface CanvasDocument {

@@ -1,0 +1,797 @@
+{
+  "name": "Synthetic 05 - Vector-Centric Infographic",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-05",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-vec-p1",
+        "name": "Vector-Centric Infographic",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "vec-title",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "네이티브 벡터 셰이프 & 인포그래픽 쇼케이스",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 40,
+              "width": 515,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.15,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-sub",
+            "name": "Subtitle",
+            "type": "TEXT",
+            "characters": "SVG Path 파서, VML 셰이프, HWPX 폴리곤 변환 검증",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 75,
+              "width": 515,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-oval-1",
+            "name": "Circle Badge 1",
+            "type": "ELLIPSE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 120,
+              "width": 50,
+              "height": 50
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.4,
+                  "b": 0.9
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o1-t",
+            "name": "O1 Text",
+            "type": "TEXT",
+            "characters": "01",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 133,
+              "width": 50,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o1-desc",
+            "name": "O1 Desc",
+            "type": "TEXT",
+            "characters": "입력 데이터 분석 단계\n(Figma AST & Resource Mapping)",
+            "absoluteBoundingBox": {
+              "x": 115,
+              "y": 128,
+              "width": 420,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-oval-2",
+            "name": "Circle Badge 2",
+            "type": "ELLIPSE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 190,
+              "width": 50,
+              "height": 50
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.65,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o2-t",
+            "name": "O2 Text",
+            "type": "TEXT",
+            "characters": "02",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 203,
+              "width": 50,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o2-desc",
+            "name": "O2 Desc",
+            "type": "TEXT",
+            "characters": "Canvas IR 정규화 단계\n(2D Coordinate Normalization)",
+            "absoluteBoundingBox": {
+              "x": 115,
+              "y": 198,
+              "width": 420,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-oval-3",
+            "name": "Circle Badge 3",
+            "type": "ELLIPSE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 260,
+              "width": 50,
+              "height": 50
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.9,
+                  "g": 0.5,
+                  "b": 0.1
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o3-t",
+            "name": "O3 Text",
+            "type": "TEXT",
+            "characters": "03",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 273,
+              "width": 50,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-o3-desc",
+            "name": "O3 Desc",
+            "type": "TEXT",
+            "characters": "듀얼 포맷 렌더링 단계\n(DOCX VML & HWPX OWPML Output)",
+            "absoluteBoundingBox": {
+              "x": 115,
+              "y": 268,
+              "width": 420,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-icon-bg1",
+            "name": "Icon Box 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 340,
+              "width": 40,
+              "height": 40
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.9,
+                  "g": 0.98,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.6,
+                  "g": 0.88,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 8
+          },
+          {
+            "id": "vec-check-path",
+            "name": "Checkmark Icon",
+            "type": "VECTOR",
+            "absoluteBoundingBox": {
+              "x": 58,
+              "y": 348,
+              "width": 24,
+              "height": 24
+            },
+            "fillGeometry": [
+              {
+                "path": "M4 12l5 5L20 6"
+              }
+            ],
+            "fills": [],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.6,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 2
+          },
+          {
+            "id": "vec-c-label",
+            "name": "Check Label",
+            "type": "TEXT",
+            "characters": "호환성 100% 통과 (Compliance Verified)",
+            "absoluteBoundingBox": {
+              "x": 105,
+              "y": 350,
+              "width": 430,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.5,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-star-path",
+            "name": "Star Vector",
+            "type": "VECTOR",
+            "absoluteBoundingBox": {
+              "x": 55,
+              "y": 410,
+              "width": 32,
+              "height": 32
+            },
+            "fillGeometry": [
+              {
+                "path": "M12 2l3 7h7l-5.5 4.5 2 7-6.5-4.5-6.5 4.5 2-7L2 9h7z"
+              }
+            ],
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.75,
+                  "b": 0.1
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "vec-s-label",
+            "name": "Star Label",
+            "type": "TEXT",
+            "characters": "최우수 시각 정확도 등급 (Grade AAA SSIM > 0.87)",
+            "absoluteBoundingBox": {
+              "x": 105,
+              "y": 416,
+              "width": 430,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.7,
+                  "g": 0.5,
+                  "b": 0.05
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-arrow-path",
+            "name": "Arrow Vector",
+            "type": "VECTOR",
+            "absoluteBoundingBox": {
+              "x": 55,
+              "y": 475,
+              "width": 32,
+              "height": 32
+            },
+            "fillGeometry": [
+              {
+                "path": "M5 12h14M13 5l7 7-7 7"
+              }
+            ],
+            "fills": [],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.4,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 2
+          },
+          {
+            "id": "vec-a-label",
+            "name": "Arrow Label",
+            "type": "TEXT",
+            "characters": "지속 가능한 확장 파이프라인 (Continuous Pipeline)",
+            "absoluteBoundingBox": {
+              "x": 105,
+              "y": 481,
+              "width": 430,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.3,
+                  "b": 0.65
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-proc-card",
+            "name": "Process Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 540,
+              "width": 515,
+              "height": 180
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.97,
+                  "g": 0.98,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.88,
+                  "b": 0.95
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 12
+          },
+          {
+            "id": "vec-proc-t",
+            "name": "Process Header",
+            "type": "TEXT",
+            "characters": "컴포넌트 렌더링 계층 구조 (Rendering Pipeline Architecture)",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 560,
+              "width": 475,
+              "height": 22
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 12,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.2,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-pill-1",
+            "name": "Pill 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 600,
+              "width": 130,
+              "height": 32
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.4,
+                  "b": 0.9
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 16
+          },
+          {
+            "id": "vec-p1-txt",
+            "name": "P1 Text",
+            "type": "TEXT",
+            "characters": "FigmaParser",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 608,
+              "width": 130,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-pill-2",
+            "name": "Pill 2",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 232,
+              "y": 600,
+              "width": 130,
+              "height": 32
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.65,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 16
+          },
+          {
+            "id": "vec-p2-txt",
+            "name": "P2 Text",
+            "type": "TEXT",
+            "characters": "Canvas IR Model",
+            "absoluteBoundingBox": {
+              "x": 232,
+              "y": 608,
+              "width": 130,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-pill-3",
+            "name": "Pill 3",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 600,
+              "width": 130,
+              "height": 32
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.8,
+                  "g": 0.3,
+                  "b": 0.2
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0,
+            "cornerRadius": 16
+          },
+          {
+            "id": "vec-p3-txt",
+            "name": "P3 Text",
+            "type": "TEXT",
+            "characters": "DOCX / HWPX",
+            "absoluteBoundingBox": {
+              "x": 405,
+              "y": 608,
+              "width": 130,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 700,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "vec-proc-desc",
+            "name": "Process Desc",
+            "type": "TEXT",
+            "characters": "각 계층은 독립적인 단위 테스트 및 회귀 테스트를 거치며, 포맷별 바이너리 컨테이너 규격을 100% 준수합니다.",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 660,
+              "width": 475,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.45
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

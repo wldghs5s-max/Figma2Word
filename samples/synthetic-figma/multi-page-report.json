@@ -1,0 +1,1095 @@
+{
+  "name": "Synthetic 02 - Multi-Page Report",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-02",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-multi-p1",
+        "name": "P1 - Cover Page",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "p1-bg-accent",
+            "name": "Top Cover Art",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 0,
+              "y": 0,
+              "width": 595,
+              "height": 320
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.06,
+                  "g": 0.18,
+                  "b": 0.38
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "p1-sub",
+            "name": "Cover Subtitle",
+            "type": "TEXT",
+            "characters": "ENTERPRISE DOCUMENT AUTOMATION WHITE PAPER",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 160,
+              "width": 475,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.6,
+                  "g": 0.8,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p1-title",
+            "name": "Cover Main Title",
+            "type": "TEXT",
+            "characters": "2026 차세대 오피스\n문서 생성 엔진 아키텍처",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 190,
+              "width": 475,
+              "height": 80
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 28,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p1-desc",
+            "name": "Cover Description",
+            "type": "TEXT",
+            "characters": "Figma 2차원 디자인에서 Microsoft Word 및 한컴 HWPX로 이어지는\n무손실 Canvas IR 듀얼 파이프라인 심층 기술 분석 보고서",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 380,
+              "width": 475,
+              "height": 50
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 12,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.45
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p1-divider",
+            "name": "Divider",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 460,
+              "width": 475,
+              "height": 2
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.88,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "p1-meta",
+            "name": "Cover Metadata",
+            "type": "TEXT",
+            "characters": "발행기관: Figma2Word R&D Center\n발행일자: 2026년 10월 15일\n연구책임: 시스템 아키텍처팀",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 700,
+              "width": 475,
+              "height": 60
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "frame-multi-p2",
+        "name": "P2 - Executive Summary",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 850,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "p2-header",
+            "name": "P2 Header",
+            "type": "TEXT",
+            "characters": "Executive Summary",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 890,
+              "width": 495,
+              "height": 28
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.15,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-p1",
+            "name": "P2 Intro",
+            "type": "TEXT",
+            "characters": "본 장에서는 신규 Canvas IR 아키텍처 도입을 통해 달성한 핵심 기술 성과 및 정량적 벤치마크 결과를 제시합니다. 기존 플로우 기반 변환기의 한계를 완전히 극복하였습니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 930,
+              "width": 495,
+              "height": 40
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.25,
+                  "g": 0.3,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-card1",
+            "name": "Card 1",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 990,
+              "width": 155,
+              "height": 100
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.98,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.7,
+                  "g": 0.82,
+                  "b": 0.98
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "p2-c1-t",
+            "name": "Card 1 Label",
+            "type": "TEXT",
+            "characters": "시각적 유사도 (SSIM)",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 1005,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.35,
+                  "b": 0.75
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c1-v",
+            "name": "Card 1 Value",
+            "type": "TEXT",
+            "characters": "0.87+",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 1025,
+              "width": 135,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 22,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.3,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c1-s",
+            "name": "Card 1 Sub",
+            "type": "TEXT",
+            "characters": "기존 대비 +48% 향상",
+            "absoluteBoundingBox": {
+              "x": 60,
+              "y": 1060,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.45,
+                  "b": 0.65
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-card2",
+            "name": "Card 2",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 220,
+              "y": 990,
+              "width": 155,
+              "height": 100
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.95,
+                  "g": 0.99,
+                  "b": 0.95
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.7,
+                  "g": 0.9,
+                  "b": 0.75
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "p2-c2-t",
+            "name": "Card 2 Label",
+            "type": "TEXT",
+            "characters": "변환 지연 시간 (Latency)",
+            "absoluteBoundingBox": {
+              "x": 230,
+              "y": 1005,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.6,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c2-v",
+            "name": "Card 2 Value",
+            "type": "TEXT",
+            "characters": "115ms",
+            "absoluteBoundingBox": {
+              "x": 230,
+              "y": 1025,
+              "width": 135,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 22,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.5,
+                  "b": 0.2
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c2-s",
+            "name": "Card 2 Sub",
+            "type": "TEXT",
+            "characters": "페이지당 평균 소요 시간",
+            "absoluteBoundingBox": {
+              "x": 230,
+              "y": 1060,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.25,
+                  "g": 0.55,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-card3",
+            "name": "Card 3",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 390,
+              "y": 990,
+              "width": 155,
+              "height": 100
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.99,
+                  "g": 0.97,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.75,
+                  "b": 0.98
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "p2-c3-t",
+            "name": "Card 3 Label",
+            "type": "TEXT",
+            "characters": "오피스 상호운용성",
+            "absoluteBoundingBox": {
+              "x": 400,
+              "y": 1005,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.2,
+                  "b": 0.8
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c3-v",
+            "name": "Card 3 Value",
+            "type": "TEXT",
+            "characters": "100%",
+            "absoluteBoundingBox": {
+              "x": 400,
+              "y": 1025,
+              "width": 135,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 22,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.15,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-c3-s",
+            "name": "Card 3 Sub",
+            "type": "TEXT",
+            "characters": "Word / 한글 무결성 검증",
+            "absoluteBoundingBox": {
+              "x": 400,
+              "y": 1060,
+              "width": 135,
+              "height": 16
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 8.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.45,
+                  "g": 0.3,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-deep-title",
+            "name": "Deep Title",
+            "type": "TEXT",
+            "characters": "정밀 좌표계 기반의 렌더링 혁신",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1120,
+              "width": 495,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 13,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p2-deep-p",
+            "name": "Deep Para",
+            "type": "TEXT",
+            "characters": "Figma2Word Canvas 엔진은 기존 DOM 플로우 재구성 방식이 가지던 고질적 문제인 줄바꿈 오차와 레이아웃 깨짐을 근본적으로 제거하기 위해, VML 절대 좌표 셰이프와 OWPML 절대 위치 객체를 직접 생성합니다. 이를 통해 디자이너가 의도한 위치 그대로 오피스 문서에 배치됩니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1150,
+              "width": 495,
+              "height": 60
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "frame-multi-p3",
+        "name": "P3 - Implementation Roadmap",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 1700,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "p3-header",
+            "name": "P3 Header",
+            "type": "TEXT",
+            "characters": "Implementation Roadmap & Milestones",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1740,
+              "width": 495,
+              "height": 28
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.15,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-p1",
+            "name": "P3 Intro",
+            "type": "TEXT",
+            "characters": "단계별 마일스톤 및 주요 개발 산출물 일정은 다음과 같습니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1780,
+              "width": 495,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.25,
+                  "g": 0.3,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-step1-bg",
+            "name": "Step 1 Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1815,
+              "width": 495,
+              "height": 55
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.93
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "p3-s1-num",
+            "name": "Step 1 Num",
+            "type": "TEXT",
+            "characters": "PHASE 1",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 1832,
+              "width": 70,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-s1-text",
+            "name": "Step 1 Text",
+            "type": "TEXT",
+            "characters": "Figma AST 파서 고도화 및 네이티브 벡터 (SVG Path) 변환 엔진 완비",
+            "absoluteBoundingBox": {
+              "x": 145,
+              "y": 1832,
+              "width": 385,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-step2-bg",
+            "name": "Step 2 Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1885,
+              "width": 495,
+              "height": 55
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.93
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "p3-s2-num",
+            "name": "Step 2 Num",
+            "type": "TEXT",
+            "characters": "PHASE 2",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 1902,
+              "width": 70,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-s2-text",
+            "name": "Step 2 Text",
+            "type": "TEXT",
+            "characters": "DOCX/HWPX 듀얼 렌더러 안정화 및 KS X 6101 패키징 완전 검증",
+            "absoluteBoundingBox": {
+              "x": 145,
+              "y": 1902,
+              "width": 385,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-step3-bg",
+            "name": "Step 3 Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 1955,
+              "width": 495,
+              "height": 55
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.93
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "p3-s3-num",
+            "name": "Step 3 Num",
+            "type": "TEXT",
+            "characters": "PHASE 3",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 1972,
+              "width": 70,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-s3-text",
+            "name": "Step 3 Text",
+            "type": "TEXT",
+            "characters": "로컬 Web UI 및 DOCX to HWPX 원클릭 변환기 통합 배포",
+            "absoluteBoundingBox": {
+              "x": 145,
+              "y": 1972,
+              "width": 385,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "p3-foot",
+            "name": "P3 Footer",
+            "type": "TEXT",
+            "characters": "© 2026 Figma2Word Project. All rights reserved.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 2500,
+              "width": 495,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9,
+              "fontWeight": 400,
+              "textAlignHorizontal": "CENTER"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.5,
+                  "g": 0.55,
+                  "b": 0.6
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

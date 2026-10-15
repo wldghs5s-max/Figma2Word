@@ -62,7 +62,7 @@ export class DocxCanvasRenderer {
     this.creator = options?.creator || "Figma2Word Canvas Engine";
   }
 
-  public async renderToBuffer(doc: CanvasDocument): Promise<Buffer> {
+  public async buildZip(doc: CanvasDocument): Promise<JSZip> {
     const zip = new JSZip();
 
     // 1. [Content_Types].xml
@@ -98,14 +98,28 @@ export class DocxCanvasRenderer {
     // 7. word/document.xml
     zip.file("word/document.xml", this.buildDocumentXml(doc, imageRelMap));
 
-    // Generate binary buffer
-    const content = await zip.generateAsync({
-      type: "nodebuffer",
+    return zip;
+  }
+
+  public async renderToUint8Array(doc: CanvasDocument): Promise<Uint8Array> {
+    const zip = await this.buildZip(doc);
+    return await zip.generateAsync({
+      type: "uint8array",
       compression: "DEFLATE",
       compressionOptions: { level: 6 },
     });
+  }
 
-    return content;
+  public async renderToBlob(doc: CanvasDocument): Promise<Blob> {
+    const uint8 = await this.renderToUint8Array(doc);
+    return new Blob([uint8 as any], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+  }
+
+  public async renderToBuffer(doc: CanvasDocument): Promise<Buffer> {
+    const uint8 = await this.renderToUint8Array(doc);
+    return Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
   }
 
   private buildContentTypesXml(doc: CanvasDocument): string {
@@ -386,29 +400,35 @@ export class DocxCanvasRenderer {
       let cropAttr = "";
       const res = resources && elem.imageRef ? resources[elem.imageRef] : undefined;
       if (res && res.data && res.data.length > 24) {
+        const d = res.data;
+        const readU32 = (off: number) =>
+          ((d[off] << 24) >>> 0) + (d[off + 1] << 16) + (d[off + 2] << 8) + d[off + 3];
+        const readU16 = (off: number) =>
+          (d[off] << 8) | d[off + 1];
+
         let imgW = 0;
         let imgH = 0;
         // PNG check: 89 50 4E 47
         if (
-          res.data[0] === 0x89 &&
-          res.data[1] === 0x50 &&
-          res.data[2] === 0x4e &&
-          res.data[3] === 0x47
+          d[0] === 0x89 &&
+          d[1] === 0x50 &&
+          d[2] === 0x4e &&
+          d[3] === 0x47
         ) {
-          imgW = res.data.readUInt32BE(16);
-          imgH = res.data.readUInt32BE(20);
-        } else if (res.data[0] === 0xff && res.data[1] === 0xd8) {
+          imgW = readU32(16);
+          imgH = readU32(20);
+        } else if (d[0] === 0xff && d[1] === 0xd8) {
           // Basic JPEG SOF0/SOF2 marker parser
           let offset = 2;
-          while (offset < res.data.length - 8) {
-            const marker = res.data.readUInt16BE(offset);
+          while (offset < d.length - 8) {
+            const marker = readU16(offset);
             offset += 2;
             if (marker === 0xffc0 || marker === 0xffc2) {
-              imgH = res.data.readUInt16BE(offset + 3);
-              imgW = res.data.readUInt16BE(offset + 5);
+              imgH = readU16(offset + 3);
+              imgW = readU16(offset + 5);
               break;
             }
-            const len = res.data.readUInt16BE(offset);
+            const len = readU16(offset);
             offset += len;
           }
         }

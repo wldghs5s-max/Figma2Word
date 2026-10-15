@@ -1,0 +1,576 @@
+{
+  "name": "Synthetic 01 - Single Page Brief",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-01",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-p1",
+        "name": "Single Page Technical Brief",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "box-top-accent",
+            "name": "Top Accent Bar",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 40,
+              "width": 515,
+              "height": 6
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.09,
+                  "g": 0.38,
+                  "b": 0.86
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "txt-title",
+            "name": "Title",
+            "type": "TEXT",
+            "characters": "기술 협력 및 차세대 오피스 엔진 도입 검토안",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 60,
+              "width": 515,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 20,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.07,
+                  "g": 0.12,
+                  "b": 0.22
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-meta",
+            "name": "Metadata",
+            "type": "TEXT",
+            "characters": "작성일자: 2026년 10월 15일  |  담당부서: 디지털플랫폼 기술본부  |  보안등급: 대외비 (Class B)",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 102,
+              "width": 515,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "box-summary",
+            "name": "Summary Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 135,
+              "width": 515,
+              "height": 95
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.96,
+                  "g": 0.98,
+                  "b": 1.0
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.75,
+                  "g": 0.85,
+                  "b": 0.98
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "txt-sum-title",
+            "name": "Summary Header",
+            "type": "TEXT",
+            "characters": "📌 핵심 검토 요약 (Executive Summary)",
+            "absoluteBoundingBox": {
+              "x": 56,
+              "y": 148,
+              "width": 483,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 12,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.3,
+                  "b": 0.7
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sum-body",
+            "name": "Summary Body",
+            "type": "TEXT",
+            "characters": "본 검토서는 Figma 디자인 자산을 공공 및 엔터프라이즈 업무용 표준 포맷(DOCX 및 HWPX)으로 100% 무손실 변환하는 전용 Canvas 듀얼 엔진 구축의 타당성을 평가합니다. 기존 수작업 문서 작성 대비 소요 시간을 92% 단축하고, 공공 보고서 작성 호환성을 극대화합니다.",
+            "absoluteBoundingBox": {
+              "x": 56,
+              "y": 172,
+              "width": 483,
+              "height": 46
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.28
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sec1-title",
+            "name": "Section 1 Title",
+            "type": "TEXT",
+            "characters": "1. 추진 배경 및 당면 과제",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 250,
+              "width": 515,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sec1-p1",
+            "name": "Section 1 Paragraph 1",
+            "type": "TEXT",
+            "characters": "최근 디지털 업무 환경 전환에 따라 기획 및 디자인 부서에서는 Figma를 기본 프로토타이핑 도구로 사용하는 반면, 결재 및 공문서 유통은 DOCX와 HWPX가 절대적인 비중을 차지하고 있습니다. 이에 따라 디자이너가 완성한 결과물을 문서 편집자가 재입력하는 과정에서 심각한 병목 현상이 발생하고 있습니다.",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 280,
+              "width": 515,
+              "height": 48
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "box-bullet1",
+            "name": "Bullet 1 Box",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 340,
+              "width": 515,
+              "height": 50
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.93
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "txt-b1-title",
+            "name": "Bullet 1",
+            "type": "TEXT",
+            "characters": "• 서식 왜곡 최소화: 2차원 캔버스 절대 좌표 기반 렌더링을 적용하여 문단 밀림 제거",
+            "absoluteBoundingBox": {
+              "x": 54,
+              "y": 355,
+              "width": 487,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "box-bullet2",
+            "name": "Bullet 2 Box",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 400,
+              "width": 515,
+              "height": 50
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.88,
+                  "g": 0.9,
+                  "b": 0.93
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "txt-b2-title",
+            "name": "Bullet 2",
+            "type": "TEXT",
+            "characters": "• 한글/Word 듀얼 타깃: KS X 6101 HWPX와 ISO/IEC 29500 WordprocessingML 동시 지원",
+            "absoluteBoundingBox": {
+              "x": 54,
+              "y": 415,
+              "width": 487,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.2,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sec2-title",
+            "name": "Section 2 Title",
+            "type": "TEXT",
+            "characters": "2. 기대 효과 및 향후 일정",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 470,
+              "width": 515,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.15,
+                  "b": 0.25
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sec2-p1",
+            "name": "Section 2 Paragraph",
+            "type": "TEXT",
+            "characters": "엔진 도입 후 문서 변환 검증 시간은 건당 평균 45분에서 3초 이내로 단축되며, 시각적 유사도(SSIM) 0.87 이상의 품질을 상시 보장합니다. 2026년 4분기 파일럿 검증 후 전사 확대 적용 예정입니다.",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 500,
+              "width": 515,
+              "height": 40
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "box-signoff",
+            "name": "Signoff Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 40,
+              "y": 680,
+              "width": 515,
+              "height": 90
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.97,
+                  "g": 0.98,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.88,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 6
+          },
+          {
+            "id": "txt-sign-title",
+            "name": "Signoff Header",
+            "type": "TEXT",
+            "characters": "결재 및 승인 확인 (Approval)",
+            "absoluteBoundingBox": {
+              "x": 56,
+              "y": 695,
+              "width": 200,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 11,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.35
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sign-left",
+            "name": "Signoff Left",
+            "type": "TEXT",
+            "characters": "기안자: 김철수 수석연구원 (인)\n일자: 2026-10-15",
+            "absoluteBoundingBox": {
+              "x": 56,
+              "y": 725,
+              "width": 220,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "txt-sign-right",
+            "name": "Signoff Right",
+            "type": "TEXT",
+            "characters": "승인자: 이영희 플랫폼본부장 (서명 완료)\n승인일시: 2026-10-15 17:30",
+            "absoluteBoundingBox": {
+              "x": 310,
+              "y": 725,
+              "width": 220,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.3,
+                  "g": 0.35,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -42,7 +42,7 @@ export class HwpxCanvasRenderer {
     this.creator = options?.creator || "Figma2Word Canvas Engine";
   }
 
-  public async renderToBuffer(doc: CanvasDocument): Promise<Buffer> {
+  public async buildZip(doc: CanvasDocument): Promise<JSZip> {
     const zip = new JSZip();
 
     // 1. mimetype (MUST be first entry, STORED uncompressed, 19 bytes)
@@ -122,14 +122,28 @@ export class HwpxCanvasRenderer {
     // 8. Contents/header.xml (outputs registered fontfaces & charPr styles)
     zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry));
 
-    // Generate binary buffer
-    const content = await zip.generateAsync({
-      type: "nodebuffer",
+    return zip;
+  }
+
+  public async renderToUint8Array(doc: CanvasDocument): Promise<Uint8Array> {
+    const zip = await this.buildZip(doc);
+    return await zip.generateAsync({
+      type: "uint8array",
       compression: "DEFLATE",
       compressionOptions: { level: 6 },
     });
+  }
 
-    return content;
+  public async renderToBlob(doc: CanvasDocument): Promise<Blob> {
+    const uint8 = await this.renderToUint8Array(doc);
+    return new Blob([uint8 as any], {
+      type: "application/hwp+zip",
+    });
+  }
+
+  public async renderToBuffer(doc: CanvasDocument): Promise<Buffer> {
+    const uint8 = await this.renderToUint8Array(doc);
+    return Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
   }
 
   private buildVersionXml(): string {
@@ -435,6 +449,32 @@ ${items}
       </hp:p>
     </hp:subList>
   </hp:drawText>`;
+    }
+
+    // 3. Vector Shape (KS X 6101 native hp:polygon)
+    if (elem.type === "vector") {
+      const pts = elem.vectorPoints || [];
+      const ptXml =
+        pts.length > 0
+          ? pts.map((p) => `<hp:pt x="${p.x}" y="${p.y}"/>`).join("\n  ")
+          : `<hp:pt x="0" y="0"/>\n  <hp:pt x="${shapeW}" y="0"/>\n  <hp:pt x="${shapeW}" y="${shapeH}"/>\n  <hp:pt x="0" y="${shapeH}"/>`;
+
+      return `<hp:polygon id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
+  <hp:curSz width="${shapeW}" height="${shapeH}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
+  <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  ${fillBrush}
+  ${ptXml}${drawTextPart}
+</hp:polygon>`;
     }
 
     const shapeTag = elem.type === "oval" ? "hp:oval" : "hp:rect";

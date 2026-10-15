@@ -1,0 +1,500 @@
+{
+  "name": "Synthetic 04 - Text-Centric Article",
+  "lastModified": "2026-10-15T00:00:00Z",
+  "document": {
+    "id": "doc-syn-04",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "frame-art-p1",
+        "name": "Text-Centric Technical Article",
+        "type": "FRAME",
+        "absoluteBoundingBox": {
+          "x": 0,
+          "y": 0,
+          "width": 595,
+          "height": 842
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "color": {
+              "r": 1.0,
+              "g": 1.0,
+              "b": 1.0
+            },
+            "opacity": 1.0
+          }
+        ],
+        "children": [
+          {
+            "id": "art-h1",
+            "name": "H1 Title",
+            "type": "TEXT",
+            "characters": "문서 바이너리 역공학과 오피스 상호운용성",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 45,
+              "width": 495,
+              "height": 36
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 22,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.08,
+                  "g": 0.12,
+                  "b": 0.22
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-meta",
+            "name": "Article Metadata",
+            "type": "TEXT",
+            "characters": "작성자: 수석 아키텍트  |  게시일: 2026-10-15  |  카테고리: Binary Reverse Engineering",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 85,
+              "width": 495,
+              "height": 18
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.4,
+                  "g": 0.45,
+                  "b": 0.5
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-h2-1",
+            "name": "H2 Section 1",
+            "type": "TEXT",
+            "characters": "1. OpenXML과 KS X 6101의 포맷 특성 비교",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 125,
+              "width": 495,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.12,
+                  "g": 0.25,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-p1",
+            "name": "Para 1",
+            "type": "TEXT",
+            "characters": "Microsoft Word의 OpenXML(DOCX)은 OPC(Open Packaging Conventions) 규격을 기반으로 하며, 본문 레이아웃은 주로 문단과 인라인 텍스트 플로우로 정의됩니다. 반면 절대 위치 배치가 요구되는 디자인 변환에서는 VML 및 DrawingML 절대 좌표 셰이프를 활용하는 것이 안정적입니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 155,
+              "width": 495,
+              "height": 48
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-p2",
+            "name": "Para 2",
+            "type": "TEXT",
+            "characters": "한글과컴퓨터의 HWPX는 OCF(Open Container Format) 규격을 따르며, KS X 6101 표준에 정의된 OWPML 엘리먼트를 사용합니다. 특히 hp:shape 개체의 vertRel 및 horzRel 속성을 'page'로 지정하여 2차원 평면 위의 정확한 HWPU 좌표계에 문자를 렌더링합니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 210,
+              "width": 495,
+              "height": 48
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-quote-bg",
+            "name": "Quote Card",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 275,
+              "width": 495,
+              "height": 75
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.96,
+                  "g": 0.97,
+                  "b": 0.99
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.85,
+                  "g": 0.88,
+                  "b": 0.92
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokeWeight": 1,
+            "cornerRadius": 4
+          },
+          {
+            "id": "art-quote-bar",
+            "name": "Quote Left Bar",
+            "type": "RECTANGLE",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 275,
+              "width": 5,
+              "height": 75
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.1,
+                  "g": 0.4,
+                  "b": 0.9
+                },
+                "opacity": 1.0
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 0
+          },
+          {
+            "id": "art-quote-t",
+            "name": "Quote Text",
+            "type": "TEXT",
+            "characters": "💡 핵심 원칙: '문서의 편집 가능성은 텍스트박스 내부의 텍스트 런(TextRun) 보존에 달려 있으며, 시각적 충실도는 부모 컨테이너의 절대 좌표 불변성에 비례한다.'",
+            "absoluteBoundingBox": {
+              "x": 68,
+              "y": 290,
+              "width": 460,
+              "height": 45
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 600,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.15,
+                  "g": 0.25,
+                  "b": 0.4
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-h2-2",
+            "name": "H2 Section 2",
+            "type": "TEXT",
+            "characters": "2. 무손실 Canvas IR 파이프라인의 설계",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 375,
+              "width": 495,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.12,
+                  "g": 0.25,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-p3",
+            "name": "Para 3",
+            "type": "TEXT",
+            "characters": "Figma2Word Canvas IR은 원본 피그마 트리를 1차원 흐름(Flow)으로 무리하게 억압하지 않고, 페이지 단위의 2차원 평면으로 파싱합니다. 주요 처리 단계는 다음과 같습니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 405,
+              "width": 495,
+              "height": 32
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-li-1",
+            "name": "List 1",
+            "type": "TEXT",
+            "characters": "① 좌표 정규화: Figma 96 DPI 픽셀 단위를 표준 DTP 포인트(pt) 및 HWPU 단위로 정밀 환산",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 445,
+              "width": 480,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-li-2",
+            "name": "List 2",
+            "type": "TEXT",
+            "characters": "② 폰트 매핑: Pretendard, Malgun Gothic 등 주요 한글 서체의 EastAsia 태그 정밀 바인딩",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 470,
+              "width": 480,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-li-3",
+            "name": "List 3",
+            "type": "TEXT",
+            "characters": "③ 셰이프 변환: 사각형, 타원, 복합 SVG 경로를 네이티브 VML 및 OWPML 다각형으로 변환",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 495,
+              "width": 480,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-li-4",
+            "name": "List 4",
+            "type": "TEXT",
+            "characters": "④ 검증 자동화: Word COM 객체 조작 및 XML 검증을 통한 실시간 편집성 검증",
+            "absoluteBoundingBox": {
+              "x": 65,
+              "y": 520,
+              "width": 480,
+              "height": 20
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 9.5,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-h2-3",
+            "name": "H2 Section 3",
+            "type": "TEXT",
+            "characters": "3. 결론 및 향후 전망",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 560,
+              "width": 495,
+              "height": 24
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.12,
+                  "g": 0.25,
+                  "b": 0.55
+                },
+                "opacity": 1.0
+              }
+            ]
+          },
+          {
+            "id": "art-p4",
+            "name": "Para 4",
+            "type": "TEXT",
+            "characters": "Canvas IR 듀얼 엔진은 피그마의 유려한 디자인을 표준 오피스 문서로 완벽히 재현함으로써 엔터프라이즈 업무 생산성을 비약적으로 향상시킵니다. 향후 다양한 문서 서식 템플릿과의 연계를 통해 생태계를 확장할 계획입니다.",
+            "absoluteBoundingBox": {
+              "x": 50,
+              "y": 590,
+              "width": 495,
+              "height": 48
+            },
+            "style": {
+              "fontFamily": "맑은 고딕",
+              "fontSize": 10,
+              "fontWeight": 400,
+              "textAlignHorizontal": "LEFT"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.2,
+                  "g": 0.25,
+                  "b": 0.3
+                },
+                "opacity": 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
