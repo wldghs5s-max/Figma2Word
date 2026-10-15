@@ -17,6 +17,9 @@ word/
 완성본-*/
 *.hwpx
 review-packages/
+research/rea-document-engine/phase13c/renders/
+research/rea-document-engine/phase13c/**/*.png
+research/rea-document-engine/phase13c/**/*.pdf
 
 # Environment variables & secrets
 .env
@@ -42,4 +45,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+__pycache__/
+*.pyc
 

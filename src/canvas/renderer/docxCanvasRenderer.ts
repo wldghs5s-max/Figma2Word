@@ -4,6 +4,7 @@ import {
   CanvasPage,
   CanvasElement,
   CanvasTextRun,
+  CanvasResource,
   ptToTwip,
 } from "../types.js";
 
@@ -234,7 +235,13 @@ export class DocxCanvasRenderer {
       // 2. Render all page elements
       for (let eIdx = 0; eIdx < page.elements.length; eIdx++) {
         const elem = page.elements[eIdx];
-        const elemXml = this.renderElement(pIdx, eIdx, elem, imageRelMap);
+        const elemXml = this.renderElement(
+          pIdx,
+          eIdx,
+          elem,
+          imageRelMap,
+          doc.resources
+        );
         if (elemXml) {
           runsXml.push(elemXml);
         }
@@ -303,7 +310,8 @@ export class DocxCanvasRenderer {
     pageIdx: number,
     elemIdx: number,
     elem: CanvasElement,
-    imageRelMap: Map<string, string>
+    imageRelMap: Map<string, string>,
+    resources?: Record<string, CanvasResource>
   ): string {
     const shapeId = `s_${pageIdx}_${elemIdx}`;
     const { x, y, width, height } = elem.bounds;
@@ -341,6 +349,53 @@ export class DocxCanvasRenderer {
     // 2. Image
     if (elem.type === "image" && elem.imageRef) {
       const relId = imageRelMap.get(elem.imageRef) || "rId1";
+      let cropAttr = "";
+      const res = resources && elem.imageRef ? resources[elem.imageRef] : undefined;
+      if (res && res.data && res.data.length > 24) {
+        let imgW = 0;
+        let imgH = 0;
+        // PNG check: 89 50 4E 47
+        if (
+          res.data[0] === 0x89 &&
+          res.data[1] === 0x50 &&
+          res.data[2] === 0x4e &&
+          res.data[3] === 0x47
+        ) {
+          imgW = res.data.readUInt32BE(16);
+          imgH = res.data.readUInt32BE(20);
+        } else if (res.data[0] === 0xff && res.data[1] === 0xd8) {
+          // Basic JPEG SOF0/SOF2 marker parser
+          let offset = 2;
+          while (offset < res.data.length - 8) {
+            const marker = res.data.readUInt16BE(offset);
+            offset += 2;
+            if (marker === 0xffc0 || marker === 0xffc2) {
+              imgH = res.data.readUInt16BE(offset + 3);
+              imgW = res.data.readUInt16BE(offset + 5);
+              break;
+            }
+            const len = res.data.readUInt16BE(offset);
+            offset += len;
+          }
+        }
+
+        if (imgW > 0 && imgH > 0 && width > 0 && height > 0) {
+          const arImg = imgW / imgH;
+          const arBox = width / height;
+          if (arImg < arBox * 0.99) {
+            // Image is taller than container box: crop top & bottom (object-fit: cover)
+            const cropY = (1.0 - arImg / arBox) / 2.0;
+            const cropVal = Math.round(cropY * 65536);
+            cropAttr = ` croptop="${cropVal}f" cropbottom="${cropVal}f"`;
+          } else if (arImg > arBox * 1.01) {
+            // Image is wider than container box: crop left & right
+            const cropX = (1.0 - arBox / arImg) / 2.0;
+            const cropVal = Math.round(cropX * 65536);
+            cropAttr = ` cropleft="${cropVal}f" cropright="${cropVal}f"`;
+          }
+        }
+      }
+
       return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
@@ -349,7 +404,7 @@ export class DocxCanvasRenderer {
              style="${baseStyle}"
              filled="f"
              stroked="f">
-      <v:imagedata r:id="${relId}" o:title="${escapeXml(elem.name || "image")}"/>
+      <v:imagedata r:id="${relId}"${cropAttr} o:title="${escapeXml(elem.name || "image")}"/>
     </v:shape>
   </w:pict>
 </w:r>`;

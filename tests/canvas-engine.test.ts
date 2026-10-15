@@ -365,3 +365,111 @@ describe("Canvas Pipeline - End to End", () => {
     expect(sectionXml).toContain("Pipeline Test Heading");
   });
 });
+
+describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", () => {
+  it("strips container fill on pure TEXT Figma nodes to prevent opaque background overlay", () => {
+    const parser = new FigmaCanvasParser();
+    const mockFigmaDoc = {
+      document: {
+        id: "0:0",
+        name: "Document",
+        type: "DOCUMENT",
+        children: [
+          {
+            id: "0:1",
+            name: "Page 1",
+            type: "CANVAS",
+            children: [
+              {
+                id: "1:1",
+                name: "A4 Frame",
+                type: "FRAME",
+                absoluteBoundingBox: { x: 0, y: 0, width: 794, height: 1123 },
+                children: [
+                  {
+                    id: "1:2",
+                    name: "Pure Text",
+                    type: "TEXT",
+                    absoluteBoundingBox: { x: 50, y: 50, width: 200, height: 30 },
+                    characters: "Hello World",
+                    fills: [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2, a: 1 } }],
+                    style: {
+                      fontFamily: "Pretendard",
+                      fontSize: 16,
+                      fontWeight: 700,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const canvasDoc = parser.parse(mockFigmaDoc as any);
+    expect(canvasDoc.pages.length).toBe(1);
+    const textEl = canvasDoc.pages[0].elements.find((e) => e.name === "Pure Text");
+    expect(textEl).toBeDefined();
+    // Element style fillColor must NOT be set for pure text node
+    expect(textEl?.style.fillColor).toBeUndefined();
+    // But textRun color should have the font color
+    expect(textEl?.textRuns?.[0].color).toBeDefined();
+  });
+
+  it("calculates correct VML crop fractions for aspect ratio preservation in DocxCanvasRenderer", async () => {
+    const renderer = new DocxCanvasRenderer();
+    // Dummy PNG buffer with 200x100 resolution (aspect ratio 2.0)
+    const pngHeader = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, // PNG sig
+      0x00, 0x00, 0x00, 0x0d, // IHDR len 13
+      0x49, 0x48, 0x44, 0x52, // "IHDR"
+      0x00, 0x00, 0x00, 0xc8, // width = 200
+      0x00, 0x00, 0x00, 0x64, // height = 100 (aspect = 2.0)
+      0x08, 0x06, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, // CRC dummy
+    ]);
+
+    const doc: CanvasDocument = {
+      title: "Crop Test",
+      pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
+      marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
+      diagnostics: { notices: [], warnings: [] },
+      resources: {
+        "crop-img": {
+          id: "crop-img",
+          name: "wide.png",
+          mimeType: "image/png",
+          data: pngHeader,
+        },
+      },
+      pages: [
+        {
+          pageNumber: 1,
+          bounds: { x: 0, y: 0, width: 595.28, height: 841.89 },
+          elements: [
+            {
+              id: "img-crop-el",
+              name: "Cropped Image",
+              type: "image",
+              bounds: { x: 50, y: 50, width: 100, height: 100 }, // square box (aspect 1.0) for 2.0 image -> crops horizontally
+              zIndex: 1,
+              style: {},
+              imageRef: "crop-img",
+            },
+          ],
+        },
+      ],
+    };
+
+    const buf = await renderer.renderToBuffer(doc);
+    const zip = await JSZip.loadAsync(buf);
+    const docXml = await zip.file("word/document.xml")!.async("string");
+
+    // In 2.0 image placed in 1.0 container, rendered width = 100, rendered height = 100.
+    // targetAspect (1.0) < origAspect (2.0): crop horizontally: cropleft & cropright
+    expect(docXml).toContain("cropleft=");
+    expect(docXml).toContain("cropright=");
+  });
+});
+

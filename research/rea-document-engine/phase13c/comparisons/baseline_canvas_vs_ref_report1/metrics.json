@@ -1,0 +1,329 @@
+﻿{
+    "totalComparedPages":  9,
+    "pageCountMatch":  true,
+    "reportName":  "Canvas vs Ref Report 1",
+    "meanSsim":  0.8336,
+    "pages":  [
+                  {
+                      "backgroundMismatchRatio":  0.094,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page01.png",
+                      "textDetailMismatchRatio":  0.1259,
+                      "rmse":  62.38,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page01.png",
+                      "normalizedMae":  0.0952,
+                      "totalPixels":  2772000,
+                      "mae":  24.28,
+                      "mismatchPixelCount":  609502,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page01-diff.png",
+                      "mismatchRatio":  0.2199,
+                      "bbox2":  {
+                                    "y":  98,
+                                    "w":  1306,
+                                    "h":  1787,
+                                    "x":  94
+                                },
+                      "delta":  {
+                                    "y":  -7,
+                                    "w":  94,
+                                    "h":  9,
+                                    "x":  0
+                                },
+                      "ssim":  0.7759,
+                      "page":  1,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page01-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  105,
+                                    "w":  1212,
+                                    "h":  1778,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0176,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page02.png",
+                      "textDetailMismatchRatio":  0.0634,
+                      "rmse":  50.29,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page02.png",
+                      "normalizedMae":  0.0506,
+                      "totalPixels":  2772000,
+                      "mae":  12.9,
+                      "mismatchPixelCount":  224715,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page02-diff.png",
+                      "mismatchRatio":  0.0811,
+                      "bbox2":  {
+                                    "y":  94,
+                                    "w":  1212,
+                                    "h":  1792,
+                                    "x":  94
+                                },
+                      "delta":  {
+                                    "y":  -2,
+                                    "w":  0,
+                                    "h":  3,
+                                    "x":  0
+                                },
+                      "ssim":  0.8619,
+                      "page":  2,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page02-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  96,
+                                    "w":  1212,
+                                    "h":  1789,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0266,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page03.png",
+                      "textDetailMismatchRatio":  0.0836,
+                      "rmse":  48.01,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page03.png",
+                      "normalizedMae":  0.0558,
+                      "totalPixels":  2772000,
+                      "mae":  14.24,
+                      "mismatchPixelCount":  305438,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page03-diff.png",
+                      "mismatchRatio":  0.1102,
+                      "bbox2":  {
+                                    "y":  94,
+                                    "w":  1212,
+                                    "h":  1792,
+                                    "x":  94
+                                },
+                      "delta":  {
+                                    "y":  -2,
+                                    "w":  0,
+                                    "h":  3,
+                                    "x":  0
+                                },
+                      "ssim":  0.8435,
+                      "page":  3,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page03-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  96,
+                                    "w":  1212,
+                                    "h":  1789,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0273,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page04.png",
+                      "textDetailMismatchRatio":  0.0934,
+                      "rmse":  53.71,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page04.png",
+                      "normalizedMae":  0.0661,
+                      "totalPixels":  2772000,
+                      "mae":  16.86,
+                      "mismatchPixelCount":  334670,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page04-diff.png",
+                      "mismatchRatio":  0.1207,
+                      "bbox2":  {
+                                    "y":  84,
+                                    "w":  1317,
+                                    "h":  1812,
+                                    "x":  83
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  77,
+                                    "h":  2,
+                                    "x":  0
+                                },
+                      "ssim":  0.853,
+                      "page":  4,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page04-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1240,
+                                    "h":  1810,
+                                    "x":  83
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0394,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page05.png",
+                      "textDetailMismatchRatio":  0.1204,
+                      "rmse":  57.76,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page05.png",
+                      "normalizedMae":  0.0833,
+                      "totalPixels":  2772000,
+                      "mae":  21.24,
+                      "mismatchPixelCount":  443172,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page05-diff.png",
+                      "mismatchRatio":  0.1599,
+                      "bbox2":  {
+                                    "y":  84,
+                                    "w":  1317,
+                                    "h":  1812,
+                                    "x":  83
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  77,
+                                    "h":  2,
+                                    "x":  0
+                                },
+                      "ssim":  0.8487,
+                      "page":  5,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page05-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1240,
+                                    "h":  1810,
+                                    "x":  83
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0213,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page06.png",
+                      "textDetailMismatchRatio":  0.0575,
+                      "rmse":  40.18,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page06.png",
+                      "normalizedMae":  0.0396,
+                      "totalPixels":  2772000,
+                      "mae":  10.11,
+                      "mismatchPixelCount":  218587,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page06-diff.png",
+                      "mismatchRatio":  0.0789,
+                      "bbox2":  {
+                                    "y":  84,
+                                    "w":  1316,
+                                    "h":  1812,
+                                    "x":  84
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  77,
+                                    "h":  2,
+                                    "x":  0
+                                },
+                      "ssim":  0.8825,
+                      "page":  6,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page06-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1239,
+                                    "h":  1810,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0973,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page07.png",
+                      "textDetailMismatchRatio":  0.0509,
+                      "rmse":  40.83,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page07.png",
+                      "normalizedMae":  0.0461,
+                      "totalPixels":  2772000,
+                      "mae":  11.75,
+                      "mismatchPixelCount":  410893,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page07-diff.png",
+                      "mismatchRatio":  0.1482,
+                      "bbox2":  {
+                                    "y":  98,
+                                    "w":  1232,
+                                    "h":  1812,
+                                    "x":  84
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  -1,
+                                    "h":  1,
+                                    "x":  0
+                                },
+                      "ssim":  0.7841,
+                      "page":  7,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page07-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0097,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page08.png",
+                      "textDetailMismatchRatio":  0.1378,
+                      "rmse":  71.6,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page08.png",
+                      "normalizedMae":  0.1037,
+                      "totalPixels":  2772000,
+                      "mae":  26.45,
+                      "mismatchPixelCount":  409010,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page08-diff.png",
+                      "mismatchRatio":  0.1476,
+                      "bbox2":  {
+                                    "y":  98,
+                                    "w":  1316,
+                                    "h":  1812,
+                                    "x":  84
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  83,
+                                    "h":  1,
+                                    "x":  0
+                                },
+                      "ssim":  0.8325,
+                      "page":  8,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page08-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0134,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report1\\ref-Page09.png",
+                      "textDetailMismatchRatio":  0.1601,
+                      "rmse":  61.04,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\canvas_report1\\canvas-Page09.png",
+                      "normalizedMae":  0.0958,
+                      "totalPixels":  2772000,
+                      "mae":  24.43,
+                      "mismatchPixelCount":  480914,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page09-diff.png",
+                      "mismatchRatio":  0.1735,
+                      "bbox2":  {
+                                    "y":  98,
+                                    "w":  1316,
+                                    "h":  1812,
+                                    "x":  84
+                                },
+                      "delta":  {
+                                    "y":  -1,
+                                    "w":  83,
+                                    "h":  1,
+                                    "x":  0
+                                },
+                      "ssim":  0.82,
+                      "page":  9,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\baseline_canvas_vs_ref_report1\\Page09-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  }
+              ],
+    "meanMae":  18.03,
+    "refPages":  9,
+    "minSsim":  0.7759,
+    "meanMismatchRatio":  0.1378,
+    "worstPage":  1,
+    "testPages":  9
+}

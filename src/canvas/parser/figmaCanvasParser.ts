@@ -235,6 +235,11 @@ export class FigmaCanvasParser {
           const style = this.extractStyle(child, scaleX);
           const align = this.extractTextAlign(child);
 
+          // For Figma TEXT nodes, 'fills' represents character font colors (stored in textRuns),
+          // NOT a container background fill. Remove fillColor so the text box has a transparent background.
+          delete style.fillColor;
+          delete style.fillOpacity;
+
           elements.push({
             id: child.id,
             name: child.name,

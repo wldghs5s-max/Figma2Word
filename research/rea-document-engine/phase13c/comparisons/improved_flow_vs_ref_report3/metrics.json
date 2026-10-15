@@ -1,0 +1,364 @@
+﻿{
+    "totalComparedPages":  10,
+    "pageCountMatch":  true,
+    "reportName":  "Flow vs Ref Report 3",
+    "meanSsim":  0.6873,
+    "pages":  [
+                  {
+                      "backgroundMismatchRatio":  0.1326,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page01.png",
+                      "textDetailMismatchRatio":  0.1922,
+                      "rmse":  71.81,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page01.png",
+                      "normalizedMae":  0.1357,
+                      "totalPixels":  2772000,
+                      "mae":  34.6,
+                      "mismatchPixelCount":  900377,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page01-diff.png",
+                      "mismatchRatio":  0.3248,
+                      "bbox2":  {
+                                    "y":  38,
+                                    "w":  1294,
+                                    "h":  1249,
+                                    "x":  53
+                                },
+                      "delta":  {
+                                    "y":  -67,
+                                    "w":  82,
+                                    "h":  -529,
+                                    "x":  -41
+                                },
+                      "ssim":  0.6888,
+                      "page":  1,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page01-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  105,
+                                    "w":  1212,
+                                    "h":  1778,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0565,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page02.png",
+                      "textDetailMismatchRatio":  0.0309,
+                      "rmse":  31,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page02.png",
+                      "normalizedMae":  0.0259,
+                      "totalPixels":  2772000,
+                      "mae":  6.61,
+                      "mismatchPixelCount":  242228,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page02-diff.png",
+                      "mismatchRatio":  0.0874,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1294,
+                                    "h":  1329,
+                                    "x":  53
+                                },
+                      "delta":  {
+                                    "y":  -63,
+                                    "w":  82,
+                                    "h":  -460,
+                                    "x":  -41
+                                },
+                      "ssim":  0.8161,
+                      "page":  2,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page02-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  96,
+                                    "w":  1212,
+                                    "h":  1789,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0959,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page03.png",
+                      "textDetailMismatchRatio":  0.3102,
+                      "rmse":  112.29,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page03.png",
+                      "normalizedMae":  0.25,
+                      "totalPixels":  2772000,
+                      "mae":  63.76,
+                      "mismatchPixelCount":  1125470,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page03-diff.png",
+                      "mismatchRatio":  0.406,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1294,
+                                    "h":  1557,
+                                    "x":  53
+                                },
+                      "delta":  {
+                                    "y":  -63,
+                                    "w":  82,
+                                    "h":  -232,
+                                    "x":  -41
+                                },
+                      "ssim":  0.6215,
+                      "page":  3,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page03-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  96,
+                                    "w":  1212,
+                                    "h":  1789,
+                                    "x":  94
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.111,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page04.png",
+                      "textDetailMismatchRatio":  0.1574,
+                      "rmse":  76.09,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page04.png",
+                      "normalizedMae":  0.1256,
+                      "totalPixels":  2772000,
+                      "mae":  32.03,
+                      "mismatchPixelCount":  743891,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page04-diff.png",
+                      "mismatchRatio":  0.2684,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1254,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -52,
+                                    "w":  68,
+                                    "h":  -556,
+                                    "x":  -37
+                                },
+                      "ssim":  0.719,
+                      "page":  4,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page04-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1240,
+                                    "h":  1810,
+                                    "x":  83
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.1203,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page05.png",
+                      "textDetailMismatchRatio":  0.1651,
+                      "rmse":  57.06,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page05.png",
+                      "normalizedMae":  0.1035,
+                      "totalPixels":  2772000,
+                      "mae":  26.38,
+                      "mismatchPixelCount":  791074,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page05-diff.png",
+                      "mismatchRatio":  0.2854,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1832,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -52,
+                                    "w":  68,
+                                    "h":  22,
+                                    "x":  -37
+                                },
+                      "ssim":  0.7309,
+                      "page":  5,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page05-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1240,
+                                    "h":  1810,
+                                    "x":  83
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.179,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page06.png",
+                      "textDetailMismatchRatio":  0.0828,
+                      "rmse":  41.16,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page06.png",
+                      "normalizedMae":  0.0661,
+                      "totalPixels":  2772000,
+                      "mae":  16.85,
+                      "mismatchPixelCount":  725815,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page06-diff.png",
+                      "mismatchRatio":  0.2618,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1638,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -52,
+                                    "w":  69,
+                                    "h":  -172,
+                                    "x":  -38
+                                },
+                      "ssim":  0.7257,
+                      "page":  6,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page06-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  85,
+                                    "w":  1239,
+                                    "h":  1810,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0958,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page07.png",
+                      "textDetailMismatchRatio":  0.3785,
+                      "rmse":  94.3,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page07.png",
+                      "normalizedMae":  0.2231,
+                      "totalPixels":  2772000,
+                      "mae":  56.89,
+                      "mismatchPixelCount":  1314794,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page07-diff.png",
+                      "mismatchRatio":  0.4743,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1601,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -66,
+                                    "w":  75,
+                                    "h":  -210,
+                                    "x":  -38
+                                },
+                      "ssim":  0.5244,
+                      "page":  7,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page07-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.1709,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page08.png",
+                      "textDetailMismatchRatio":  0.1524,
+                      "rmse":  46.74,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page08.png",
+                      "normalizedMae":  0.0869,
+                      "totalPixels":  2772000,
+                      "mae":  22.16,
+                      "mismatchPixelCount":  896081,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page08-diff.png",
+                      "mismatchRatio":  0.3233,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1757,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -66,
+                                    "w":  77,
+                                    "h":  -54,
+                                    "x":  -39
+                                },
+                      "ssim":  0.5658,
+                      "page":  8,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page08-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1231,
+                                    "h":  1811,
+                                    "x":  85
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.095,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page09.png",
+                      "textDetailMismatchRatio":  0.0711,
+                      "rmse":  45.26,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page09.png",
+                      "normalizedMae":  0.0602,
+                      "totalPixels":  2772000,
+                      "mae":  15.34,
+                      "mismatchPixelCount":  460348,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page09-diff.png",
+                      "mismatchRatio":  0.1661,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1357,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -66,
+                                    "w":  75,
+                                    "h":  -454,
+                                    "x":  -38
+                                },
+                      "ssim":  0.7303,
+                      "page":  9,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page09-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  },
+                  {
+                      "backgroundMismatchRatio":  0.0296,
+                      "refImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\ref_report3\\ref-Page10.png",
+                      "textDetailMismatchRatio":  0.1477,
+                      "rmse":  64.16,
+                      "testImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\renders\\flow_report3\\flow-Page10.png",
+                      "normalizedMae":  0.1013,
+                      "totalPixels":  2772000,
+                      "mae":  25.84,
+                      "mismatchPixelCount":  491444,
+                      "diffImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page10-diff.png",
+                      "mismatchRatio":  0.1773,
+                      "bbox2":  {
+                                    "y":  33,
+                                    "w":  1308,
+                                    "h":  1105,
+                                    "x":  46
+                                },
+                      "delta":  {
+                                    "y":  -66,
+                                    "w":  75,
+                                    "h":  -706,
+                                    "x":  -38
+                                },
+                      "ssim":  0.7507,
+                      "page":  10,
+                      "overlayImage":  "C:\\Users\\77\\Documents\\Figma2Word\\research\\rea-document-engine\\phase13c\\comparisons\\improved_flow_vs_ref_report3\\Page10-overlay.png",
+                      "status":  "COMPARED",
+                      "bbox1":  {
+                                    "y":  99,
+                                    "w":  1233,
+                                    "h":  1811,
+                                    "x":  84
+                                }
+                  }
+              ],
+    "meanMae":  30.05,
+    "refPages":  10,
+    "minSsim":  0.5244,
+    "meanMismatchRatio":  0.2775,
+    "worstPage":  7,
+    "testPages":  10
+}
