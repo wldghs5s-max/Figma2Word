@@ -4,8 +4,10 @@ import {
   CanvasPage,
   CanvasElement,
   CanvasTextRun,
+  CanvasResource,
   ptToHwpu,
 } from "../types.js";
+import { SvgPath } from "../geometry/svgPathParser.js";
 
 export interface HwpxCanvasRendererOptions {
   creator?: string;
@@ -344,7 +346,8 @@ ${items}
           globalShapeId++,
           elem,
           imageBinMap,
-          getCharPrId
+          getCharPrId,
+          doc.resources
         );
         if (rendered) {
           shapesXml.push(`<hp:run>${rendered}</hp:run>`);
@@ -388,7 +391,8 @@ ${items}
     shapeId: number,
     elem: CanvasElement,
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
-    getCharPrId: (run: CanvasTextRun) => number
+    getCharPrId: (run: CanvasTextRun) => number,
+    resources?: Record<string, CanvasResource>
   ): string {
     const xHwpu = ptToHwpu(elem.bounds.x);
     const yHwpu = ptToHwpu(elem.bounds.y);
@@ -396,11 +400,80 @@ ${items}
     const hHwpu = Math.max(100, ptToHwpu(elem.bounds.height));
     const zOrder = elem.zIndex;
 
-    // 1. Image
+    // 1. Image with exact FILL Cover Crop & Aspect Ratio Clipping
     if (elem.type === "image" && elem.imageRef) {
       const binEntry = imageBinMap.get(elem.imageRef);
       if (binEntry) {
         const binId = binEntry.binId;
+        const res = resources?.[elem.imageRef];
+        let imgW = 0;
+        let imgH = 0;
+
+        if (res && res.data) {
+          const d = res.data;
+          const readU16 = (off: number) => ((d[off] || 0) << 8) | (d[off + 1] || 0);
+          const readU32 = (off: number) =>
+            (((d[off] || 0) << 24) >>> 0) +
+            ((d[off + 1] || 0) << 16) +
+            ((d[off + 2] || 0) << 8) +
+            (d[off + 3] || 0);
+
+          if (d.length >= 24 && d[0] === 0x89 && d[1] === 0x50 && d[2] === 0x4e && d[3] === 0x47) {
+            imgW = readU32(16);
+            imgH = readU32(20);
+          } else if (d.length >= 4 && d[0] === 0xff && d[1] === 0xd8) {
+            let offset = 2;
+            while (offset < d.length - 8) {
+              const marker = readU16(offset);
+              offset += 2;
+              if (marker === 0xffc0 || marker === 0xffc2) {
+                imgH = readU16(offset + 3);
+                imgW = readU16(offset + 5);
+                break;
+              }
+              const len = readU16(offset);
+              offset += len;
+            }
+          }
+        }
+
+        let dimW = wHwpu;
+        let dimH = hHwpu;
+        let clipLeft = 0;
+        let clipRight = wHwpu;
+        let clipTop = 0;
+        let clipBottom = hHwpu;
+
+        if (imgW > 0 && imgH > 0) {
+          dimW = Math.round(imgW * 100);
+          dimH = Math.round(imgH * 100);
+          const arImg = imgW / imgH;
+          const arBox = wHwpu / hHwpu;
+
+          if (arImg > arBox * 1.01) {
+            // Image is wider than container: crop left & right
+            const visW = dimH * arBox;
+            const cropX = (dimW - visW) / 2.0;
+            clipLeft = Math.round(cropX);
+            clipRight = Math.round(dimW - cropX);
+            clipTop = 0;
+            clipBottom = dimH;
+          } else if (arImg < arBox * 0.99) {
+            // Image is taller than container: crop top & bottom
+            const visH = dimW / arBox;
+            const cropY = (dimH - visH) / 2.0;
+            clipLeft = 0;
+            clipRight = dimW;
+            clipTop = Math.round(cropY);
+            clipBottom = Math.round(dimH - cropY);
+          } else {
+            clipLeft = 0;
+            clipRight = dimW;
+            clipTop = 0;
+            clipBottom = dimH;
+          }
+        }
+
         return `<hp:pic id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${wHwpu}" height="${hHwpu}"/>
@@ -415,8 +488,8 @@ ${items}
   <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
   <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:imgRect pt0_x="0" pt0_y="0" pt1_x="${wHwpu}" pt1_y="0" pt2_x="${wHwpu}" pt2_y="${hHwpu}" pt3_x="0" pt3_y="${hHwpu}"/>
-  <hp:imgClip left="0" right="${wHwpu}" top="0" bottom="${hHwpu}"/>
-  <hp:inImgDim dimwidth="${wHwpu}" dimheight="${hHwpu}"/>
+  <hp:imgClip left="${clipLeft}" right="${clipRight}" top="${clipTop}" bottom="${clipBottom}"/>
+  <hp:inImgDim dimwidth="${dimW}" dimheight="${dimH}"/>
   <hc:img binRef="${binId}"/>
 </hp:pic>`;
       }
@@ -473,23 +546,43 @@ ${items}
       });
 
       const drawName = escapeXml(elem.name || elem.id || "");
+      const vertAlignAttr =
+        elem.verticalAlign === "center" ? "CENTER" : elem.verticalAlign === "bottom" ? "BOTTOM" : "TOP";
+
       drawTextPart = `
   <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
-    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
       ${parasXml.join("\n      ")}
     </hp:subList>
   </hp:drawText>`;
     }
 
-    // 3. Vector Shape (KS X 6101 native hp:polygon)
+    // 3. Vector Shape (KS X 6101 native hp:polygon with multi-subpath and open-path support)
     if (elem.type === "vector") {
-      const pts = elem.vectorPoints || [];
-      const ptXml =
-        pts.length > 0
-          ? pts.map((p) => `<hp:pt x="${p.x}" y="${p.y}"/>`).join("\n  ")
-          : `<hp:pt x="0" y="0"/>\n  <hp:pt x="${shapeW}" y="0"/>\n  <hp:pt x="${shapeW}" y="${shapeH}"/>\n  <hp:pt x="0" y="${shapeH}"/>`;
+      let subpaths = elem.vectorSubpaths;
+      if (!subpaths || subpaths.length === 0) {
+        if (elem.rawSvgPath) {
+          subpaths = SvgPath.parse(elem.rawSvgPath).toHwpxSubpathsWithClosed(shapeW, shapeH);
+        } else if (elem.vectorPoints && elem.vectorPoints.length > 0) {
+          subpaths = [{ points: elem.vectorPoints, closed: true }];
+        }
+      }
 
-      return `<hp:polygon id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
+      if (subpaths && subpaths.length > 0) {
+        const renderedPolygons = subpaths.map((sp, idx) => {
+          const subId = `${shapeId}_${idx + 1}`;
+          const pts = sp.points;
+          const ptXml =
+            pts.length > 0
+              ? pts.map((p) => `<hp:pt x="${p.x}" y="${p.y}"/>`).join("\n  ")
+              : `<hp:pt x="0" y="0"/>\n  <hp:pt x="${shapeW}" y="0"/>\n  <hp:pt x="${shapeW}" y="${shapeH}"/>\n  <hp:pt x="0" y="${shapeH}"/>`;
+
+          const subFillBrush =
+            sp.closed && hasFill
+              ? fillBrush
+              : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
+
+          return `<hp:polygon id="${subId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${subId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${shapeW}" height="${shapeH}"/>
   <hp:curSz width="${shapeW}" height="${shapeH}"/>
@@ -502,14 +595,25 @@ ${items}
   </hp:renderingInfo>
   <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
   <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  ${fillBrush}
-  ${ptXml}${drawTextPart}
+  ${subFillBrush}
+  ${ptXml}${idx === 0 ? drawTextPart : ""}
 </hp:polygon>`;
+        });
+
+        return renderedPolygons.join("\n</hp:run>\n<hp:run>");
+      }
     }
 
-    const shapeTag = elem.type === "oval" ? "hp:oval" : "hp:rect";
+    const isOval = elem.type === "oval";
+    const shapeTag = isOval ? "hp:oval" : "hp:rect";
+    const cornerRadius = elem.style?.cornerRadius || 0;
+    const minDim = Math.min(elem.bounds.width, elem.bounds.height);
+    const ratio =
+      !isOval && cornerRadius > 0 && minDim > 0
+        ? Math.min(100, Math.max(0, Math.round((cornerRadius / (minDim / 2)) * 100)))
+        : 0;
 
-    return `<${shapeTag} id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
+    return `<${shapeTag} id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="${ratio}">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${shapeW}" height="${shapeH}"/>
   <hp:curSz width="${shapeW}" height="${shapeH}"/>

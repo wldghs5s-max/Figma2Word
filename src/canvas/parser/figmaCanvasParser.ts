@@ -70,12 +70,19 @@ export class FigmaCanvasParser {
       pages.push(page);
     }
 
+    const primaryWidthPt = pages.length > 0 ? pages[0].bounds.width : 595.28;
+    const primaryHeightPt = pages.length > 0 ? pages[0].bounds.height : 841.89;
+    const isLandscape = primaryWidthPt > primaryHeightPt;
+    const isA4 = Math.abs(primaryWidthPt * primaryHeightPt - 595.28 * 841.89) < 200;
+    const pageSizeName = isA4 ? "A4" : "Custom";
+
     return {
       title: documentName,
       pageSize: {
-        name: "A4",
-        widthPt: 595.28,
-        heightPt: 841.89,
+        name: pageSizeName,
+        widthPt: Number(primaryWidthPt.toFixed(2)),
+        heightPt: Number(primaryHeightPt.toFixed(2)),
+        orientation: isLandscape ? "landscape" : "portrait",
         unit: "pt",
       },
       marginsPt: {
@@ -237,6 +244,16 @@ export class FigmaCanvasParser {
           const style = this.extractStyle(child, scaleX);
           const align = this.extractTextAlign(child);
 
+          let verticalAlign: "top" | "center" | "bottom" | undefined;
+          const vAlignRaw = child.style?.textAlignVertical || (child as any).textAlignVertical;
+          if (vAlignRaw === "CENTER") {
+            verticalAlign = "center";
+          } else if (vAlignRaw === "BOTTOM") {
+            verticalAlign = "bottom";
+          } else if (vAlignRaw === "TOP") {
+            verticalAlign = "top";
+          }
+
           // For Figma TEXT nodes, 'fills' represents character font colors (stored in textRuns),
           // NOT a container background fill. Remove fillColor so the text box has a transparent background.
           delete style.fillColor;
@@ -253,6 +270,7 @@ export class FigmaCanvasParser {
             style,
             textRuns,
             paragraphAlign: align,
+            verticalAlign,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
@@ -329,13 +347,15 @@ export class FigmaCanvasParser {
 
             let vmlPath = "";
             let vectorPoints: { x: number; y: number }[] | undefined;
+            let vectorSubpaths: { points: { x: number; y: number }[]; closed: boolean }[] | undefined;
 
             if (rawPath) {
               const parsed = SvgPath.parse(rawPath);
               vmlPath = parsed.toVmlPath(1000, 1000);
               const wHwpu = Math.max(10, Math.round(wPt * 100));
               const hHwpu = Math.max(10, Math.round(hPt * 100));
-              vectorPoints = parsed.toHwpxPolygonPoints(wHwpu, hHwpu);
+              vectorSubpaths = parsed.toHwpxSubpathsWithClosed(wHwpu, hHwpu);
+              vectorPoints = vectorSubpaths.flatMap((s) => s.points);
             }
 
             elements.push({
@@ -350,6 +370,7 @@ export class FigmaCanvasParser {
               vectorPath: vmlPath,
               rawSvgPath: rawPath,
               vectorPoints,
+              vectorSubpaths,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
             });

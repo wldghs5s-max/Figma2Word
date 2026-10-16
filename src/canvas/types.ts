@@ -223,6 +223,7 @@ export interface CanvasElement {
   // Text details
   textRuns?: CanvasTextRun[];
   paragraphAlign?: "left" | "center" | "right" | "justify";
+  verticalAlign?: "top" | "center" | "bottom";
   innerPaddingPt?: CanvasPadding;
 
   // Image details
@@ -232,6 +233,7 @@ export interface CanvasElement {
   vectorPath?: string; // Normalized VML path string (coordsize="1000,1000")
   rawSvgPath?: string; // Original SVG path string
   vectorPoints?: { x: number; y: number }[]; // Sampled polygon points for HWPX (<hp:polygon>)
+  vectorSubpaths?: CanvasVectorSubpath[]; // Discrete subpaths for HWPX to avoid spurious connecting lines
 
   // Structured Table details
   tableData?: CanvasTableData;
@@ -240,6 +242,11 @@ export interface CanvasElement {
   sourceNodeId?: string;
   sourceNodeType?: string;
   unsupportedProperties?: string[];
+}
+
+export interface CanvasVectorSubpath {
+  points: { x: number; y: number }[];
+  closed: boolean;
 }
 
 export interface CanvasPage {
@@ -264,6 +271,7 @@ export interface CanvasDocument {
     name: "A4" | "Letter" | "Custom";
     widthPt: number;
     heightPt: number;
+    orientation?: "portrait" | "landscape";
     unit: "pt";
   };
   marginsPt: {

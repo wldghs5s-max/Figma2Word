@@ -539,8 +539,9 @@ export class DocxCanvasRenderer {
         ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="exact"/>`
         : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
 
+      const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
       textboxContentXml = `
-      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none" ${insetAttr}>
+      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;${vAnchor}" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>

@@ -608,23 +608,24 @@ export class SvgPath {
   }
 
   /**
-   * Sample path into separate subpaths for HWPX, preserving multi-contour shapes.
+   * Decomposes SVG path into discrete subpaths for HWPX, tracking whether each subpath is closed (Z).
    */
-  public toHwpxSubpaths(
+  public toHwpxSubpathsWithClosed(
     targetWidthHwpu: number,
     targetHeightHwpu: number,
     stepsPerCurve = 6
-  ): Point2D[][] {
+  ): { points: Point2D[]; closed: boolean }[] {
     if (this.commands.length === 0) {
       return [];
     }
 
     const bounds = this.getBounds();
-    const scaleX = targetWidthHwpu / bounds.width;
-    const scaleY = targetHeightHwpu / bounds.height;
+    const scaleX = bounds.width > 0 ? targetWidthHwpu / bounds.width : 1;
+    const scaleY = bounds.height > 0 ? targetHeightHwpu / bounds.height : 1;
 
-    const subpaths: Point2D[][] = [];
+    const subpaths: { points: Point2D[]; closed: boolean }[] = [];
     let currentPath: Point2D[] = [];
+    let isClosed = false;
     let curX = bounds.minX;
     let curY = bounds.minY;
 
@@ -632,8 +633,9 @@ export class SvgPath {
       switch (cmd.type) {
         case "M": {
           if (currentPath.length > 0) {
-            subpaths.push(currentPath);
+            subpaths.push({ points: currentPath, closed: isClosed });
             currentPath = [];
+            isClosed = false;
           }
           const p = cmd.points[0];
           curX = p.x;
@@ -677,9 +679,11 @@ export class SvgPath {
           break;
         }
         case "Z": {
+          isClosed = true;
           if (currentPath.length > 0) {
-            subpaths.push(currentPath);
+            subpaths.push({ points: currentPath, closed: true });
             currentPath = [];
+            isClosed = false;
           }
           break;
         }
@@ -687,10 +691,23 @@ export class SvgPath {
     }
 
     if (currentPath.length > 0) {
-      subpaths.push(currentPath);
+      subpaths.push({ points: currentPath, closed: isClosed });
     }
 
     return subpaths;
+  }
+
+  /**
+   * Decomposes SVG path into discrete subpaths for HWPX to avoid spurious connecting lines.
+   */
+  public toHwpxSubpaths(
+    targetWidthHwpu: number,
+    targetHeightHwpu: number,
+    stepsPerCurve = 6
+  ): Point2D[][] {
+    return this.toHwpxSubpathsWithClosed(targetWidthHwpu, targetHeightHwpu, stepsPerCurve).map(
+      (sp) => sp.points
+    );
   }
 
   /**
