@@ -12,9 +12,15 @@
     "convert:url": "tsx src/cli.ts --url",
     "generate-fixtures": "tsx src/fixtures/generate.ts",
     "dev:web": "npm --prefix apps/web run dev",
-    "build:web": "npm --prefix apps/web run build"
+    "build:web": "npm --prefix apps/web run build",
+    "test:e2e": "playwright test"
   },
-  "keywords": ["figma", "docx", "word", "document-converter"],
+  "keywords": [
+    "figma",
+    "docx",
+    "word",
+    "document-converter"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -23,6 +29,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

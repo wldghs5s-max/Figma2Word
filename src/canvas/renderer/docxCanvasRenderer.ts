@@ -261,16 +261,42 @@ export class DocxCanvasRenderer {
         }
       }
 
-      // Page break & paragraph properties
-      const pageBreakBeforeXml =
-        pIdx > 0 ? "<w:pageBreakBefore/>" : '<w:pageBreakBefore w:val="0"/>';
+      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt;
+      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt;
+      const curWidthTwips = ptToTwip(pageWidthPt);
+      const curHeightTwips = ptToTwip(pageHeightPt);
+      const curIsLandscape = pageWidthPt > pageHeightPt;
+      const curOrient = curIsLandscape ? "landscape" : "portrait";
 
-      const pPrXml = `<w:pPr>
+      const nextPage = pIdx < doc.pages.length - 1 ? doc.pages[pIdx + 1] : undefined;
+      const nextWidthPt = nextPage ? (nextPage.bounds.width || doc.pageSize.widthPt) : undefined;
+      const nextHeightPt = nextPage ? (nextPage.bounds.height || doc.pageSize.heightPt) : undefined;
+      const nextDiffers =
+        nextPage !== undefined &&
+        (Math.abs(pageWidthPt - nextWidthPt!) > 1 || Math.abs(pageHeightPt - nextHeightPt!) > 1);
+
+      let pPrXml = "";
+      if (nextDiffers) {
+        pPrXml = `<w:pPr>
+  <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
+  <w:autoSpaceDE w:val="0"/>
+  <w:autoSpaceDN w:val="0"/>
+  <w:sectPr>
+    <w:type w:val="nextPage"/>
+    <w:pgSz w:w="${curWidthTwips}" w:h="${curHeightTwips}" w:orient="${curOrient}"/>
+    <w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/>
+  </w:sectPr>
+</w:pPr>`;
+      } else {
+        const pageBreakBeforeXml =
+          pIdx > 0 ? "<w:pageBreakBefore/>" : '<w:pageBreakBefore w:val="0"/>';
+        pPrXml = `<w:pPr>
   ${pageBreakBeforeXml}
   <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
   <w:autoSpaceDE w:val="0"/>
   <w:autoSpaceDN w:val="0"/>
 </w:pPr>`;
+      }
 
       pageParagraphs.push(`<w:p>
   ${pPrXml}
@@ -278,11 +304,16 @@ export class DocxCanvasRenderer {
 </w:p>`);
     }
 
-    // Section properties (dynamic size and orientation)
-    const isLandscape = doc.pageSize.widthPt > doc.pageSize.heightPt;
+    // Section properties (dynamic size and orientation for final section)
+    const lastPage = doc.pages.length > 0 ? doc.pages[doc.pages.length - 1] : undefined;
+    const lastWidthPt = lastPage ? (lastPage.bounds.width || doc.pageSize.widthPt) : doc.pageSize.widthPt;
+    const lastHeightPt = lastPage ? (lastPage.bounds.height || doc.pageSize.heightPt) : doc.pageSize.heightPt;
+    const finalWidthTwips = ptToTwip(lastWidthPt);
+    const finalHeightTwips = ptToTwip(lastHeightPt);
+    const isLandscape = lastWidthPt > lastHeightPt;
     const orient = isLandscape ? "landscape" : "portrait";
     const sectPrXml = `<w:sectPr>
-  <w:pgSz w:w="${widthTwips}" w:h="${heightTwips}" w:orient="${orient}"/>
+  <w:pgSz w:w="${finalWidthTwips}" w:h="${finalHeightTwips}" w:orient="${orient}"/>
   <w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/>
 </w:sectPr>`;
 

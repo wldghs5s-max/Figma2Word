@@ -354,18 +354,27 @@ ${items}
         }
       }
 
-      // Dynamic page size and orientation
-      const isLandscape = doc.pageSize.widthPt > doc.pageSize.heightPt;
+      // Dynamic page size and orientation (per page)
+      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt;
+      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt;
+      const isLandscape = pageWidthPt > pageHeightPt;
       const landscapeAttr = isLandscape ? "WIDELY" : "NARROWLY";
-      const widthHwpu = Math.round(doc.pageSize.widthPt * 100);
-      const heightHwpu = Math.round(doc.pageSize.heightPt * 100);
+      const widthHwpu = Math.round(pageWidthPt * 100);
+      const heightHwpu = Math.round(pageHeightPt * 100);
 
-      // First page includes secPr
+      // First page includes secPr, as well as any page where dimensions/orientation differ from previous
+      const prevPage = pIdx > 0 ? doc.pages[pIdx - 1] : undefined;
+      const prevWidthPt = prevPage ? (prevPage.bounds.width || doc.pageSize.widthPt) : undefined;
+      const prevHeightPt = prevPage ? (prevPage.bounds.height || doc.pageSize.heightPt) : undefined;
+      const orientationChanged =
+        prevWidthPt !== undefined &&
+        (Math.abs(prevWidthPt - pageWidthPt) > 1 || Math.abs(prevHeightPt! - pageHeightPt) > 1);
+
       const secPrXml =
-        pIdx === 0
-          ? `<hp:secPr id="0" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" outlineShapeIDRef="0" memoShapeIDRef="0" textVerticalWidthHead="0">
+        pIdx === 0 || orientationChanged
+          ? `<hp:secPr id="${pIdx}" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" outlineShapeIDRef="0" memoShapeIDRef="0" textVerticalWidthHead="0">
   <hp:grid char="0" line="0"/>
-  <hp:startNum pageStartsOn="BOTH" page="1" pic="1" tbl="1" equation="1"/>
+  <hp:startNum pageStartsOn="BOTH" page="${pIdx + 1}" pic="1" tbl="1" equation="1"/>
   <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="SHOW_ALL" fill="SHOW_ALL" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
   <hp:pagePr landscape="${landscapeAttr}" width="${widthHwpu}" height="${heightHwpu}" gutterType="LEFT_ONLY">
     <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
@@ -445,8 +454,8 @@ ${items}
         let clipBottom = hHwpu;
 
         if (imgW > 0 && imgH > 0) {
-          dimW = Math.round(imgW * 100);
-          dimH = Math.round(imgH * 100);
+          dimW = Math.round(imgW * 75);
+          dimH = Math.round(imgH * 75);
           const arImg = imgW / imgH;
           const arBox = wHwpu / hHwpu;
 
@@ -489,13 +498,38 @@ ${items}
   <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:imgRect pt0_x="0" pt0_y="0" pt1_x="${wHwpu}" pt1_y="0" pt2_x="${wHwpu}" pt2_y="${hHwpu}" pt3_x="0" pt3_y="${hHwpu}"/>
   <hp:imgClip left="${clipLeft}" right="${clipRight}" top="${clipTop}" bottom="${clipBottom}"/>
+  <hp:imgDim dimwidth="${dimW}" dimheight="${dimH}"/>
   <hp:inImgDim dimwidth="${dimW}" dimheight="${dimH}"/>
-  <hc:img binRef="${binId}"/>
+  <hc:img binaryItemIDRef="${binId}" binRef="${binId}" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/>
 </hp:pic>`;
       }
     }
 
-    // 2. Card / Rect / Textbox
+    // 2. Line (KS X 6101 native hp:line)
+    if (elem.type === "line") {
+      const strokeColor = cleanHex(elem.style.strokeColor, "000000");
+      const strokeW = Math.max(10, Math.round((elem.style.strokeWidth || 1) * 10)).toString();
+      const lineShapeW = Math.max(1, wHwpu);
+      const lineShapeH = Math.max(0, hHwpu);
+      return `<hp:line id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" isReverseHWP97="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${lineShapeW}" height="${lineShapeH}"/>
+  <hp:curSz width="${lineShapeW}" height="${lineShapeH}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(lineShapeW / 2)}" centerY="${Math.round(lineShapeH / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
+  <hp:lineShape color="#${strokeColor}" width="${strokeW}" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:pt0 x="0" y="0"/>
+  <hp:pt1 x="${lineShapeW}" y="${lineShapeH}"/>
+</hp:line>`;
+    }
+
+    // 3. Card / Rect / Textbox
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
     const hasFill = !!elem.style.fillColor;
     const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
@@ -508,9 +542,8 @@ ${items}
       ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
       : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
 
-    const isLine = elem.type === "line";
-    const shapeW = isLine ? Math.max(10, wHwpu) : wHwpu;
-    const shapeH = isLine ? Math.max(10, hHwpu) : hHwpu;
+    const shapeW = wHwpu;
+    const shapeH = hHwpu;
 
     let drawTextPart = "";
     if (isText && elem.textRuns && elem.textRuns.length > 0) {
@@ -557,7 +590,7 @@ ${items}
   </hp:drawText>`;
     }
 
-    // 3. Vector Shape (KS X 6101 native hp:polygon with multi-subpath and open-path support)
+    // 4. Vector Shape (KS X 6101 native hp:polygon / hp:line with multi-subpath and open-path support)
     if (elem.type === "vector") {
       let subpaths = elem.vectorSubpaths;
       if (!subpaths || subpaths.length === 0) {
@@ -610,7 +643,7 @@ ${items}
     const minDim = Math.min(elem.bounds.width, elem.bounds.height);
     const ratio =
       !isOval && cornerRadius > 0 && minDim > 0
-        ? Math.min(100, Math.max(0, Math.round((cornerRadius / (minDim / 2)) * 100)))
+        ? Math.min(50, Math.max(0, Math.round((cornerRadius / (minDim / 2)) * 50)))
         : 0;
 
     return `<${shapeTag} id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="${ratio}">

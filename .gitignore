@@ -13,6 +13,8 @@ output/
 temp/
 debug/
 scratch/
+test-results/
+playwright-report/
 word/
 완성본-*/
 *.hwpx
