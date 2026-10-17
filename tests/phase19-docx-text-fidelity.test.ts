@@ -534,4 +534,152 @@ describe("Phase 19: DOCX Text Fidelity Finalization Suite", () => {
     // Multi-line paragraph must have mso-wrap-style:square to wrap inside 450pt
     expect(xml).toMatch(/alt="multi_paragraph_height"[^>]*style="[^"]*mso-wrap-style:square/);
   });
+
+  it("Item 12: individualStrokeWeights renders single line dividers instead of 4-sided boxes", async () => {
+    const parser = new FigmaCanvasParser({ scalePolicy: "fit-a4" });
+    const figmaJson = {
+      id: "root",
+      name: "Page with Dividers",
+      type: "FRAME",
+      absoluteBoundingBox: { x: 0, y: 0, width: 794, height: 1123 },
+      children: [
+        // Page header: bottom border only
+        {
+          id: "header_divider",
+          name: "PageHeader",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 50, y: 20, width: 694, height: 20 },
+          strokes: [{ type: "SOLID", color: { r: 0.8, g: 0.8, b: 0.8, a: 1 } }],
+          strokeWeight: 1,
+          individualStrokeWeights: { top: 0, right: 0, bottom: 1, left: 0 },
+          children: [],
+        },
+        // Page footer: top border only
+        {
+          id: "footer_divider",
+          name: "PageFooter",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 50, y: 1080, width: 694, height: 25 },
+          strokes: [{ type: "SOLID", color: { r: 0.8, g: 0.8, b: 0.8, a: 1 } }],
+          strokeWeight: 1,
+          individualStrokeWeights: { top: 1, right: 0, bottom: 0, left: 0 },
+          children: [],
+        },
+        // Table cell: background fill with left border divider
+        {
+          id: "cell_left_border",
+          name: "TableCell",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 200, y: 100, width: 120, height: 40 },
+          fills: [{ type: "SOLID", color: { r: 0.95, g: 0.95, b: 0.95, a: 1 } }],
+          strokes: [{ type: "SOLID", color: { r: 0.7, g: 0.7, b: 0.7, a: 1 } }],
+          strokeWeight: 1,
+          individualStrokeWeights: { top: 0, right: 0, bottom: 0, left: 1 },
+          children: [],
+        },
+        // Zero stroke weight frame: should NOT render any stroke
+        {
+          id: "zero_stroke_frame",
+          name: "ZeroStrokeFrame",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 50, y: 200, width: 200, height: 40 },
+          strokes: [{ type: "SOLID", color: { r: 0.5, g: 0.5, b: 0.5, a: 1 } }],
+          strokeWeight: 0,
+          children: [],
+        },
+      ],
+    };
+
+    const canvasDoc = parser.parse(figmaJson as any);
+    const elements = canvasDoc.pages[0].elements;
+
+    // Header: must emit a single line at bottom, no 4-sided card
+    const headerLines = elements.filter((e) => e.sourceNodeId === "header_divider" && e.type === "line");
+    const headerCards = elements.filter((e) => e.sourceNodeId === "header_divider" && e.type === "card");
+    expect(headerLines.length).toBe(1);
+    expect(headerCards.length).toBe(0);
+
+    // Footer: must emit a single line at top, no 4-sided card
+    const footerLines = elements.filter((e) => e.sourceNodeId === "footer_divider" && e.type === "line");
+    const footerCards = elements.filter((e) => e.sourceNodeId === "footer_divider" && e.type === "card");
+    expect(footerLines.length).toBe(1);
+    expect(footerCards.length).toBe(0);
+
+    // Table cell: must emit 1 fill card (fill-only) and 1 left line divider
+    const cellCards = elements.filter((e) => e.sourceNodeId === "cell_left_border" && e.type === "card");
+    const cellLines = elements.filter((e) => e.sourceNodeId === "cell_left_border" && e.type === "line");
+    expect(cellCards.length).toBe(1);
+    expect(cellCards[0].style.strokeColor).toBeUndefined();
+    expect(cellLines.length).toBe(1);
+
+    // Zero stroke frame: no card and no line
+    const zeroElements = elements.filter((e) => e.sourceNodeId === "zero_stroke_frame");
+    expect(zeroElements.length).toBe(0);
+
+    // Verify DOCX rendering output
+    const buf = await docxRenderer.renderToBuffer(canvasDoc);
+    const zip = await JSZip.loadAsync(buf);
+    const xml = await zip.file("word/document.xml")!.async("string");
+
+    // Header & footer must render as <v:line>
+    expect(xml).toContain('o:title="PageHeader_bottom"');
+    expect(xml).toContain('o:title="PageFooter_top"');
+    expect(xml).toContain('o:title="TableCell_left"');
+  });
+
+  it("Item 13: Overlaid text in container badges and cells is vertically centered with v-text-anchor:middle", async () => {
+    const parser = new FigmaCanvasParser({ scalePolicy: "fit-a4" });
+    const figmaJson = {
+      id: "root",
+      name: "Badge Page",
+      type: "FRAME",
+      absoluteBoundingBox: { x: 0, y: 0, width: 794, height: 1123 },
+      children: [
+        {
+          id: "badge_container",
+          name: "StatusBadge",
+          type: "FRAME",
+          absoluteBoundingBox: { x: 100, y: 100, width: 80, height: 28 },
+          layoutMode: "HORIZONTAL",
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingTop: 6,
+          paddingBottom: 6,
+          fills: [{ type: "SOLID", color: { r: 0.2, g: 0.3, b: 0.8, a: 1 } }],
+          children: [
+            {
+              id: "badge_text",
+              name: "1차 진단",
+              type: "TEXT",
+              characters: "1차 진단",
+              absoluteBoundingBox: { x: 112, y: 106, width: 56, height: 16 },
+              style: {
+                fontFamily: "Inter",
+                fontSize: 13,
+                textAlignVertical: "TOP",
+                textAutoResize: "WIDTH_AND_HEIGHT",
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const canvasDoc = parser.parse(figmaJson as any);
+    const textElem = canvasDoc.pages[0].elements.find((e) => e.id === "badge_text")!;
+    expect(textElem).toBeDefined();
+    // Must be detected as vertically centered
+    expect(textElem.verticalAlign).toBe("center");
+    // Height must span the parent container
+    expect(textElem.bounds.height).toBeCloseTo(28 * (595.28 / 794), 1);
+    expect(textElem.contentHeightPt).toBeCloseTo(16 * (595.28 / 794), 1);
+
+    const buf = await docxRenderer.renderToBuffer(canvasDoc);
+    const zip = await JSZip.loadAsync(buf);
+    const xml = await zip.file("word/document.xml")!.async("string");
+
+    // Must have v-text-anchor:middle and mso-fit-shape-to-text:f to preserve vertical centering
+    expect(xml).toContain("v-text-anchor:middle");
+    expect(xml).toContain("mso-fit-shape-to-text:f");
+  });
 });

@@ -157,6 +157,13 @@ export interface CanvasBounds {
   height: number; // pt
 }
 
+export interface CanvasBorderSides {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
 export interface CanvasStyle {
   fillColor?: string; // hex '#RRGGBB'
   fillOpacity?: number; // 0.0 ~ 1.0
@@ -165,6 +172,7 @@ export interface CanvasStyle {
   strokeDashed?: boolean;
   cornerRadius?: number; // pt
   cornerRadii?: [number, number, number, number]; // [tl, tr, br, bl] in pt
+  borderSides?: CanvasBorderSides;
 }
 
 export interface CanvasTextRun {
@@ -234,6 +242,7 @@ export interface CanvasElement {
   verticalAlign?: "top" | "center" | "bottom";
   innerPaddingPt?: CanvasPadding;
   textAutoResize?: "NONE" | "HEIGHT" | "WIDTH_AND_HEIGHT" | "TRUNCATE";
+  contentHeightPt?: number;
 
   // Image details
   imageRef?: string; // key into CanvasDocument.resources

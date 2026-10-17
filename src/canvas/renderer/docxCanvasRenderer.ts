@@ -392,7 +392,8 @@ export class DocxCanvasRenderer {
         const maxFontSize = Math.max(...elem.textRuns!.map((r) => r.fontSizePt || 12));
         const firstLineHeight =
           elem.textRuns!.find((r) => r.lineHeightPt)?.lineHeightPt || maxFontSize * 1.25;
-        const estimatedLines = elem.bounds.height / firstLineHeight;
+        const evalHeight = elem.contentHeightPt || elem.bounds.height;
+        const estimatedLines = evalHeight / firstLineHeight;
         const totalChars = elem.textRuns!.reduce((sum, r) => sum + (r.text?.length || 0), 0);
 
         const isMultiLineBox =
@@ -686,10 +687,12 @@ export class DocxCanvasRenderer {
       const isPureText = elem.type === "text" && !hasFill && !hasStroke;
 
       // Auto-fit height for pure text elements (or elements with auto-resize), fixed height for cards/buttons
+      // For vertically centered elements (v-text-anchor:middle), keep fixed height so Word anchors to middle
       const shouldFitHeight =
-        isPureText ||
-        elem.textAutoResize === "HEIGHT" ||
-        elem.textAutoResize === "WIDTH_AND_HEIGHT";
+        elem.verticalAlign !== "center" &&
+        (isPureText ||
+          elem.textAutoResize === "HEIGHT" ||
+          elem.textAutoResize === "WIDTH_AND_HEIGHT");
       const fitTextAttr =
         shouldFitHeight && !hasFill && !hasStroke
           ? "mso-fit-shape-to-text:t"

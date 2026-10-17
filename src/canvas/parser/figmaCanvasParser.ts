@@ -511,6 +511,38 @@ export class FigmaCanvasParser {
             verticalAlign = "top";
           }
 
+          let isCenteredInParent = false;
+          let textYPt = yPt;
+          let textHPt = hPt;
+          const parentBox = node.absoluteBoundingBox;
+
+          // Check if text is vertically centered in parent container (badge, button, table cell, row)
+          if (
+            node.id !== frame.id &&
+            parentBox &&
+            childBox &&
+            parentBox.height < 600 &&
+            parentBox.height > childBox.height + 2
+          ) {
+            const topGap = childBox.y - parentBox.y;
+            const bottomGap = (parentBox.y + parentBox.height) - (childBox.y + childBox.height);
+            const isSymmetric = Math.abs(topGap - bottomGap) <= 2.5;
+
+            // Only consider centered if parent is NOT a vertical stack of multiple children
+            const isVerticalStack =
+              (node as any).layoutMode === "VERTICAL" &&
+              node.children &&
+              node.children.length > 1;
+
+            if (isSymmetric && !isVerticalStack) {
+              isCenteredInParent = true;
+              verticalAlign = "center";
+              const parentRelY = parentBox.y - frameBox.y;
+              textYPt = parentRelY * scaleY;
+              textHPt = parentBox.height * scaleY;
+            }
+          }
+
           // For Figma TEXT nodes, 'fills' represents character font colors (stored in textRuns),
           // NOT a container background fill. Remove fillColor so the text box has a transparent background.
           delete style.fillColor;
@@ -535,7 +567,7 @@ export class FigmaCanvasParser {
             id: child.id,
             name: child.name,
             type: "text",
-            bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+            bounds: { x: xPt, y: textYPt, width: wPt, height: textHPt },
             zIndex: currentZIndex++,
             rotation: (child as any).rotation,
             opacity: child.opacity,
@@ -545,6 +577,7 @@ export class FigmaCanvasParser {
             verticalAlign,
             innerPaddingPt,
             textAutoResize,
+            contentHeightPt: isCenteredInParent ? hPt : undefined,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
@@ -731,8 +764,114 @@ export class FigmaCanvasParser {
           const hasFill = !!style.fillColor;
           const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
 
-          // If frame has visible background/border, register card
-          if (hasFill || hasStroke) {
+          const bs = style.borderSides;
+          const isPartialBorder =
+            hasStroke &&
+            bs !== undefined &&
+            ((bs.top ?? 0) === 0 ||
+              (bs.right ?? 0) === 0 ||
+              (bs.bottom ?? 0) === 0 ||
+              (bs.left ?? 0) === 0);
+
+          if (isPartialBorder) {
+            // 1. If has background fill, emit a card with fill only (no 4-sided stroke)
+            if (hasFill) {
+              elements.push({
+                id: child.id,
+                name: child.name,
+                type: "card",
+                bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+                zIndex: currentZIndex++,
+                rotation: (child as any).rotation,
+                opacity: child.opacity,
+                style: {
+                  fillColor: style.fillColor,
+                  fillOpacity: style.fillOpacity,
+                  cornerRadius: style.cornerRadius,
+                  cornerRadii: style.cornerRadii,
+                },
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
+
+            // 2. Emit separate line elements for the active border sides
+            const strokeColor = style.strokeColor;
+            const strokeDashed = style.strokeDashed;
+
+            if ((bs.bottom ?? 0) > 0) {
+              elements.push({
+                id: `${child.id}_b`,
+                name: `${child.name || "border"}_bottom`,
+                type: "line",
+                bounds: { x: xPt, y: yPt + hPt, width: wPt, height: 1 },
+                zIndex: currentZIndex++,
+                rotation: 0,
+                opacity: child.opacity,
+                style: {
+                  strokeColor,
+                  strokeWidth: bs.bottom,
+                  strokeDashed,
+                },
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
+            if ((bs.top ?? 0) > 0) {
+              elements.push({
+                id: `${child.id}_t`,
+                name: `${child.name || "border"}_top`,
+                type: "line",
+                bounds: { x: xPt, y: yPt, width: wPt, height: 1 },
+                zIndex: currentZIndex++,
+                rotation: 0,
+                opacity: child.opacity,
+                style: {
+                  strokeColor,
+                  strokeWidth: bs.top,
+                  strokeDashed,
+                },
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
+            if ((bs.left ?? 0) > 0) {
+              elements.push({
+                id: `${child.id}_l`,
+                name: `${child.name || "border"}_left`,
+                type: "line",
+                bounds: { x: xPt, y: yPt, width: 1, height: hPt },
+                zIndex: currentZIndex++,
+                rotation: 0,
+                opacity: child.opacity,
+                style: {
+                  strokeColor,
+                  strokeWidth: bs.left,
+                  strokeDashed,
+                },
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
+            if ((bs.right ?? 0) > 0) {
+              elements.push({
+                id: `${child.id}_r`,
+                name: `${child.name || "border"}_right`,
+                type: "line",
+                bounds: { x: xPt + wPt, y: yPt, width: 1, height: hPt },
+                zIndex: currentZIndex++,
+                rotation: 0,
+                opacity: child.opacity,
+                style: {
+                  strokeColor,
+                  strokeWidth: bs.right,
+                  strokeDashed,
+                },
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
+          } else if (hasFill || hasStroke) {
             elements.push({
               id: child.id,
               name: child.name,
@@ -851,13 +990,33 @@ export class FigmaCanvasParser {
     }
 
     // 2. Strokes
-    if (node.strokes && node.strokes.length > 0) {
+    const rawWeight = typeof node.strokeWeight === "number" ? node.strokeWeight : 1;
+    const isw = (node as any).individualStrokeWeights as
+      | { top?: number; right?: number; bottom?: number; left?: number }
+      | undefined;
+
+    let hasNonZeroWeight = rawWeight > 0;
+    if (isw) {
+      style.borderSides = {
+        top: typeof isw.top === "number" ? isw.top * scale : undefined,
+        right: typeof isw.right === "number" ? isw.right * scale : undefined,
+        bottom: typeof isw.bottom === "number" ? isw.bottom * scale : undefined,
+        left: typeof isw.left === "number" ? isw.left * scale : undefined,
+      };
+      hasNonZeroWeight =
+        (style.borderSides.top ?? 0) > 0 ||
+        (style.borderSides.right ?? 0) > 0 ||
+        (style.borderSides.bottom ?? 0) > 0 ||
+        (style.borderSides.left ?? 0) > 0;
+    }
+
+    if (hasNonZeroWeight && node.strokes && node.strokes.length > 0) {
       const stroke = node.strokes.find(
         (s) => s.type === "SOLID" && s.visible !== false
       );
       if (stroke && stroke.color) {
         style.strokeColor = this.figmaColorToHex(stroke.color);
-        style.strokeWidth = (node.strokeWeight || 1) * scale;
+        style.strokeWidth = rawWeight * scale;
         const dashes = (node as any).strokeDashes;
         if (dashes && dashes.length > 0) {
           style.strokeDashed = true;
