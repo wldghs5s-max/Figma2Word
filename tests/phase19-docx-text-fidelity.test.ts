@@ -101,7 +101,7 @@ describe("Phase 19: DOCX Text Fidelity Finalization Suite", () => {
     expect(xml).toContain("첫 번째 줄</w:t><w:br/><w:t xml:space=\"preserve\">두 번째 줄</w:t><w:br/><w:t xml:space=\"preserve\">세 번째 줄");
   });
 
-  it("Item 3: Auto-width text (WIDTH_AND_HEIGHT) preserves natural bounds and wraps cleanly", async () => {
+  it("Item 3: Auto-width text (WIDTH_AND_HEIGHT) preserves single-line rendering with mso-wrap-style:none to prevent unwanted wrapping and clipping", async () => {
     const parser = new FigmaCanvasParser({ scalePolicy: "fit-a4" });
     const figmaJson = {
       id: "root",
@@ -132,7 +132,8 @@ describe("Phase 19: DOCX Text Fidelity Finalization Suite", () => {
     const zip = await JSZip.loadAsync(buf);
     const xml = await zip.file("word/document.xml")!.async("string");
 
-    expect(xml).toContain("mso-wrap-style:square");
+    // Single-line auto-width text must NOT auto-wrap to prevent Word font variance clipping
+    expect(xml).toContain("mso-wrap-style:none");
     expect(xml).toContain("mso-fit-shape-to-text:t");
   });
 
@@ -467,5 +468,70 @@ describe("Phase 19: DOCX Text Fidelity Finalization Suite", () => {
     expect(xml).toContain('id="s_0_1"');
     expect(xml).toContain("mso-wrap-style:none");
     expect(xml).not.toContain('<v:textbox');
+  });
+
+  it("Item 11: Single-line labels with HEIGHT resize and estimatedLines < 1.4 preserve mso-wrap-style:none, while multi-line paragraphs wrap with mso-wrap-style:square", async () => {
+    const doc: CanvasDocument = {
+      title: "Precision Wrapping Separation",
+      pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, orientation: "portrait", unit: "pt" },
+      marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
+      diagnostics: { notices: [], warnings: [] },
+      resources: {},
+      pages: [
+        {
+          pageNumber: 1,
+          bounds: { x: 0, y: 0, width: 595.28, height: 841.89 },
+          backgroundColor: "#FFFFFF",
+          elements: [
+            // Single-line cell (HEIGHT resize from auto-layout, but 1-line tall)
+            {
+              id: "single_cell_height",
+              name: "부산 해운대구 좌동 1407",
+              type: "text",
+              bounds: { x: 50, y: 50, width: 150, height: 11 },
+              zIndex: 1,
+              style: {},
+              textAutoResize: "HEIGHT",
+              textRuns: [
+                {
+                  text: "부산 해운대구 좌동 1407",
+                  fontFamily: "맑은 고딕",
+                  fontSizePt: 8.5,
+                  lineHeightPt: 10.6,
+                },
+              ],
+            },
+            // Multi-line paragraph (HEIGHT resize, 5 lines tall)
+            {
+              id: "multi_paragraph_height",
+              name: "Exterior Wall Inspection Summary",
+              type: "text",
+              bounds: { x: 50, y: 100, width: 450, height: 75 },
+              zIndex: 2,
+              style: {},
+              textAutoResize: "HEIGHT",
+              textRuns: [
+                {
+                  text: "해운대동신아파트(해동신) 1차 외벽 균열 진단 결과, 단지 전체 CDI는 0.031%로 양호한 수준입니다. 다만 109동과 108동은 상대적으로 균열 밀도가 높아 조기 보수를 권장합니다. 특히 109동 5층 A면의 수직 균열(폭 0.82cm)은 구조적 영향 가능성이 있으므로 정밀 조사를 병행할 것을 제안합니다.",
+                  fontFamily: "맑은 고딕",
+                  fontSizePt: 9.5,
+                  lineHeightPt: 14,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const buf = await docxRenderer.renderToBuffer(doc);
+    const zip = await JSZip.loadAsync(buf);
+    const xml = await zip.file("word/document.xml")!.async("string");
+
+    // Single-line cell must have mso-wrap-style:none to stay on 1 line
+    expect(xml).toMatch(/alt="single_cell_height"[^>]*style="[^"]*mso-wrap-style:none/);
+
+    // Multi-line paragraph must have mso-wrap-style:square to wrap inside 450pt
+    expect(xml).toMatch(/alt="multi_paragraph_height"[^>]*style="[^"]*mso-wrap-style:square/);
   });
 });

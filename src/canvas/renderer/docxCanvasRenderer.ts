@@ -379,7 +379,33 @@ export class DocxCanvasRenderer {
         : "";
 
     const hasText = !!(elem.textRuns && elem.textRuns.length > 0);
-    const wrapStyle = hasText ? "mso-wrap-style:square" : "mso-wrap-style:none";
+
+    // Precision typography wrapping:
+    // Only elements designed as multi-line paragraphs or containing explicit newlines should auto-wrap.
+    // Single-line labels, metrics, chips, badges, button texts, and auto-width elements must NOT wrap,
+    // preventing Word DirectWrite font variance from dropping words into invisible/awkward second lines.
+    let wrapStyle = "mso-wrap-style:none";
+    if (hasText) {
+      const isAutoWidth = elem.textAutoResize === "WIDTH_AND_HEIGHT";
+      if (!isAutoWidth) {
+        const hasHardNewline = elem.textRuns!.some((r) => r.text && /[\r\n]/.test(r.text));
+        const maxFontSize = Math.max(...elem.textRuns!.map((r) => r.fontSizePt || 12));
+        const firstLineHeight =
+          elem.textRuns!.find((r) => r.lineHeightPt)?.lineHeightPt || maxFontSize * 1.25;
+        const estimatedLines = elem.bounds.height / firstLineHeight;
+        const totalChars = elem.textRuns!.reduce((sum, r) => sum + (r.text?.length || 0), 0);
+
+        const isMultiLineBox =
+          estimatedLines >= 1.45 ||
+          hasHardNewline ||
+          (totalChars >= 80 && elem.textAutoResize === "HEIGHT");
+
+        if (isMultiLineBox) {
+          wrapStyle = "mso-wrap-style:square";
+        }
+      }
+    }
+
     const baseStyle = `position:absolute;left:0;top:0;margin-left:${x.toFixed(
       3
     )}pt;margin-top:${y.toFixed(3)}pt;width:${width.toFixed(
