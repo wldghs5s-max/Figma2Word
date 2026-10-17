@@ -525,6 +525,12 @@ export class FigmaCanvasParser {
               ? { top: padTop, right: padRight, bottom: padBottom, left: padLeft }
               : undefined;
 
+          const rawTar = (child.style as any)?.textAutoResize || (child as any).textAutoResize;
+          const textAutoResize: "NONE" | "HEIGHT" | "WIDTH_AND_HEIGHT" | "TRUNCATE" | undefined =
+            rawTar === "HEIGHT" || rawTar === "WIDTH_AND_HEIGHT" || rawTar === "NONE" || rawTar === "TRUNCATE"
+              ? rawTar
+              : undefined;
+
           elements.push({
             id: child.id,
             name: child.name,
@@ -538,6 +544,7 @@ export class FigmaCanvasParser {
             paragraphAlign: align,
             verticalAlign,
             innerPaddingPt,
+            textAutoResize,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });

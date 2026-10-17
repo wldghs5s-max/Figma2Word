@@ -378,13 +378,15 @@ export class DocxCanvasRenderer {
         ? `;rotation:${rotDeg.toFixed(2)}`
         : "";
 
+    const hasText = !!(elem.textRuns && elem.textRuns.length > 0);
+    const wrapStyle = hasText ? "mso-wrap-style:square" : "mso-wrap-style:none";
     const baseStyle = `position:absolute;left:0;top:0;margin-left:${x.toFixed(
       3
     )}pt;margin-top:${y.toFixed(3)}pt;width:${width.toFixed(
       3
     )}pt;height:${height.toFixed(
       3
-    )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none${rotStyle}`;
+    )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;${wrapStyle}${rotStyle}`;
 
     const altAttr = elem.id ? `alt="${escapeXml(elem.id)}"` : "";
     const titleAttr = `o:title="${escapeXml(elem.name || elem.id || "")}"`;
@@ -654,13 +656,29 @@ export class DocxCanvasRenderer {
       const insetAttr = `inset="${padLeft.toFixed(2)}pt,${padTop.toFixed(2)}pt,${padRight.toFixed(2)}pt,${padBottom.toFixed(2)}pt"`;
 
       const firstLineHeight = elem.textRuns.find((r) => r.lineHeightPt)?.lineHeightPt;
+      const maxFontSize = Math.max(...elem.textRuns.map((r) => r.fontSizePt || 12));
+      const isPureText = elem.type === "text" && !hasFill && !hasStroke;
+
+      // Auto-fit height for pure text elements (or elements with auto-resize), fixed height for cards/buttons
+      const shouldFitHeight =
+        isPureText ||
+        elem.textAutoResize === "HEIGHT" ||
+        elem.textAutoResize === "WIDTH_AND_HEIGHT";
+      const fitTextAttr =
+        shouldFitHeight && !hasFill && !hasStroke
+          ? "mso-fit-shape-to-text:t"
+          : "mso-fit-shape-to-text:f";
+
+      const isTightLine = !!(firstLineHeight && firstLineHeight < maxFontSize * 1.25);
+      const lineRule = isTightLine ? "atLeast" : "exact";
+
       const spacingXml = firstLineHeight
-        ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="exact"/>`
+        ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="${lineRule}"/>`
         : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
 
       const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
       textboxContentXml = `
-      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;${vAnchor}" ${insetAttr}>
+      <v:textbox style="${fitTextAttr};mso-next-textbox:none;${vAnchor}" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>

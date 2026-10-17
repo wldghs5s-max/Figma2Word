@@ -233,6 +233,7 @@ export interface CanvasElement {
   paragraphAlign?: "left" | "center" | "right" | "justify";
   verticalAlign?: "top" | "center" | "bottom";
   innerPaddingPt?: CanvasPadding;
+  textAutoResize?: "NONE" | "HEIGHT" | "WIDTH_AND_HEIGHT" | "TRUNCATE";
 
   // Image details
   imageRef?: string; // key into CanvasDocument.resources
