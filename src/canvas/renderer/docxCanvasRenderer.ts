@@ -234,14 +234,17 @@ export class DocxCanvasRenderer {
       const page = doc.pages[pIdx];
       const runsXml: string[] = [];
 
-      // 1. If page has custom background color, inject full-page background rect
+      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt;
+      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt;
+
+      // 1. If page has custom background color, inject full-page background rect using per-page dimensions
       if (page.backgroundColor) {
         runsXml.push(
           this.buildBackgroundRect(
             pIdx,
             page.backgroundColor,
-            doc.pageSize.widthPt,
-            doc.pageSize.heightPt
+            pageWidthPt,
+            pageHeightPt
           )
         );
       }
@@ -261,8 +264,6 @@ export class DocxCanvasRenderer {
         }
       }
 
-      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt;
-      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt;
       const curWidthTwips = ptToTwip(pageWidthPt);
       const curHeightTwips = ptToTwip(pageHeightPt);
       const curIsLandscape = pageWidthPt > pageHeightPt;
@@ -364,13 +365,26 @@ export class DocxCanvasRenderer {
     const { x, y, width, height } = elem.bounds;
     const z = elem.zIndex;
 
+    let rotDeg = 0;
+    if (typeof elem.rotation === "number" && elem.rotation !== 0) {
+      // If rotation is in radians (<= 2*PI) vs degrees, only apply to non-line elements
+      rotDeg =
+        Math.abs(elem.rotation) <= Math.PI * 2 + 0.01 && Math.abs(elem.rotation) < 6.5
+          ? (-elem.rotation * 180) / Math.PI
+          : elem.rotation;
+    }
+    const rotStyle =
+      elem.type !== "line" && Math.abs(rotDeg) > 0.1
+        ? `;rotation:${rotDeg.toFixed(2)}`
+        : "";
+
     const baseStyle = `position:absolute;left:0;top:0;margin-left:${x.toFixed(
       3
     )}pt;margin-top:${y.toFixed(3)}pt;width:${width.toFixed(
       3
     )}pt;height:${height.toFixed(
       3
-    )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none`;
+    )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none${rotStyle}`;
 
     const altAttr = elem.id ? `alt="${escapeXml(elem.id)}"` : "";
     const titleAttr = `o:title="${escapeXml(elem.name || elem.id || "")}"`;
@@ -379,23 +393,30 @@ export class DocxCanvasRenderer {
     if (elem.type === "line") {
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");
       const strokeW = elem.style.strokeWidth ? elem.style.strokeWidth.toFixed(2) : "1.00";
+      const lineSpanX = width < 1 && height > 1 ? 0 : width;
+      const lineSpanY = height <= 1 && width > 1 ? 0 : height;
+      const dashChild = elem.style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
       return `<w:r>
   <w:pict>
     <v:line id="${shapeId}"
             ${altAttr}
             ${titleAttr}
             from="${x.toFixed(3)}pt,${y.toFixed(3)}pt"
-            to="${(x + width).toFixed(3)}pt,${(y + height).toFixed(3)}pt"
+            to="${(x + lineSpanX).toFixed(3)}pt,${(y + lineSpanY).toFixed(3)}pt"
             style="position:absolute;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page"
             strokecolor="#${strokeColor}"
-            strokeweight="${strokeW}pt"/>
+            strokeweight="${strokeW}pt">${dashChild}</v:line>
   </w:pict>
 </w:r>`;
     }
 
     // 1b. Vector Shape
     if (elem.type === "vector") {
-      const hasFill = !!elem.style.fillColor;
+      const allOpenSubpaths =
+        elem.vectorSubpaths &&
+        elem.vectorSubpaths.length > 0 &&
+        elem.vectorSubpaths.every((sp) => !sp.closed);
+      const hasFill = !!elem.style.fillColor && elem.style.fillColor !== "none" && !allOpenSubpaths;
       const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
       const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
       const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(elem.style.fillColor)}"` : "";
@@ -408,6 +429,30 @@ export class DocxCanvasRenderer {
       const pathStr = elem.vectorPath || "";
       if (!pathStr) {
         return "";
+      }
+
+      const dashChild = hasStroke && elem.style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+      const opacityChild =
+        hasFill && elem.style.fillOpacity !== undefined && elem.style.fillOpacity < 1
+          ? `<v:fill opacity="${elem.style.fillOpacity.toFixed(2)}"/>`
+          : "";
+
+      if (dashChild || opacityChild) {
+        return `<w:r>
+  <w:pict>
+    <v:shape id="${shapeId}"
+             ${altAttr}
+             ${titleAttr}
+             style="${baseStyle}"
+             coordsize="1000,1000"
+             path="${pathStr}"
+             ${filledAttr}
+             ${fillcolorAttr}
+             ${strokedAttr}
+             ${strokecolorAttr}
+             ${strokeweightAttr}>${dashChild}${opacityChild}</v:shape>
+  </w:pict>
+</w:r>`;
       }
 
       return `<w:r>
@@ -431,7 +476,14 @@ export class DocxCanvasRenderer {
     if (elem.type === "image" && elem.imageRef) {
       const relId = imageRelMap.get(elem.imageRef) || "rId1";
       let cropAttr = "";
+      let imgX = x;
+      let imgY = y;
+      let imgBoxW = width;
+      let imgBoxH = height;
+
       const res = resources && elem.imageRef ? resources[elem.imageRef] : undefined;
+      let imgW = 0;
+      let imgH = 0;
       if (res && res.data && res.data.length > 24) {
         const d = res.data;
         const readU32 = (off: number) =>
@@ -439,8 +491,6 @@ export class DocxCanvasRenderer {
         const readU16 = (off: number) =>
           (d[off] << 8) | d[off + 1];
 
-        let imgW = 0;
-        let imgH = 0;
         // PNG check: 89 50 4E 47
         if (
           d[0] === 0x89 &&
@@ -465,30 +515,63 @@ export class DocxCanvasRenderer {
             offset += len;
           }
         }
+      }
 
-        if (imgW > 0 && imgH > 0 && width > 0 && height > 0) {
-          const arImg = imgW / imgH;
-          const arBox = width / height;
-          if (arImg < arBox * 0.99) {
-            // Image is taller than container box: crop top & bottom (object-fit: cover)
-            const cropY = (1.0 - arImg / arBox) / 2.0;
-            const cropVal = Math.round(cropY * 65536);
-            cropAttr = ` croptop="${cropVal}f" cropbottom="${cropVal}f"`;
-          } else if (arImg > arBox * 1.01) {
-            // Image is wider than container box: crop left & right
-            const cropX = (1.0 - arBox / arImg) / 2.0;
-            const cropVal = Math.round(cropX * 65536);
-            cropAttr = ` cropleft="${cropVal}f" cropright="${cropVal}f"`;
-          }
+      if (elem.imageCrop) {
+        const ct = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.top)) * 65536);
+        const cb = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.bottom)) * 65536);
+        const cl = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.left)) * 65536);
+        const cr = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.right)) * 65536);
+        const parts: string[] = [];
+        if (ct > 0) parts.push(`croptop="${ct}f"`);
+        if (cb > 0) parts.push(`cropbottom="${cb}f"`);
+        if (cl > 0) parts.push(`cropleft="${cl}f"`);
+        if (cr > 0) parts.push(`cropright="${cr}f"`);
+        if (parts.length > 0) {
+          cropAttr = " " + parts.join(" ");
+        }
+      } else if (elem.imageScaleMode === "FIT" && imgW > 0 && imgH > 0 && width > 0 && height > 0) {
+        const arImg = imgW / imgH;
+        const arBox = width / height;
+        if (arImg > arBox) {
+          imgBoxW = width;
+          imgBoxH = width / arImg;
+          imgY = y + (height - imgBoxH) / 2;
+        } else {
+          imgBoxH = height;
+          imgBoxW = height * arImg;
+          imgX = x + (width - imgBoxW) / 2;
+        }
+      } else if (imgW > 0 && imgH > 0 && width > 0 && height > 0) {
+        const arImg = imgW / imgH;
+        const arBox = width / height;
+        if (arImg < arBox * 0.99) {
+          // Image is taller than container box: crop top & bottom (object-fit: cover)
+          const cropY = (1.0 - arImg / arBox) / 2.0;
+          const cropVal = Math.round(cropY * 65536);
+          cropAttr = ` croptop="${cropVal}f" cropbottom="${cropVal}f"`;
+        } else if (arImg > arBox * 1.01) {
+          // Image is wider than container box: crop left & right
+          const cropX = (1.0 - arBox / arImg) / 2.0;
+          const cropVal = Math.round(cropX * 65536);
+          cropAttr = ` cropleft="${cropVal}f" cropright="${cropVal}f"`;
         }
       }
+
+      const imgStyle = `position:absolute;left:0;top:0;margin-left:${imgX.toFixed(
+        3
+      )}pt;margin-top:${imgY.toFixed(3)}pt;width:${imgBoxW.toFixed(
+        3
+      )}pt;height:${imgBoxH.toFixed(
+        3
+      )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none${rotStyle}`;
 
       return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
              ${altAttr}
              ${titleAttr}
-             style="${baseStyle}"
+             style="${imgStyle}"
              filled="f"
              stroked="f">
       <v:imagedata r:id="${relId}"${cropAttr} o:title="${escapeXml(elem.name || "image")}"/>
@@ -499,7 +582,7 @@ export class DocxCanvasRenderer {
 
     // 3. Card or Text
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
-    const hasFill = !!elem.style.fillColor;
+    const hasFill = !!elem.style.fillColor && elem.style.fillColor !== "none";
     const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
 
     const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
@@ -515,11 +598,9 @@ export class DocxCanvasRenderer {
     const isOval = elem.type === "oval";
     const isRound = !isOval && !!elem.style.cornerRadius && elem.style.cornerRadius > 0;
     const tag = isOval ? "v:oval" : isRound ? "v:roundrect" : "v:rect";
+    const minDim = Math.max(1e-3, Math.min(width, height));
     const arcsizeAttr = isRound
-      ? `arcsize="${Math.min(
-          0.5,
-          (elem.style.cornerRadius || 0) / Math.max(width, height)
-        ).toFixed(3)}"`
+      ? `arcsize="${Math.min(0.5, (elem.style.cornerRadius || 0) / minDim).toFixed(3)}"`
       : "";
 
     let textboxContentXml = "";
@@ -538,6 +619,12 @@ export class DocxCanvasRenderer {
         const italicXml = run.italic ? "<w:i/>" : "";
         const uXml = run.underline ? '<w:u w:val="single"/>' : "";
         const strikeXml = run.strike ? "<w:strike/>" : "";
+        const letterSpacingTwips =
+          typeof run.letterSpacingPt === "number" && run.letterSpacingPt !== 0
+            ? ptToTwip(run.letterSpacingPt)
+            : 0;
+        const letterSpacingXml =
+          letterSpacingTwips !== 0 ? `<w:spacing w:val="${letterSpacingTwips}"/>` : "";
 
         const lines = run.text.split(/\r\n|\r|\n/);
         const textParts = lines.map((l) => `<w:t xml:space="preserve">${escapeXml(l)}</w:t>`);
@@ -549,6 +636,7 @@ export class DocxCanvasRenderer {
     <w:sz w:val="${fontSizeHalfPt}"/>
     <w:szCs w:val="${fontSizeHalfPt}"/>
     <w:color w:val="${colorHex}"/>
+    ${letterSpacingXml}
     ${boldXml}
     ${italicXml}
     ${uXml}
@@ -578,12 +666,21 @@ export class DocxCanvasRenderer {
             <w:pPr>
               <w:jc w:val="${jcVal}"/>
               ${spacingXml}
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
             </w:pPr>
             ${runsXml.join("\n            ")}
           </w:p>
         </w:txbxContent>
       </v:textbox>`;
     }
+
+    const dashChild = hasStroke && elem.style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+    const opacityChild =
+      hasFill && elem.style.fillOpacity !== undefined && elem.style.fillOpacity < 1
+        ? `<v:fill opacity="${elem.style.fillOpacity.toFixed(2)}"/>`
+        : "";
 
     return `<w:r>
   <w:pict>
@@ -596,7 +693,7 @@ export class DocxCanvasRenderer {
             ${strokedAttr}
             ${strokecolorAttr}
             ${strokeweightAttr}
-            ${arcsizeAttr}>${textboxContentXml}
+            ${arcsizeAttr}>${dashChild}${opacityChild}${textboxContentXml}
     </${tag}>
   </w:pict>
 </w:r>`;

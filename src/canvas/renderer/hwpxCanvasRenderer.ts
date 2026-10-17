@@ -35,6 +35,17 @@ interface CharPrKey {
   colorHex: string;
   bold: boolean;
   italic: boolean;
+  underline: boolean;
+  strike: boolean;
+  letterSpacingPct: number;
+}
+
+interface ParaPrEntry {
+  id: number;
+  horizontal: "LEFT" | "CENTER" | "RIGHT" | "JUSTIFY";
+  spacingType: "PERCENT" | "FIXED";
+  spacingValue: number;
+  spacingUnit: "PERCENT" | "HWPUNIT";
 }
 
 export class HwpxCanvasRenderer {
@@ -105,14 +116,22 @@ export class HwpxCanvasRenderer {
     const getCharPrId = (run: CanvasTextRun): number => {
       const font = run.fontFamily?.trim() || "맑은 고딕";
       const fontId = fontRegistry.get(font) ?? 0;
+      const fontSizePt = Math.round((run.fontSizePt || 10) * 10) / 10;
+      const letterSpacingPct =
+        run.letterSpacingPt !== undefined && fontSizePt > 0
+          ? Math.max(-50, Math.min(50, Math.round((run.letterSpacingPt / fontSizePt) * 100)))
+          : 0;
       const key: CharPrKey = {
         fontId,
-        fontSizePt: Math.round((run.fontSizePt || 10) * 10) / 10,
+        fontSizePt,
         colorHex: cleanHex(run.color, "000000"),
         bold: (run.fontWeight || 400) >= 600,
         italic: !!run.italic,
+        underline: !!run.underline,
+        strike: !!run.strike,
+        letterSpacingPct,
       };
-      const serialized = `${fontId}_${key.fontSizePt}_${key.colorHex}_${key.bold}_${key.italic}`;
+      const serialized = `${fontId}_${key.fontSizePt}_${key.colorHex}_${key.bold}_${key.italic}_${key.underline}_${key.strike}_${key.letterSpacingPct}`;
       if (charPrRegistry.has(serialized)) {
         return charPrRegistry.get(serialized)!;
       }
@@ -122,12 +141,57 @@ export class HwpxCanvasRenderer {
       return newId;
     };
 
-    // 7. Contents/section0.xml (builds shapes & populates charPrRegistry)
-    const section0Xml = this.buildSection0Xml(doc, imageBinMap, getCharPrId);
+    const paraPrList: ParaPrEntry[] = [
+      { id: 0, horizontal: "LEFT", spacingType: "PERCENT", spacingValue: 160, spacingUnit: "PERCENT" },
+      { id: 1, horizontal: "CENTER", spacingType: "PERCENT", spacingValue: 160, spacingUnit: "PERCENT" },
+      { id: 2, horizontal: "RIGHT", spacingType: "PERCENT", spacingValue: 160, spacingUnit: "PERCENT" },
+      { id: 3, horizontal: "JUSTIFY", spacingType: "PERCENT", spacingValue: 160, spacingUnit: "PERCENT" },
+    ];
+    const paraPrRegistry = new Map<string, number>([
+      ["LEFT_PERCENT_160", 0],
+      ["CENTER_PERCENT_160", 1],
+      ["RIGHT_PERCENT_160", 2],
+      ["JUSTIFY_PERCENT_160", 3],
+    ]);
+
+    const getParaPrId = (
+      align?: "left" | "center" | "right" | "justify",
+      lineHeightPt?: number
+    ): number => {
+      const horizontal: "LEFT" | "CENTER" | "RIGHT" | "JUSTIFY" =
+        align === "center"
+          ? "CENTER"
+          : align === "right"
+          ? "RIGHT"
+          : align === "justify"
+          ? "JUSTIFY"
+          : "LEFT";
+      if (!lineHeightPt || lineHeightPt <= 0) {
+        return paraPrRegistry.get(`${horizontal}_PERCENT_160`) ?? 0;
+      }
+      const spacingValue = Math.max(100, Math.round(lineHeightPt * 100));
+      const key = `${horizontal}_FIXED_${spacingValue}`;
+      if (paraPrRegistry.has(key)) {
+        return paraPrRegistry.get(key)!;
+      }
+      const newId = paraPrList.length;
+      paraPrRegistry.set(key, newId);
+      paraPrList.push({
+        id: newId,
+        horizontal,
+        spacingType: "FIXED",
+        spacingValue,
+        spacingUnit: "HWPUNIT",
+      });
+      return newId;
+    };
+
+    // 7. Contents/section0.xml (builds shapes & populates charPrRegistry / paraPrRegistry)
+    const section0Xml = this.buildSection0Xml(doc, imageBinMap, getCharPrId, getParaPrId);
     zip.file("Contents/section0.xml", section0Xml);
 
-    // 8. Contents/header.xml (outputs registered fontfaces & charPr styles)
-    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry));
+    // 8. Contents/header.xml (outputs registered fontfaces, charPr & paraPr styles)
+    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList));
 
     return zip;
   }
@@ -221,19 +285,27 @@ ${items}
 
   private buildHeaderXml(
     charPrList: { id: number; key: CharPrKey }[],
-    fontRegistry: Map<string, number>
+    fontRegistry: Map<string, number>,
+    paraPrList: ParaPrEntry[]
   ): string {
     let charPrEntries = "";
     for (const { id, key } of charPrList) {
       const heightHwpu = Math.round(key.fontSizePt * 100);
       const boldAttr = key.bold ? ' bold="1"' : "";
       const italicAttr = key.italic ? ' italic="1"' : "";
+      const ls = key.letterSpacingPct || 0;
+      const underlineXml = key.underline
+        ? `\n      <hh:underline type="BOTTOM" shape="SOLID" color="#${key.colorHex}"/>`
+        : "";
+      const strikeXml = key.strike
+        ? `\n      <hh:strikeout shape="CONTINUOUS" color="#${key.colorHex}"/>`
+        : "";
       charPrEntries += `\n    <hh:charPr id="${id}" height="${heightHwpu}" textColor="#${key.colorHex}" shadeColor="none" useFontSpace="1" useKerning="1" symMark="NONE" borderFillIDRef="1"${boldAttr}${italicAttr}>
       <hh:fontRef hangul="${key.fontId}" latin="${key.fontId}" hanja="${key.fontId}" japanese="${key.fontId}" other="${key.fontId}" symbol="${key.fontId}" user="${key.fontId}"/>
       <hh:ratio hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
-      <hh:spacing hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:spacing hangul="${ls}" latin="${ls}" hanja="${ls}" japanese="${ls}" other="${ls}" symbol="${ls}" user="${ls}"/>
       <hh:relSz hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
-      <hh:offset hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:offset hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>${underlineXml}${strikeXml}
     </hh:charPr>`;
     }
 
@@ -242,6 +314,15 @@ ${items}
       <hh:fontRef hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
     </hh:charPr>`;
     }
+
+    const paraPrEntries = paraPrList
+      .map(
+        (p) => `      <hh:paraPr id="${p.id}" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
+        <hh:align horizontal="${p.horizontal}" vertical="BASELINE"/>
+        <hh:lineSpacing type="${p.spacingType}" value="${p.spacingValue}" unit="${p.spacingUnit}"/>
+      </hh:paraPr>`
+      )
+      .join("\n");
 
     const langs = ["hangul", "latin", "hanja", "japanese", "other", "symbol", "user"];
     const fontCnt = fontRegistry.size;
@@ -278,23 +359,8 @@ ${items}
     </hh:borderFills>
     <hh:charProperties itemCnt="${Math.max(1, charPrList.length)}">${charPrEntries}
     </hh:charProperties>
-    <hh:paraProperties itemCnt="4">
-      <hh:paraPr id="0" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
-        <hh:align horizontal="LEFT" vertical="BASELINE"/>
-        <hh:lineSpacing type="PERCENT" value="160" unit="PERCENT"/>
-      </hh:paraPr>
-      <hh:paraPr id="1" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
-        <hh:align horizontal="CENTER" vertical="BASELINE"/>
-        <hh:lineSpacing type="PERCENT" value="160" unit="PERCENT"/>
-      </hh:paraPr>
-      <hh:paraPr id="2" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
-        <hh:align horizontal="RIGHT" vertical="BASELINE"/>
-        <hh:lineSpacing type="PERCENT" value="160" unit="PERCENT"/>
-      </hh:paraPr>
-      <hh:paraPr id="3" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
-        <hh:align horizontal="JUSTIFY" vertical="BASELINE"/>
-        <hh:lineSpacing type="PERCENT" value="160" unit="PERCENT"/>
-      </hh:paraPr>
+    <hh:paraProperties itemCnt="${paraPrList.length}">
+${paraPrEntries}
     </hh:paraProperties>
     <hh:styles itemCnt="1">
       <hh:style id="0" type="PARA" name="바탕글" engName="Normal" paraPrIDRef="0" charPrIDRef="0" nextStyleIDRef="0"/>
@@ -306,7 +372,8 @@ ${items}
   private buildSection0Xml(
     doc: CanvasDocument,
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
-    getCharPrId: (run: CanvasTextRun) => number
+    getCharPrId: (run: CanvasTextRun) => number,
+    getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number
   ): string {
     const pageParas: string[] = [];
     let globalShapeId = 1;
@@ -315,14 +382,23 @@ ${items}
       const page = doc.pages[pIdx];
       const pageBreakAttr = pIdx === 0 ? ' pageBreak="0"' : ' pageBreak="1"';
 
+      // Dynamic page size and orientation (per page)
+      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt || 595.28;
+      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt || 841.89;
+      const isLandscape = pageWidthPt > pageHeightPt;
+      const landscapeAttr = isLandscape ? "WIDELY" : "NARROWLY";
+      const widthHwpu = Math.round(pageWidthPt * 100);
+      const heightHwpu = Math.round(pageHeightPt * 100);
+
       const shapesXml: string[] = [];
 
-      // 1. Full-page background rect if specified
+      // 1. Full-page background rect if specified (sized to this page's dimensions)
       if (page.backgroundColor) {
-        const bgW = ptToHwpu(doc.pageSize?.widthPt || 595.28);
-        const bgH = ptToHwpu(doc.pageSize?.heightPt || 841.89);
+        const bgW = ptToHwpu(pageWidthPt);
+        const bgH = ptToHwpu(pageHeightPt);
+        const bgId = globalShapeId++;
         shapesXml.push(
-          `<hp:run><hp:rect id="${globalShapeId++}" zOrder="0" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${globalShapeId}" ratio="0">
+          `<hp:run><hp:rect id="${bgId}" zOrder="0" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${bgId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${bgW}" height="${bgH}"/>
   <hp:curSz width="${bgW}" height="${bgH}"/>
@@ -347,20 +423,13 @@ ${items}
           elem,
           imageBinMap,
           getCharPrId,
+          getParaPrId,
           doc.resources
         );
         if (rendered) {
           shapesXml.push(`<hp:run>${rendered}</hp:run>`);
         }
       }
-
-      // Dynamic page size and orientation (per page)
-      const pageWidthPt = page.bounds.width || doc.pageSize.widthPt;
-      const pageHeightPt = page.bounds.height || doc.pageSize.heightPt;
-      const isLandscape = pageWidthPt > pageHeightPt;
-      const landscapeAttr = isLandscape ? "WIDELY" : "NARROWLY";
-      const widthHwpu = Math.round(pageWidthPt * 100);
-      const heightHwpu = Math.round(pageHeightPt * 100);
 
       // First page includes secPr, as well as any page where dimensions/orientation differ from previous
       const prevPage = pIdx > 0 ? doc.pages[pIdx - 1] : undefined;
@@ -401,6 +470,7 @@ ${items}
     elem: CanvasElement,
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number,
+    getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number,
     resources?: Record<string, CanvasResource>
   ): string {
     const xHwpu = ptToHwpu(elem.bounds.x);
@@ -409,7 +479,7 @@ ${items}
     const hHwpu = Math.max(100, ptToHwpu(elem.bounds.height));
     const zOrder = elem.zIndex;
 
-    // 1. Image with exact FILL Cover Crop & Aspect Ratio Clipping
+    // 1. Image with FILL Cover Crop, Explicit CROP, or FIT Letterbox
     if (elem.type === "image" && elem.imageRef) {
       const binEntry = imageBinMap.get(elem.imageRef);
       if (binEntry) {
@@ -446,16 +516,47 @@ ${items}
           }
         }
 
-        let dimW = wHwpu;
-        let dimH = hHwpu;
+        let picX = xHwpu;
+        let picY = yHwpu;
+        let picW = wHwpu;
+        let picH = hHwpu;
+        let dimW = imgW > 0 ? Math.round(imgW * 75) : wHwpu;
+        let dimH = imgH > 0 ? Math.round(imgH * 75) : hHwpu;
         let clipLeft = 0;
-        let clipRight = wHwpu;
+        let clipRight = dimW;
         let clipTop = 0;
-        let clipBottom = hHwpu;
+        let clipBottom = dimH;
 
-        if (imgW > 0 && imgH > 0) {
-          dimW = Math.round(imgW * 75);
-          dimH = Math.round(imgH * 75);
+        if (
+          elem.imageCrop &&
+          (elem.imageCrop.top > 0 ||
+            elem.imageCrop.bottom > 0 ||
+            elem.imageCrop.left > 0 ||
+            elem.imageCrop.right > 0)
+        ) {
+          const cLeft = Math.max(0, Math.min(0.95, elem.imageCrop.left));
+          const cRight = Math.max(0, Math.min(0.95, elem.imageCrop.right));
+          const cTop = Math.max(0, Math.min(0.95, elem.imageCrop.top));
+          const cBottom = Math.max(0, Math.min(0.95, elem.imageCrop.bottom));
+          clipLeft = Math.round(dimW * cLeft);
+          clipRight = Math.round(dimW * (1 - cRight));
+          clipTop = Math.round(dimH * cTop);
+          clipBottom = Math.round(dimH * (1 - cBottom));
+        } else if (elem.imageScaleMode === "FIT" && imgW > 0 && imgH > 0) {
+          const arImg = imgW / imgH;
+          const arBox = wHwpu / hHwpu;
+          if (arImg > arBox * 1.01) {
+            picH = Math.max(100, Math.round(wHwpu / arImg));
+            picY = Math.round(yHwpu + (hHwpu - picH) / 2);
+          } else if (arImg < arBox * 0.99) {
+            picW = Math.max(100, Math.round(hHwpu * arImg));
+            picX = Math.round(xHwpu + (wHwpu - picW) / 2);
+          }
+          clipLeft = 0;
+          clipRight = dimW;
+          clipTop = 0;
+          clipBottom = dimH;
+        } else if (imgW > 0 && imgH > 0) {
           const arImg = imgW / imgH;
           const arBox = wHwpu / hHwpu;
 
@@ -485,18 +586,18 @@ ${items}
 
         return `<hp:pic id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
   <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${wHwpu}" height="${hHwpu}"/>
-  <hp:curSz width="${wHwpu}" height="${hHwpu}"/>
+  <hp:orgSz width="${picW}" height="${picH}"/>
+  <hp:curSz width="${picW}" height="${picH}"/>
   <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(wHwpu / 2)}" centerY="${Math.round(hHwpu / 2)}" rotateimage="1"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(picW / 2)}" centerY="${Math.round(picH / 2)}" rotateimage="1"/>
   <hp:renderingInfo>
     <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
+  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${picX}" vertOffset="${picY}"/>
   <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  <hp:imgRect pt0_x="0" pt0_y="0" pt1_x="${wHwpu}" pt1_y="0" pt2_x="${wHwpu}" pt2_y="${hHwpu}" pt3_x="0" pt3_y="${hHwpu}"/>
+  <hp:imgRect pt0_x="0" pt0_y="0" pt1_x="${picW}" pt1_y="0" pt2_x="${picW}" pt2_y="${picH}" pt3_x="0" pt3_y="${picH}"/>
   <hp:imgClip left="${clipLeft}" right="${clipRight}" top="${clipTop}" bottom="${clipBottom}"/>
   <hp:imgDim dimwidth="${dimW}" dimheight="${dimH}"/>
   <hp:inImgDim dimwidth="${dimW}" dimheight="${dimH}"/>
@@ -509,6 +610,7 @@ ${items}
     if (elem.type === "line") {
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");
       const strokeW = Math.max(10, Math.round((elem.style.strokeWidth || 1) * 10)).toString();
+      const strokeStyle = elem.style.strokeDashed ? "DASH" : "SOLID";
       const lineShapeW = Math.max(1, wHwpu);
       const lineShapeH = Math.max(0, hHwpu);
       return `<hp:line id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" isReverseHWP97="0">
@@ -523,7 +625,7 @@ ${items}
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
   <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
-  <hp:lineShape color="#${strokeColor}" width="${strokeW}" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${strokeColor}" width="${strokeW}" style="${strokeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:pt0 x="0" y="0"/>
   <hp:pt1 x="${lineShapeW}" y="${lineShapeH}"/>
 </hp:line>`;
@@ -534,7 +636,7 @@ ${items}
     const hasFill = !!elem.style.fillColor;
     const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
 
-    const lineStyle = hasStroke ? "SOLID" : "NONE";
+    const lineStyle = hasStroke ? (elem.style.strokeDashed ? "DASH" : "SOLID") : "NONE";
     const lineColor = hasStroke ? `#${cleanHex(elem.style.strokeColor)}` : "#000000";
     const lineWidth = hasStroke ? Math.round((elem.style.strokeWidth || 1) * 10).toString() : "0";
 
@@ -547,10 +649,8 @@ ${items}
 
     let drawTextPart = "";
     if (isText && elem.textRuns && elem.textRuns.length > 0) {
-      let paraPrId = 0;
-      if (elem.paragraphAlign === "center") paraPrId = 1;
-      else if (elem.paragraphAlign === "right") paraPrId = 2;
-      else if (elem.paragraphAlign === "justify") paraPrId = 3;
+      const firstLineHeightPt = elem.textRuns.find((r) => r.lineHeightPt && r.lineHeightPt > 0)?.lineHeightPt;
+      const paraPrId = getParaPrId(elem.paragraphAlign, firstLineHeightPt);
 
       // Split runs across lines into separate paragraphs
       const paragraphs: Array<Array<{ charPrId: number; text: string }>> = [[]];
@@ -582,15 +682,19 @@ ${items}
       const vertAlignAttr =
         elem.verticalAlign === "center" ? "CENTER" : elem.verticalAlign === "bottom" ? "BOTTOM" : "TOP";
 
+      const textMarginXml = elem.innerPaddingPt
+        ? `\n    <hp:textMargin left="${ptToHwpu(elem.innerPaddingPt.left ?? 0)}" right="${ptToHwpu(elem.innerPaddingPt.right ?? 0)}" top="${ptToHwpu(elem.innerPaddingPt.top ?? 0)}" bottom="${ptToHwpu(elem.innerPaddingPt.bottom ?? 0)}"/>`
+        : "";
+
       drawTextPart = `
-  <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
+  <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">${textMarginXml}
     <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
       ${parasXml.join("\n      ")}
     </hp:subList>
   </hp:drawText>`;
     }
 
-    // 4. Vector Shape (KS X 6101 native hp:polygon / hp:line with multi-subpath and open-path support)
+    // 4. Vector Shape (KS X 6101 native hp:polygon for closed paths / hp:line for open subpaths)
     if (elem.type === "vector") {
       let subpaths = elem.vectorSubpaths;
       if (!subpaths || subpaths.length === 0) {
@@ -602,9 +706,47 @@ ${items}
       }
 
       if (subpaths && subpaths.length > 0) {
-        const renderedPolygons = subpaths.map((sp, idx) => {
+        const renderedShapes: string[] = [];
+        for (let idx = 0; idx < subpaths.length; idx++) {
+          const sp = subpaths[idx];
           const subId = `${shapeId}_${idx + 1}`;
           const pts = sp.points;
+
+          // Open subpath: emit connected <hp:line> segments so Hancom does NOT draw a closing stroke or fill!
+          if (!sp.closed && pts.length >= 2) {
+            const openStrokeColor = hasStroke
+              ? lineColor
+              : hasFill
+              ? `#${cleanHex(elem.style.fillColor)}`
+              : "#000000";
+            const openStrokeWidth = hasStroke ? lineWidth : "15";
+            const openStrokeStyle = elem.style.strokeDashed ? "DASH" : "SOLID";
+            const endCap = pts.length > 2 ? "ROUND" : "FLAT";
+
+            for (let segIdx = 0; segIdx < pts.length - 1; segIdx++) {
+              const p0 = pts[segIdx];
+              const p1 = pts[segIdx + 1];
+              const segId = pts.length === 2 ? subId : `${subId}_${segIdx + 1}`;
+              renderedShapes.push(`<hp:line id="${segId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${segId}" isReverseHWP97="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
+  <hp:curSz width="${shapeW}" height="${shapeH}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
+  <hp:lineShape color="${openStrokeColor}" width="${openStrokeWidth}" style="${openStrokeStyle}" endCap="${endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:pt0 x="${p0.x}" y="${p0.y}"/>
+  <hp:pt1 x="${p1.x}" y="${p1.y}"/>
+</hp:line>`);
+            }
+            continue;
+          }
+
           const ptXml =
             pts.length > 0
               ? pts.map((p) => `<hp:pt x="${p.x}" y="${p.y}"/>`).join("\n  ")
@@ -615,7 +757,7 @@ ${items}
               ? fillBrush
               : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
 
-          return `<hp:polygon id="${subId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${subId}" ratio="0">
+          renderedShapes.push(`<hp:polygon id="${subId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${subId}" ratio="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${shapeW}" height="${shapeH}"/>
   <hp:curSz width="${shapeW}" height="${shapeH}"/>
@@ -630,10 +772,10 @@ ${items}
   <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${subFillBrush}
   ${ptXml}${idx === 0 ? drawTextPart : ""}
-</hp:polygon>`;
-        });
+</hp:polygon>`);
+        }
 
-        return renderedPolygons.join("\n</hp:run>\n<hp:run>");
+        return renderedShapes.join("\n</hp:run>\n<hp:run>");
       }
     }
 

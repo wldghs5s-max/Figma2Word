@@ -555,12 +555,16 @@ export class SvgPath {
    * Convert normalized SVG path into a standard VML path string scaled to coordsize.
    * e.g. "m 0,0 l 1000,0 l 1000,1000 x e"
    */
-  public toVmlPath(targetCoordWidth = 1000, targetCoordHeight = 1000): string {
+  public toVmlPath(
+    targetCoordWidth = 1000,
+    targetCoordHeight = 1000,
+    customBounds?: PathBounds
+  ): string {
     if (this.commands.length === 0) {
       return "";
     }
 
-    const bounds = this.getBounds();
+    const bounds = customBounds || this.getBounds();
     const scaleX = targetCoordWidth / bounds.width;
     const scaleY = targetCoordHeight / bounds.height;
 
@@ -594,7 +598,7 @@ export class SvgPath {
           break;
         }
         case "Z": {
-          parts.push("x e");
+          parts.push("x");
           break;
         }
       }
@@ -613,13 +617,14 @@ export class SvgPath {
   public toHwpxSubpathsWithClosed(
     targetWidthHwpu: number,
     targetHeightHwpu: number,
-    stepsPerCurve = 6
+    stepsPerCurve = 6,
+    customBounds?: PathBounds
   ): { points: Point2D[]; closed: boolean }[] {
     if (this.commands.length === 0) {
       return [];
     }
 
-    const bounds = this.getBounds();
+    const bounds = customBounds || this.getBounds();
     const scaleX = bounds.width > 0 ? targetWidthHwpu / bounds.width : 1;
     const scaleY = bounds.height > 0 ? targetHeightHwpu / bounds.height : 1;
 

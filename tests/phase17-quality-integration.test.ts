@@ -257,22 +257,28 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
       const parser = new FigmaCanvasParser({ titleOverride: "Real World Proposal" });
       const doc = parser.parse(rawJson);
 
-      expect(doc.pages.length).toBeGreaterThan(0);
-      expect(doc.pages[0].elements.length).toBeGreaterThan(0);
+      expect(doc.pages.length).toBe(1);
+      expect(doc.pages[0].elements.length).toBeGreaterThanOrEqual(6);
+      const textElements = doc.pages[0].elements.filter((e) => e.type === "text");
+      expect(textElements.length).toBeGreaterThanOrEqual(4);
 
       // Render DOCX
       const docxRenderer = new DocxCanvasRenderer();
       const docxBuf = await docxRenderer.renderToBuffer(doc);
       expect(docxBuf.length).toBeGreaterThan(1000);
       const docxZip = await JSZip.loadAsync(docxBuf);
-      expect(docxZip.file("word/document.xml")).toBeDefined();
+      const docxXml = await docxZip.file("word/document.xml")!.async("string");
+      expect(docxXml).toContain("2026 차세대 엔터프라이즈 AI 자동화 구축 제안서");
+      expect(docxXml).toContain("1. 핵심 기대 효과 및 도입 타당성");
 
       // Render HWPX
       const hwpxRenderer = new HwpxCanvasRenderer();
       const hwpxBuf = await hwpxRenderer.renderToBuffer(doc);
       expect(hwpxBuf.length).toBeGreaterThan(1000);
       const hwpxZip = await JSZip.loadAsync(hwpxBuf);
-      expect(hwpxZip.file("Contents/section0.xml")).toBeDefined();
+      const hwpxSecXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
+      expect(hwpxSecXml).toContain("2026 차세대 엔터프라이즈 AI 자동화 구축 제안서");
+      expect(hwpxSecXml).toContain("1. 핵심 기대 효과 및 도입 타당성");
     });
   });
 });

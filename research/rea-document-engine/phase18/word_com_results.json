@@ -1,0 +1,62 @@
+﻿[
+    {
+        "Document":  "brief.docx",
+        "Pages":  "1/1",
+        "Shapes":  19,
+        "Sections":  1,
+        "Orient":  "0",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    },
+    {
+        "Document":  "dashboard.docx",
+        "Pages":  "1/1",
+        "Shapes":  41,
+        "Sections":  1,
+        "Orient":  "1",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    },
+    {
+        "Document":  "report.docx",
+        "Pages":  "3/3",
+        "Shapes":  37,
+        "Sections":  1,
+        "Orient":  "0",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    },
+    {
+        "Document":  "proposal.docx",
+        "Pages":  "1/1",
+        "Shapes":  9,
+        "Sections":  1,
+        "Orient":  "0",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    },
+    {
+        "Document":  "mixed-orientation.docx",
+        "Pages":  "2/2",
+        "Shapes":  4,
+        "Sections":  2,
+        "Orient":  "0,1",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    },
+    {
+        "Document":  "customer-report1.docx",
+        "Pages":  "9/9",
+        "Shapes":  769,
+        "Sections":  1,
+        "Orient":  "0",
+        "Edited":  true,
+        "Persisted":  true,
+        "Status":  "PASS"
+    }
+]

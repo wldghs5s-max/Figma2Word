@@ -135,7 +135,14 @@ describe("Phase 16.1 Independent Audit Findings Remediation Tests", () => {
       const zip = await JSZip.loadAsync(hwpxBuf);
       const secXml = await zip.file("Contents/section0.xml")!.async("string");
 
-      expect(secXml).toContain('<hc:winBrush faceColor="none"');
+      // Open paths must NOT be emitted as <hp:polygon> (which auto-closes in Hancom)
+      expect(secXml).not.toContain("<hp:polygon");
+      const lineMatches = secXml.match(/<hp:line\b/g);
+      expect(lineMatches).toBeDefined();
+      expect(lineMatches!.length).toBe(2);
+      expect(secXml).toContain('<hp:pt0 x="0" y="5000"/>');
+      expect(secXml).toContain('<hp:pt1 x="3750" y="10000"/>');
+      expect(secXml).toContain('<hp:pt1 x="10000" y="0"/>');
     });
 
     it("should distinguish closed vs open subpaths in mixed multi-contour paths", async () => {
@@ -170,13 +177,18 @@ describe("Phase 16.1 Independent Audit Findings Remediation Tests", () => {
       const zip = await JSZip.loadAsync(hwpxBuf);
       const secXml = await zip.file("Contents/section0.xml")!.async("string");
 
+      // Closed box is emitted as <hp:polygon> with fill; open slash is emitted as <hp:line> without fill
       const polygonMatches = secXml.match(/<hp:polygon\b/g);
       expect(polygonMatches).toBeDefined();
-      expect(polygonMatches!.length).toBe(2);
+      expect(polygonMatches!.length).toBe(1);
 
-      // One polygon has fill, second has no fill
+      const lineMatches = secXml.match(/<hp:line\b/g);
+      expect(lineMatches).toBeDefined();
+      expect(lineMatches!.length).toBe(1);
+
       expect(secXml).toContain('<hc:winBrush faceColor="#FF0000"');
-      expect(secXml).toContain('<hc:winBrush faceColor="none"');
+      expect(secXml).toContain('<hp:pt0 x="4000" y="4000"/>');
+      expect(secXml).toContain('<hp:pt1 x="16000" y="16000"/>');
     });
   });
 

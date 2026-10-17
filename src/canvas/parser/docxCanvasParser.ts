@@ -211,17 +211,44 @@ export class DocxCanvasParser {
       }
     }
 
+    // Extract body-level final <w:sectPr> default page size
+    let defaultPageWidthPt = 595.28;
+    let defaultPageHeightPt = 841.89;
+    const allSectPrMatches = Array.from(bodyContent.matchAll(/<w:sectPr\b[\s\S]*?<\/w:sectPr>/g));
+    if (allSectPrMatches.length > 0) {
+      const lastSectXml = allSectPrMatches[allSectPrMatches.length - 1][0];
+      const pgSzMatch = lastSectXml.match(/<w:pgSz\b[\s\S]*?>/);
+      if (pgSzMatch) {
+        const pgAttrs = parseXmlAttributes(pgSzMatch[0]);
+        const wTwips = parseInt(pgAttrs["w:w"] || "0", 10);
+        const hTwips = parseInt(pgAttrs["w:h"] || "0", 10);
+        if (wTwips > 0 && hTwips > 0) {
+          defaultPageWidthPt = Math.round((wTwips / 20) * 100) / 100;
+          defaultPageHeightPt = Math.round((hTwips / 20) * 100) / 100;
+        }
+      }
+    }
+
     let pageNumber = 1;
     let currentElements: CanvasElement[] = [];
+    let currentBgColor: string | undefined;
+    let currentSectionSize: { width: number; height: number } | undefined;
 
-    const flushPage = () => {
-      if (currentElements.length > 0 || pages.length === 0) {
+    const flushPage = (overrideSize?: { width: number; height: number }) => {
+      if (currentElements.length > 0 || currentBgColor || pages.length === 0) {
+        const sz = overrideSize || currentSectionSize || {
+          width: defaultPageWidthPt,
+          height: defaultPageHeightPt,
+        };
         pages.push({
           pageNumber,
-          bounds: { x: 0, y: 0, width: 595.28, height: 841.89 },
+          bounds: { x: 0, y: 0, width: sz.width, height: sz.height },
+          backgroundColor: currentBgColor,
           elements: [...currentElements].sort((a, b) => a.zIndex - b.zIndex),
         });
         currentElements = [];
+        currentBgColor = undefined;
+        currentSectionSize = undefined;
         pageNumber++;
       }
     };
@@ -229,18 +256,21 @@ export class DocxCanvasParser {
     for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
       const pStr = paragraphs[pIdx];
 
+      // Strip inner <v:textbox> content when checking top-level paragraph properties
+      const pTopLevel = pStr.replace(/<v:textbox\b[\s\S]*?<\/v:textbox>/g, "");
+
       // Check if this paragraph starts a new page
       const hasPageBreak =
-        pStr.includes("<w:pageBreakBefore/>") ||
-        (pStr.includes("<w:pageBreakBefore") &&
-          !pStr.includes('<w:pageBreakBefore w:val="0"'));
+        pTopLevel.includes("<w:pageBreakBefore/>") ||
+        (pTopLevel.includes("<w:pageBreakBefore") &&
+          !pTopLevel.includes('<w:pageBreakBefore w:val="0"'));
       if (hasPageBreak && pIdx > 0) {
         flushPage();
       }
 
       // Check for raw top-level body text outside of <w:pict>
       const hasPict = pStr.includes("<w:pict");
-      const hasDirectText = pStr.includes("<w:t>") || pStr.includes("<w:t ");
+      const hasDirectText = pTopLevel.includes("<w:t>") || pTopLevel.includes("<w:t ");
       if (hasDirectText && !hasPict) {
         warnings.push(`Page ${pageNumber}: Top-level paragraph contains flow text outside <w:pict>. Only VML canvas textboxes are converted into canvas elements.`);
       }
@@ -251,12 +281,41 @@ export class DocxCanvasParser {
       const shapes = Array.from(pStr.matchAll(shapeRegex)).map((m) => m[0]);
 
       for (const sStr of shapes) {
-        // Skip background rects (id="bg_N")
-        if (sStr.includes('id="bg_')) continue;
+        // Recover background color from full-page background rects (id="bg_N") and skip adding as normal element
+        if (sStr.includes('id="bg_')) {
+          const bgAttrs = parseXmlAttributes(sStr);
+          if (bgAttrs["fillcolor"] && bgAttrs["filled"] !== "f") {
+            currentBgColor = bgAttrs["fillcolor"];
+          }
+          continue;
+        }
 
         const elem = this.parseVmlShape(sStr, relsMap, resources, pageNumber, currentElements.length);
         if (elem) {
           currentElements.push(elem);
+        }
+      }
+
+      // Check if this paragraph ends a section with an inline <w:sectPr>
+      const inlineSectMatch = pTopLevel.match(/<w:sectPr\b[\s\S]*?<\/w:sectPr>/);
+      if (inlineSectMatch) {
+        const pgSzMatch = inlineSectMatch[0].match(/<w:pgSz\b[\s\S]*?>/);
+        let inlineSize: { width: number; height: number } | undefined;
+        if (pgSzMatch) {
+          const pgAttrs = parseXmlAttributes(pgSzMatch[0]);
+          const wTwips = parseInt(pgAttrs["w:w"] || "0", 10);
+          const hTwips = parseInt(pgAttrs["w:h"] || "0", 10);
+          if (wTwips > 0 && hTwips > 0) {
+            inlineSize = {
+              width: Math.round((wTwips / 20) * 100) / 100,
+              height: Math.round((hTwips / 20) * 100) / 100,
+            };
+          }
+        }
+        if (pIdx < paragraphs.length - 1) {
+          flushPage(inlineSize);
+        } else if (inlineSize) {
+          currentSectionSize = inlineSize;
         }
       }
     }
@@ -264,12 +323,22 @@ export class DocxCanvasParser {
     // Flush last page
     flushPage();
 
+    const firstPage = pages[0];
+    const docWidthPt = firstPage ? firstPage.bounds.width : defaultPageWidthPt;
+    const docHeightPt = firstPage ? firstPage.bounds.height : defaultPageHeightPt;
+    const docOrientation = docWidthPt > docHeightPt ? "landscape" : "portrait";
+
     return {
       title: "Extracted Canvas Document",
       pageSize: {
-        name: "A4",
-        widthPt: 595.28,
-        heightPt: 841.89,
+        name:
+          (Math.abs(docWidthPt - 595.28) < 2 && Math.abs(docHeightPt - 841.89) < 2) ||
+          (Math.abs(docWidthPt - 841.89) < 2 && Math.abs(docHeightPt - 595.28) < 2)
+            ? "A4"
+            : "Custom",
+        widthPt: docWidthPt,
+        heightPt: docHeightPt,
+        orientation: docOrientation,
         unit: "pt",
       },
       marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -303,6 +372,8 @@ export class DocxCanvasParser {
     const elementName = titleText || attrs["name"] || undefined;
 
     const zIndex = parseInt(styleMap["z-index"] || "1", 10);
+    const strokeDashed =
+      shapeXml.includes('dashstyle="dash"') || shapeXml.includes('dashstyle="dot"') || undefined;
 
     // 1. Line shape (<v:line from="..." to="..."/>)
     if (tag === "line") {
@@ -326,6 +397,7 @@ export class DocxCanvasParser {
         style: {
           strokeColor,
           strokeWidth,
+          strokeDashed,
         },
       };
     }
@@ -347,7 +419,8 @@ export class DocxCanvasParser {
     if (tag === "roundrect" && attrs["arcsize"]) {
       const arc = parseFloat(attrs["arcsize"]);
       if (!isNaN(arc) && arc > 0) {
-        cornerRadius = arc * Math.max(width, height);
+        const minSide = Math.max(1, Math.min(width, height));
+        cornerRadius = Math.round(arc * minSide * 100) / 100;
       }
     }
 
@@ -355,6 +428,7 @@ export class DocxCanvasParser {
       fillColor,
       strokeColor,
       strokeWidth,
+      strokeDashed,
       cornerRadius,
     };
 
@@ -366,6 +440,23 @@ export class DocxCanvasParser {
       if (rId) {
         const target = relsMap.get(rId);
         const resId = target ? (target.split("/").pop() || target) : rId;
+
+        const parseVmlCrop = (val?: string): number => {
+          if (!val) return 0;
+          if (val.endsWith("f")) {
+            const num = parseFloat(val.slice(0, -1));
+            return isNaN(num) ? 0 : Math.max(0, Math.min(0.95, num / 65536));
+          }
+          const num = parseFloat(val);
+          return isNaN(num) ? 0 : Math.max(0, Math.min(0.95, num));
+        };
+
+        const cTop = parseVmlCrop(imgAttrs["croptop"]);
+        const cBottom = parseVmlCrop(imgAttrs["cropbottom"]);
+        const cLeft = parseVmlCrop(imgAttrs["cropleft"]);
+        const cRight = parseVmlCrop(imgAttrs["cropright"]);
+        const hasCrop = cTop > 0 || cBottom > 0 || cLeft > 0 || cRight > 0;
+
         return {
           id: elementId,
           name: elementName || imgAttrs["o:title"] || "image",
@@ -374,12 +465,15 @@ export class DocxCanvasParser {
           zIndex,
           style,
           imageRef: resId,
+          imageScaleMode: hasCrop ? "CROP" : "FILL",
+          imageCrop: hasCrop ? { top: cTop, bottom: cBottom, left: cLeft, right: cRight } : undefined,
         };
       }
     }
 
-    // 3. Check textbox & padding
+    // 3. Check textbox, padding & vertical alignment
     let innerPaddingPt: CanvasPadding | undefined;
+    let verticalAlign: "top" | "center" | "bottom" | undefined;
     const textboxTagMatch = shapeXml.match(/<v:textbox\b[\s\S]*?>/);
     if (textboxTagMatch) {
       const tbAttrs = parseXmlAttributes(textboxTagMatch[0]);
@@ -393,6 +487,13 @@ export class DocxCanvasParser {
             bottom: parts[3],
           };
         }
+      }
+      if (tbAttrs["style"]) {
+        const tbStyle = parseVmlStyle(tbAttrs["style"]);
+        const anchor = tbStyle["v-text-anchor"];
+        if (anchor === "middle") verticalAlign = "center";
+        else if (anchor === "bottom") verticalAlign = "bottom";
+        else if (anchor === "top") verticalAlign = "top";
       }
     }
 
@@ -408,9 +509,10 @@ export class DocxCanvasParser {
       }
     }
 
-    // Check line spacing
+    // Check paragraph line spacing inside <w:pPr>
     let lineHeightPt: number | undefined;
-    const spacingTagMatch = shapeXml.match(/<w:spacing\b[\s\S]*?>/);
+    const pPrMatch = shapeXml.match(/<w:pPr\b[\s\S]*?<\/w:pPr>/);
+    const spacingTagMatch = (pPrMatch ? pPrMatch[0] : shapeXml).match(/<w:spacing\b[^>]*w:line=[^>]*>/);
     if (spacingTagMatch) {
       const spAttrs = parseXmlAttributes(spacingTagMatch[0]);
       if (spAttrs["w:line"] && spAttrs["w:lineRule"] === "exact") {
@@ -479,6 +581,18 @@ export class DocxCanvasParser {
             }
           }
 
+          let letterSpacingPt: number | undefined;
+          const rSpMatch = rXml.match(/<w:spacing\b[^>]*w:val=[^>]*>/);
+          if (rSpMatch) {
+            const rSpAttrs = parseXmlAttributes(rSpMatch[0]);
+            if (rSpAttrs["w:val"]) {
+              const twips = parseInt(rSpAttrs["w:val"], 10);
+              if (!isNaN(twips)) {
+                letterSpacingPt = Math.round((twips / 20) * 100) / 100;
+              }
+            }
+          }
+
           const bold = rXml.includes("<w:b/>") || rXml.includes("<w:b ");
           const italic = rXml.includes("<w:i/>") || rXml.includes("<w:i ");
           const underline = rXml.includes("<w:u ") || rXml.includes("<w:u/>");
@@ -494,6 +608,7 @@ export class DocxCanvasParser {
             strike: strike || undefined,
             color,
             lineHeightPt,
+            letterSpacingPt,
           });
         }
       }
@@ -508,6 +623,7 @@ export class DocxCanvasParser {
     }
 
     let vectorPoints: { x: number; y: number }[] | undefined;
+    let vectorSubpaths: { points: { x: number; y: number }[]; closed: boolean }[] | undefined;
     let vectorPath: string | undefined;
     if (type === "vector" && attrs["path"]) {
       vectorPath = attrs["path"];
@@ -516,6 +632,7 @@ export class DocxCanvasParser {
       const wHwpu = Math.max(10, Math.round(width * 100));
       const hHwpu = Math.max(10, Math.round(height * 100));
       vectorPoints = parsed.toHwpxPolygonPoints(wHwpu, hHwpu);
+      vectorSubpaths = parsed.toHwpxSubpathsWithClosed(wHwpu, hHwpu);
     }
 
     return {
@@ -528,8 +645,10 @@ export class DocxCanvasParser {
       innerPaddingPt,
       textRuns: hasText ? textRuns : undefined,
       paragraphAlign: align,
+      verticalAlign,
       vectorPath,
       vectorPoints,
+      vectorSubpaths,
     };
   }
 }

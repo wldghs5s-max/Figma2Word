@@ -38,15 +38,40 @@ export class FigmaCanvasParser {
     this.titleOverride = options?.titleOverride;
   }
 
-  public parse(input: FigmaNode | FigmaFileResponse): CanvasDocument {
+  public parse(input: FigmaNode | FigmaFileResponse | any): CanvasDocument {
     this.resources = {};
     this.imageCounter = 0;
     this.imageRefMap.clear();
 
-    const rootNode = "document" in input ? input.document : input;
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      throw new Error("Invalid Figma JSON input: expected a JSON object representing a Figma node, file response, or snapshot.");
+    }
+
+    if ("imageMap" in input && input.imageMap && typeof input.imageMap === "object") {
+      this.imageMap = { ...input.imageMap, ...this.imageMap };
+    }
+
+    let rootNode: FigmaNode;
+    if ("figmaNode" in input && input.figmaNode && typeof input.figmaNode === "object") {
+      rootNode = input.figmaNode;
+    } else if ("document" in input && input.document && typeof input.document === "object") {
+      rootNode = input.document;
+    } else if ("nodes" in input && input.nodes && typeof input.nodes === "object") {
+      const firstEntry = Object.values(input.nodes)[0] as any;
+      rootNode = firstEntry?.document || firstEntry;
+    } else {
+      rootNode = input as FigmaNode;
+    }
+
+    if (!rootNode || typeof rootNode !== "object" || (!rootNode.type && !Array.isArray(rootNode.children))) {
+      throw new Error("Invalid Figma JSON structure: missing valid root Figma node ('type' or 'children').");
+    }
+
     const documentName =
       this.titleOverride ||
-      ("name" in input && input.name ? input.name : "Figma Document");
+      (input.metadata?.fileName ? String(input.metadata.fileName) : "") ||
+      ("name" in input && input.name ? String(input.name) : "") ||
+      (rootNode.name ? String(rootNode.name) : "Figma Document");
 
     const notices: string[] = [];
     const warnings: string[] = [];
@@ -107,25 +132,89 @@ export class FigmaCanvasParser {
     const candidateFrames: FigmaNode[] = [];
 
     const visitCanvasOrDoc = (node: FigmaNode) => {
-      if (node.children) {
-        for (const child of node.children) {
-          if (child.visible === false) continue;
+      if (!node.children) return;
 
-          // If frame selection filter is active
-          if (this.selectedFrameIds && !this.selectedFrameIds.has(child.id)) {
-            continue;
-          }
+      if (node.type === "CANVAS") {
+        const visChildren = node.children.filter((c) => c.visible !== false);
+        const frameChildren = visChildren.filter(
+          (c) => c.type === "FRAME" || c.type === "COMPONENT" || c.type === "GROUP"
+        );
+        const leafChildren = visChildren.filter(
+          (c) =>
+            c.type === "TEXT" ||
+            c.type === "LINE" ||
+            c.type === "RECTANGLE" ||
+            c.type === "VECTOR" ||
+            c.type === "ELLIPSE"
+        );
+        const allFramesSelected =
+          !this.selectedFrameIds ||
+          frameChildren.every((f) => this.selectedFrameIds!.has(f.id));
+        const allFramesAreShortSections =
+          frameChildren.length >= 1 &&
+          frameChildren.every(
+            (f) =>
+              (f.absoluteBoundingBox?.height || 0) > 0 &&
+              (f.absoluteBoundingBox?.height || 0) < 500
+          );
+        const hasMixedLeafAndFrames = leafChildren.length > 0 && frameChildren.length > 0;
 
-          // Check if child is a frame or component
-          if (
-            child.type === "FRAME" ||
-            child.type === "COMPONENT" ||
-            child.type === "GROUP"
-          ) {
-            candidateFrames.push(child);
-          } else if (child.type === "CANVAS") {
-            visitCanvasOrDoc(child);
+        if (
+          allFramesSelected &&
+          allFramesAreShortSections &&
+          (hasMixedLeafAndFrames || frameChildren.length >= 2)
+        ) {
+          let minX = Infinity;
+          let minY = Infinity;
+          let maxX = -Infinity;
+          let maxY = -Infinity;
+          for (const c of visChildren) {
+            const b = c.absoluteBoundingBox;
+            if (b) {
+              if (b.x < minX) minX = b.x;
+              if (b.y < minY) minY = b.y;
+              if (b.x + b.width > maxX) maxX = b.x + b.width;
+              if (b.y + b.height > maxY) maxY = b.y + b.height;
+            }
           }
+          if (!isFinite(minX)) {
+            minX = 0;
+            minY = 0;
+            maxX = 794;
+            maxY = 1123;
+          }
+          const spanW = Math.max(794, maxX - minX);
+          const spanH = Math.max(maxY - minY + 48, Math.round(spanW * (841.89 / 595.28)));
+          candidateFrames.push({
+            ...node,
+            type: "FRAME",
+            absoluteBoundingBox: { x: minX, y: minY, width: spanW, height: spanH },
+            children: visChildren,
+          });
+          return;
+        }
+      }
+
+      for (const child of node.children) {
+        if (child.visible === false) continue;
+
+        if (child.type === "CANVAS") {
+          visitCanvasOrDoc(child);
+          continue;
+        }
+
+        // If frame selection filter is active
+        if (this.selectedFrameIds && !this.selectedFrameIds.has(child.id)) {
+          continue;
+        }
+
+        // Check if child is a frame or component
+        if (
+          child.type === "FRAME" ||
+          child.type === "COMPONENT" ||
+          child.type === "GROUP"
+        ) {
+          candidateFrames.push(child);
         }
       }
     };
@@ -150,6 +239,124 @@ export class FigmaCanvasParser {
   }
 
   /**
+   * Synthesizes deterministic absoluteBoundingBox coordinates for child nodes inside
+   * Auto-Layout frames (layoutMode: VERTICAL | HORIZONTAL) when absoluteBoundingBox is omitted.
+   */
+  private synthesizeMissingChildBounds(
+    parent: FigmaNode,
+    parentBox: { x: number; y: number; width: number; height: number }
+  ): void {
+    if (!parent.children || parent.children.length === 0) return;
+
+    const pl = (parent as any).paddingLeft || 0;
+    const pr = (parent as any).paddingRight || 0;
+    const pt = (parent as any).paddingTop || 0;
+    const pb = (parent as any).paddingBottom || 0;
+    const gap = (parent as any).itemSpacing || 12;
+    const layoutMode = (parent as any).layoutMode || "VERTICAL";
+
+    const innerX = parentBox.x + pl;
+    const innerY = parentBox.y + pt;
+    const innerW = Math.max(20, parentBox.width - pl - pr);
+    const innerH = Math.max(16, parentBox.height - pt - pb);
+
+    const visChildren = parent.children.filter((c) => c.visible !== false);
+    if (visChildren.length === 0) return;
+
+    if (layoutMode === "HORIZONTAL") {
+      let cursorX = innerX;
+      const missingCount = visChildren.filter((c) => !c.absoluteBoundingBox).length;
+      const usedW = visChildren.reduce(
+        (acc, c) => acc + (c.absoluteBoundingBox ? c.absoluteBoundingBox.width + gap : 0),
+        0
+      );
+      const remW = Math.max(40, innerW - usedW);
+      const defaultColW =
+        missingCount > 0
+          ? Math.max(40, (remW - gap * Math.max(0, missingCount - 1)) / missingCount)
+          : innerW;
+
+      for (const child of visChildren) {
+        if (!child.absoluteBoundingBox) {
+          let cw = defaultColW;
+          let ch = innerH;
+          if (child.type === "TEXT") {
+            const fs = child.style?.fontSize || 12;
+            const lh = child.style?.lineHeightPx || Math.round(fs * 1.35);
+            ch = Math.min(innerH, Math.max(lh + 4, innerH));
+          }
+          (child as any).absoluteBoundingBox = {
+            x: cursorX,
+            y: innerY,
+            width: cw,
+            height: ch,
+          };
+        }
+        const cb = child.absoluteBoundingBox!;
+        cursorX = Math.max(cursorX, cb.x + cb.width + gap);
+        this.synthesizeMissingChildBounds(child, cb);
+      }
+    } else {
+      let cursorY = innerY;
+      for (const child of visChildren) {
+        if (!child.absoluteBoundingBox) {
+          let cw = innerW;
+          let ch = 32;
+
+          if (child.type === "TEXT") {
+            const fs = child.style?.fontSize || 12;
+            const lh = child.style?.lineHeightPx || Math.round(fs * 1.4);
+            const chars = child.characters || "";
+            const charsPerLine = Math.max(8, Math.floor(innerW / (fs * 0.72)));
+            const explicitLines = chars.split(/\r\n|\r|\n/);
+            const totalLines = explicitLines.reduce(
+              (sum, l) => sum + Math.max(1, Math.ceil(l.length / charsPerLine)),
+              0
+            );
+            cw = innerW;
+            ch = Math.max(lh + 4, totalLines * lh + 4);
+          } else if (
+            child.type === "FRAME" ||
+            child.type === "COMPONENT" ||
+            child.type === "GROUP"
+          ) {
+            const cpl = (child as any).paddingLeft || 0;
+            const cpr = (child as any).paddingRight || 0;
+            const cpt = (child as any).paddingTop || 0;
+            const cpb = (child as any).paddingBottom || 0;
+            if (
+              (child as any).primaryAxisSizingMode === "AUTO" &&
+              child.children &&
+              child.children.length === 1 &&
+              child.children[0].type === "TEXT"
+            ) {
+              const tNode = child.children[0];
+              const fs = tNode.style?.fontSize || 12;
+              const lh = tNode.style?.lineHeightPx || Math.round(fs * 1.35);
+              const tLen = (tNode.characters || "").length;
+              cw = Math.min(innerW, Math.max(60, Math.round(tLen * fs * 0.8 + cpl + cpr + 12)));
+              ch = lh + cpt + cpb + 4;
+            } else {
+              cw = innerW;
+              ch = Math.max(48, Math.min(200, innerH - Math.max(0, cursorY - innerY)));
+            }
+          }
+
+          (child as any).absoluteBoundingBox = {
+            x: innerX,
+            y: cursorY,
+            width: cw,
+            height: ch,
+          };
+        }
+        const cb = child.absoluteBoundingBox!;
+        cursorY = Math.max(cursorY, cb.y + cb.height + gap);
+        this.synthesizeMissingChildBounds(child, cb);
+      }
+    }
+  }
+
+  /**
    * Parses a single top-level frame into a CanvasPage.
    */
   private parsePageFrame(
@@ -164,6 +371,9 @@ export class FigmaCanvasParser {
       width: 794,
       height: 1123,
     };
+
+    // Synthesize bounds for Auto-Layout child nodes that omit explicit absoluteBoundingBox
+    this.synthesizeMissingChildBounds(frame, frameBox);
 
     const resolved = resolveScale(
       frameBox.width,
@@ -226,6 +436,51 @@ export class FigmaCanvasParser {
 
         if (imageFill && imageFill.imageRef) {
           const resId = this.resolveImageResource(imageFill.imageRef);
+          const scaleModeRaw = (imageFill as any).scaleMode as
+            | "FILL"
+            | "FIT"
+            | "CROP"
+            | "TILE"
+            | undefined;
+          const imageScaleMode = scaleModeRaw || "FILL";
+          let imageCrop:
+            | { top: number; bottom: number; left: number; right: number }
+            | undefined;
+
+          const transform = (imageFill as any).imageTransform as
+            | [[number, number, number], [number, number, number]]
+            | undefined;
+          if (
+            imageScaleMode === "CROP" &&
+            Array.isArray(transform) &&
+            transform.length === 2 &&
+            Array.isArray(transform[0]) &&
+            Array.isArray(transform[1])
+          ) {
+            const sx = transform[0][0] ?? 1;
+            const tx = transform[0][2] ?? 0;
+            const sy = transform[1][1] ?? 1;
+            const ty = transform[1][2] ?? 0;
+            let left = 0,
+              top = 0,
+              right = 0,
+              bottom = 0;
+            if (tx >= 0 && ty >= 0 && sx > 0 && sx <= 1 && sy > 0 && sy <= 1) {
+              left = Math.max(0, Math.min(0.95, tx));
+              top = Math.max(0, Math.min(0.95, ty));
+              right = Math.max(0, Math.min(0.95, 1 - (tx + sx)));
+              bottom = Math.max(0, Math.min(0.95, 1 - (ty + sy)));
+            } else if (sx > 0 && sy > 0) {
+              left = Math.max(0, Math.min(0.95, -tx / sx));
+              top = Math.max(0, Math.min(0.95, -ty / sy));
+              right = Math.max(0, Math.min(0.95, 1 - (1 - tx) / sx));
+              bottom = Math.max(0, Math.min(0.95, 1 - (1 - ty) / sy));
+            }
+            if (left > 0 || top > 0 || right > 0 || bottom > 0) {
+              imageCrop = { top, bottom, left, right };
+            }
+          }
+
           elements.push({
             id: child.id,
             name: child.name,
@@ -236,6 +491,8 @@ export class FigmaCanvasParser {
             opacity: child.opacity,
             style: this.extractStyle(child, scaleX),
             imageRef: resId,
+            imageScaleMode,
+            imageCrop,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
@@ -259,6 +516,15 @@ export class FigmaCanvasParser {
           delete style.fillColor;
           delete style.fillOpacity;
 
+          const padTop = ((child as any).paddingTop || 0) * scaleY;
+          const padRight = ((child as any).paddingRight || 0) * scaleX;
+          const padBottom = ((child as any).paddingBottom || 0) * scaleY;
+          const padLeft = ((child as any).paddingLeft || 0) * scaleX;
+          const innerPaddingPt =
+            padTop > 0 || padRight > 0 || padBottom > 0 || padLeft > 0
+              ? { top: padTop, right: padRight, bottom: padBottom, left: padLeft }
+              : undefined;
+
           elements.push({
             id: child.id,
             name: child.name,
@@ -271,17 +537,33 @@ export class FigmaCanvasParser {
             textRuns,
             paragraphAlign: align,
             verticalAlign,
+            innerPaddingPt,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
         } else if (child.type === "LINE") {
+          let lineW = wPt;
+          let lineH = hPt;
+          const rawRot = (child as any).rotation;
+          if (typeof rawRot === "number" && lineW > 0 && lineH === 0) {
+            const absRot = Math.abs(rawRot);
+            if (Math.abs(absRot - Math.PI / 2) < 0.1 || Math.abs(absRot - 90) < 5) {
+              lineH = lineW;
+              lineW = 0;
+            }
+          }
           elements.push({
             id: child.id,
             name: child.name,
             type: "line",
-            bounds: { x: xPt, y: yPt, width: wPt, height: Math.max(hPt, 1) },
+            bounds: {
+              x: xPt,
+              y: yPt,
+              width: lineW,
+              height: lineW === 0 && lineH > 0 ? lineH : Math.max(lineH, 1),
+            },
             zIndex: currentZIndex++,
-            rotation: (child as any).rotation,
+            rotation: rawRot,
             opacity: child.opacity,
             style: this.extractStyle(child, scaleX),
             sourceNodeId: child.id,
@@ -292,18 +574,74 @@ export class FigmaCanvasParser {
           const hasFill = !!style.fillColor;
           const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
           if (hasFill || hasStroke) {
-            elements.push({
-              id: child.id,
-              name: child.name,
-              type: "oval",
-              bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
-              zIndex: currentZIndex++,
-              rotation: (child as any).rotation,
-              opacity: child.opacity,
-              style,
-              sourceNodeId: child.id,
-              sourceNodeType: child.type,
-            });
+            const arcData = (child as any).arcData as
+              | { startingAngle?: number; endingAngle?: number; innerRadius?: number }
+              | undefined;
+            const innerRadius = arcData?.innerRadius ?? 0;
+            const startAngle = arcData?.startingAngle ?? 0;
+            const endAngle = arcData?.endingAngle ?? Math.PI * 2;
+            const sweepDelta = endAngle - startAngle;
+            const isPartialArc =
+              arcData !== undefined &&
+              Math.abs(Math.abs(sweepDelta) - Math.PI * 2) > 0.01;
+            const isDonutOrSector = innerRadius > 0.001 || isPartialArc;
+
+            if (isDonutOrSector && Math.abs(sweepDelta) > 1e-4) {
+              const rawPath = this.buildEllipseArcSvgPath(
+                startAngle,
+                endAngle,
+                innerRadius
+              );
+              const parsed = SvgPath.parse(rawPath);
+              const unitBounds = {
+                minX: 0,
+                minY: 0,
+                maxX: 1000,
+                maxY: 1000,
+                width: 1000,
+                height: 1000,
+              };
+              const vmlPath = parsed.toVmlPath(1000, 1000, unitBounds);
+              const wHwpu = Math.max(10, Math.round(wPt * 100));
+              const hHwpu = Math.max(10, Math.round(hPt * 100));
+              const vectorSubpaths = parsed.toHwpxSubpathsWithClosed(
+                wHwpu,
+                hHwpu,
+                6,
+                unitBounds
+              );
+              const vectorPoints = vectorSubpaths.flatMap((s) => s.points);
+
+              elements.push({
+                id: child.id,
+                name: child.name,
+                type: "vector",
+                bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+                zIndex: currentZIndex++,
+                rotation: (child as any).rotation,
+                opacity: child.opacity,
+                style,
+                vectorPath: vmlPath,
+                rawSvgPath: rawPath,
+                vectorPoints,
+                vectorSubpaths,
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            } else {
+              elements.push({
+                id: child.id,
+                name: child.name,
+                type: "oval",
+                bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
+                zIndex: currentZIndex++,
+                rotation: (child as any).rotation,
+                opacity: child.opacity,
+                style,
+                sourceNodeId: child.id,
+                sourceNodeType: child.type,
+              });
+            }
           }
           processChildren(child);
         } else if (
@@ -521,11 +859,97 @@ export class FigmaCanvasParser {
     }
 
     // 3. Corner Radius
+    if (
+      Array.isArray(node.rectangleCornerRadii) &&
+      node.rectangleCornerRadii.length === 4
+    ) {
+      const radii = node.rectangleCornerRadii.map((r) => (r || 0) * scale) as [
+        number,
+        number,
+        number,
+        number
+      ];
+      style.cornerRadii = radii;
+      const maxR = Math.max(...radii);
+      if (maxR > 0) {
+        const avgR = (radii[0] + radii[1] + radii[2] + radii[3]) / 4;
+        style.cornerRadius = avgR > 0 ? avgR : maxR;
+      }
+    }
     if (node.cornerRadius) {
       style.cornerRadius = node.cornerRadius * scale;
     }
 
     return style;
+  }
+
+  /**
+   * Builds an exact SVG path in [0..1000, 0..1000] coordinate space for an ELLIPSE node
+   * that defines Figma arcData (donut sector or pie slice).
+   */
+  private buildEllipseArcSvgPath(
+    startAngle: number,
+    endAngle: number,
+    innerRadius: number
+  ): string {
+    const cx = 500;
+    const cy = 500;
+    const outerR = 500;
+    const innerR = Math.max(0, Math.min(499, outerR * innerRadius));
+    const delta = endAngle - startAngle;
+    const segments = Math.max(1, Math.ceil(Math.abs(delta) / (Math.PI / 2)));
+    const dTheta = delta / segments;
+    const alpha = (4 / 3) * Math.tan(dTheta / 4);
+
+    const parts: string[] = [];
+
+    const x0 = cx + outerR * Math.cos(startAngle);
+    const y0 = cy + outerR * Math.sin(startAngle);
+    parts.push(`M ${x0.toFixed(3)} ${y0.toFixed(3)}`);
+
+    for (let i = 0; i < segments; i++) {
+      const t0 = startAngle + i * dTheta;
+      const t1 = t0 + dTheta;
+      const p0x = cx + outerR * Math.cos(t0);
+      const p0y = cy + outerR * Math.sin(t0);
+      const p1x = cx + outerR * Math.cos(t1);
+      const p1y = cy + outerR * Math.sin(t1);
+      const cp1x = p0x - alpha * outerR * Math.sin(t0);
+      const cp1y = p0y + alpha * outerR * Math.cos(t0);
+      const cp2x = p1x + alpha * outerR * Math.sin(t1);
+      const cp2y = p1y - alpha * outerR * Math.cos(t1);
+      parts.push(
+        `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`
+      );
+    }
+
+    if (innerR > 0.5) {
+      const ixEnd = cx + innerR * Math.cos(endAngle);
+      const iyEnd = cy + innerR * Math.sin(endAngle);
+      parts.push(`L ${ixEnd.toFixed(3)} ${iyEnd.toFixed(3)}`);
+
+      const revAlpha = -alpha;
+      for (let i = 0; i < segments; i++) {
+        const t0 = endAngle - i * dTheta;
+        const t1 = t0 - dTheta;
+        const p0x = cx + innerR * Math.cos(t0);
+        const p0y = cy + innerR * Math.sin(t0);
+        const p1x = cx + innerR * Math.cos(t1);
+        const p1y = cy + innerR * Math.sin(t1);
+        const cp1x = p0x - revAlpha * innerR * Math.sin(t0);
+        const cp1y = p0y + revAlpha * innerR * Math.cos(t0);
+        const cp2x = p1x + revAlpha * innerR * Math.sin(t1);
+        const cp2y = p1y - revAlpha * innerR * Math.cos(t1);
+        parts.push(
+          `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`
+        );
+      }
+      parts.push("Z");
+    } else {
+      parts.push(`L ${cx} ${cy} Z`);
+    }
+
+    return parts.join(" ");
   }
 
   /**
@@ -552,10 +976,33 @@ export class FigmaCanvasParser {
     const defaultUnderline = node.style?.textDecoration === "UNDERLINE";
     const defaultStrike = node.style?.textDecoration === "STRIKETHROUGH";
 
-    // Text color from fills
+    const lineHeightUnit = (node.style as any)?.lineHeightUnit as string | undefined;
+    let defaultLineHeightPt: number | undefined;
+    if (lineHeightUnit !== "INTRINSIC_%") {
+      if (typeof node.style?.lineHeightPx === "number" && node.style.lineHeightPx > 0) {
+        defaultLineHeightPt = node.style.lineHeightPx * scale;
+      } else if (
+        typeof (node.style as any)?.lineHeightPercentFontSize === "number" &&
+        (node.style as any).lineHeightPercentFontSize > 0
+      ) {
+        defaultLineHeightPt =
+          defaultFontSize * ((node.style as any).lineHeightPercentFontSize / 100);
+      }
+    }
+
+    const defaultLetterSpacingPt =
+      typeof node.style?.letterSpacing === "number" && node.style.letterSpacing !== 0
+        ? node.style.letterSpacing * scale
+        : undefined;
+
+    // Text color from fills (or style.fills fallback in simplified fixtures)
     let defaultColor = "#000000";
-    if (node.fills && node.fills.length > 0) {
-      const solid = node.fills.find(
+    const textFills =
+      node.fills && node.fills.length > 0
+        ? node.fills
+        : ((node.style as any)?.fills as any[] | undefined);
+    if (textFills && textFills.length > 0) {
+      const solid = textFills.find(
         (f) => f.type === "SOLID" && f.visible !== false
       );
       if (solid && solid.color) {
@@ -598,6 +1045,8 @@ export class FigmaCanvasParser {
                 defaultUnderline,
                 defaultStrike,
                 defaultColor,
+                defaultLineHeightPt,
+                defaultLetterSpacingPt,
                 scale
               )
             );
@@ -620,6 +1069,8 @@ export class FigmaCanvasParser {
             defaultUnderline,
             defaultStrike,
             defaultColor,
+            defaultLineHeightPt,
+            defaultLetterSpacingPt,
             scale
           )
         );
@@ -635,6 +1086,8 @@ export class FigmaCanvasParser {
         underline: defaultUnderline,
         strike: defaultStrike,
         color: defaultColor,
+        lineHeightPt: defaultLineHeightPt,
+        letterSpacingPt: defaultLetterSpacingPt,
       });
     }
 
@@ -652,6 +1105,8 @@ export class FigmaCanvasParser {
     defaultUnderline: boolean,
     defaultStrike: boolean,
     defaultColor: string,
+    defaultLineHeightPt: number | undefined,
+    defaultLetterSpacingPt: number | undefined,
     scale: number
   ): CanvasTextRun {
     const override = styleTable[String(styleKey)];
@@ -665,6 +1120,8 @@ export class FigmaCanvasParser {
         underline: defaultUnderline,
         strike: defaultStrike,
         color: defaultColor,
+        lineHeightPt: defaultLineHeightPt,
+        letterSpacingPt: defaultLetterSpacingPt,
       };
     }
 
@@ -686,6 +1143,18 @@ export class FigmaCanvasParser {
         ? parseInt(String(rawWeight), 10) || defaultWeight
         : defaultWeight;
 
+    let lineHeightPt = defaultLineHeightPt;
+    if (override.lineHeightUnit !== "INTRINSIC_%") {
+      if (typeof override.lineHeightPx === "number" && override.lineHeightPx > 0) {
+        lineHeightPt = override.lineHeightPx * scale;
+      }
+    }
+
+    const letterSpacingPt =
+      typeof override.letterSpacing === "number" && override.letterSpacing !== 0
+        ? override.letterSpacing * scale
+        : defaultLetterSpacingPt;
+
     return {
       text,
       fontFamily: override.fontFamily || defaultFamily,
@@ -701,6 +1170,8 @@ export class FigmaCanvasParser {
       strike:
         override.textDecoration === "STRIKETHROUGH" ? true : defaultStrike,
       color,
+      lineHeightPt,
+      letterSpacingPt,
     };
   }
 

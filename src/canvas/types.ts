@@ -164,6 +164,7 @@ export interface CanvasStyle {
   strokeWidth?: number; // pt
   strokeDashed?: boolean;
   cornerRadius?: number; // pt
+  cornerRadii?: [number, number, number, number]; // [tl, tr, br, bl] in pt
 }
 
 export interface CanvasTextRun {
@@ -210,6 +211,13 @@ export interface CanvasPadding {
   left?: number;
 }
 
+export interface CanvasImageCrop {
+  top: number; // 0.0 ~ 1.0 normalized crop fraction
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface CanvasElement {
   id: string;
   name?: string;
@@ -228,6 +236,8 @@ export interface CanvasElement {
 
   // Image details
   imageRef?: string; // key into CanvasDocument.resources
+  imageScaleMode?: "FILL" | "FIT" | "CROP" | "TILE";
+  imageCrop?: CanvasImageCrop;
 
   // Vector Path details
   vectorPath?: string; // Normalized VML path string (coordsize="1000,1000")

@@ -217,7 +217,15 @@ export function App() {
           updateFramesFromNode(parsedData.figmaNode);
           setStatus(`Figma 스냅샷 [${parsedData.metadata?.fileName || file.name}] 로드 완료`);
         } else {
-          const targetNode = parsedData.document || parsedData;
+          const targetNode = parsedData?.document || parsedData;
+          if (
+            !targetNode ||
+            typeof targetNode !== 'object' ||
+            Array.isArray(targetNode) ||
+            (!targetNode.type && !Array.isArray(targetNode.children))
+          ) {
+            throw new Error('유효한 Figma 노드 구조(type 또는 children)가 없습니다.');
+          }
           extractedNode = targetNode;
           const imageMap = parsedData.images || parsedData.meta?.images || {};
           setLoadedSnapshot({

@@ -78,9 +78,13 @@ export function extractSelectableFrames(
   };
 
   if (root.type === "DOCUMENT") {
-    for (const canvas of root.children || []) {
-      if (canvas.visible === false) continue;
-      collectFromChildren(canvas.children, canvas.name);
+    for (const child of root.children || []) {
+      if (child.visible === false) continue;
+      if (child.type === "CANVAS") {
+        collectFromChildren(child.children, child.name);
+      } else {
+        collectFromChildren([child], root.name);
+      }
     }
   } else if (root.type === "CANVAS") {
     collectFromChildren(root.children, root.name);
@@ -117,12 +121,19 @@ export function filterFigmaNodeByFrames(
   const root = "document" in input ? input.document : input;
 
   if (root.type === "DOCUMENT") {
+    const hasCanvasChild = (root.children || []).some((c) => c.type === "CANVAS");
     const newDocument: FigmaNode = {
       ...root,
-      children: (root.children || []).map((canvas) => ({
-        ...canvas,
-        children: (canvas.children || []).filter((child) => selectedSet.has(child.id)),
-      })),
+      children: hasCanvasChild
+        ? (root.children || []).map((child) =>
+            child.type === "CANVAS"
+              ? {
+                  ...child,
+                  children: (child.children || []).filter((c) => selectedSet.has(c.id)),
+                }
+              : child
+          )
+        : (root.children || []).filter((child) => selectedSet.has(child.id)),
     };
     if ("document" in input) {
       return {
