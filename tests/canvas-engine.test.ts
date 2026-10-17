@@ -238,8 +238,8 @@ describe("Canvas Engine - Renderers (DOCX & HWPX) & Typography Preservation", ()
 
     const headerXml = await zip.file("Contents/header.xml")!.async("string");
     expect(headerXml).toContain('<hh:fontfaces itemCnt="7">');
-    expect(headerXml).toContain('lang="hangul"');
-    expect(headerXml).toContain('lang="latin"');
+    expect(headerXml).toContain('lang="HANGUL"');
+    expect(headerXml).toContain('lang="LATIN"');
     expect(headerXml).toContain('face="Pretendard"');
     expect(headerXml).toContain('face="맑은 고딕"');
     expect(headerXml).toContain("hh:fontRef");
@@ -597,7 +597,7 @@ describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", ()
     const hwpxZip = await JSZip.loadAsync(hwpxBuf);
     const secXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
     expect(secXml).toContain("<hp:polygon");
-    expect(secXml).toContain("<hp:pt");
+    expect(secXml).toContain("<hc:pt");
     expect(secXml).toContain("</hp:polygon>");
   });
 

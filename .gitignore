@@ -12,12 +12,17 @@ out/
 output/
 temp/
 debug/
+!debug/hwpx-recovery/
+!debug/hwpx-recovery/**
 scratch/
 test-results/
 playwright-report/
 word/
+*.zip
+test-docx-outputs/
 완성본-*/
 *.hwpx
+!debug/hwpx-recovery/*.hwpx
 review-packages/
 research/rea-document-engine/phase13c/renders/
 research/rea-document-engine/phase13c/**/*.png

@@ -191,7 +191,7 @@ export class HwpxCanvasRenderer {
     zip.file("Contents/section0.xml", section0Xml);
 
     // 8. Contents/header.xml (outputs registered fontfaces, charPr & paraPr styles)
-    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList));
+    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList, doc.pages.length || 1));
 
     return zip;
   }
@@ -286,7 +286,8 @@ ${items}
   private buildHeaderXml(
     charPrList: { id: number; key: CharPrKey }[],
     fontRegistry: Map<string, number>,
-    paraPrList: ParaPrEntry[]
+    paraPrList: ParaPrEntry[],
+    secCnt: number = 1
   ): string {
     let charPrEntries = "";
     for (const { id, key } of charPrList) {
@@ -324,7 +325,7 @@ ${items}
       )
       .join("\n");
 
-    const langs = ["hangul", "latin", "hanja", "japanese", "other", "symbol", "user"];
+    const langs = ["HANGUL", "LATIN", "HANJA", "JAPANESE", "OTHER", "SYMBOL", "USER"];
     const fontCnt = fontRegistry.size;
     const fontXmlEntries = Array.from(fontRegistry.entries())
       .map(([face, id]) => `<hh:font id="${id}" face="${escapeXml(face)}" type="TTF" isEmbedded="0"/>`)
@@ -339,7 +340,7 @@ ${items}
       .join("\n      ");
 
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<hh:head xmlns:hh="http://www.hancom.co.kr/hwpml/2011/head" xmlns:hc="http://www.hancom.co.kr/hwpml/2011/core" version="1.0">
+<hh:head xmlns:hh="http://www.hancom.co.kr/hwpml/2011/head" xmlns:hc="http://www.hancom.co.kr/hwpml/2011/core" version="1.2" secCnt="${secCnt}">
   <hh:beginNum page="1" footnote="1" endnote="1" pic="1" tbl="1" equation="1"/>
   <hh:refList>
     <hh:fontfaces itemCnt="7">
@@ -377,6 +378,7 @@ ${paraPrEntries}
   ): string {
     const pageParas: string[] = [];
     let globalShapeId = 1;
+    const nextId = () => globalShapeId++;
 
     for (let pIdx = 0; pIdx < doc.pages.length; pIdx++) {
       const page = doc.pages[pIdx];
@@ -392,46 +394,43 @@ ${paraPrEntries}
 
       const shapesXml: string[] = [];
 
-      // 1. Full-page background rect if specified (sized to this page's dimensions)
+      // 1. Full-page background rect if specified
       if (page.backgroundColor) {
         const bgW = ptToHwpu(pageWidthPt);
         const bgH = ptToHwpu(pageHeightPt);
-        const bgId = globalShapeId++;
-        shapesXml.push(
-          `<hp:run><hp:rect id="${bgId}" zOrder="0" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${bgId}" ratio="0">
-  <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${bgW}" height="${bgH}"/>
-  <hp:curSz width="${bgW}" height="${bgH}"/>
-  <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(bgW / 2)}" centerY="${Math.round(bgH / 2)}" rotateimage="1"/>
-  <hp:renderingInfo>
-    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-  </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="0" vertOffset="0"/>
-  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  <hc:fillBrush><hc:winBrush faceColor="#${cleanHex(page.backgroundColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>
-</hp:rect></hp:run>`
-        );
+        const bgId = nextId();
+        const bgRect = this.renderRectXml({
+          id: bgId,
+          zOrder: 0,
+          x: 0,
+          y: 0,
+          w: bgW,
+          h: bgH,
+          fillColorHex: cleanHex(page.backgroundColor),
+          lineColorHex: "000000",
+          lineWidth: "0",
+          lineStyle: "NONE",
+          ratio: 0,
+        });
+        shapesXml.push(`<hp:run>${bgRect}</hp:run>`);
       }
 
       // 2. Render all elements
       for (const elem of page.elements) {
         const rendered = this.renderElement(
-          globalShapeId++,
+          nextId,
           elem,
           imageBinMap,
           getCharPrId,
           getParaPrId,
           doc.resources
         );
-        if (rendered) {
-          shapesXml.push(`<hp:run>${rendered}</hp:run>`);
+        for (const shapeXml of rendered) {
+          shapesXml.push(`<hp:run>${shapeXml}</hp:run>`);
         }
       }
 
-      // First page includes secPr, as well as any page where dimensions/orientation differ from previous
+      // Section properties in hp:run inside the first hp:p (or on page orientation/dimension change)
       const prevPage = pIdx > 0 ? doc.pages[pIdx - 1] : undefined;
       const prevWidthPt = prevPage ? (prevPage.bounds.width || doc.pageSize.widthPt) : undefined;
       const prevHeightPt = prevPage ? (prevPage.bounds.height || doc.pageSize.heightPt) : undefined;
@@ -439,21 +438,44 @@ ${paraPrEntries}
         prevWidthPt !== undefined &&
         (Math.abs(prevWidthPt - pageWidthPt) > 1 || Math.abs(prevHeightPt! - pageHeightPt) > 1);
 
-      const secPrXml =
+      const secPrRunXml =
         pIdx === 0 || orientationChanged
-          ? `<hp:secPr id="${pIdx}" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" outlineShapeIDRef="0" memoShapeIDRef="0" textVerticalWidthHead="0">
-  <hp:grid char="0" line="0"/>
-  <hp:startNum pageStartsOn="BOTH" page="${pIdx + 1}" pic="1" tbl="1" equation="1"/>
-  <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="SHOW_ALL" fill="SHOW_ALL" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
-  <hp:pagePr landscape="${landscapeAttr}" width="${widthHwpu}" height="${heightHwpu}" gutterType="LEFT_ONLY">
-    <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
-  </hp:pagePr>
-</hp:secPr>`
+          ? `<hp:run charPrIDRef="0">
+      <hp:secPr id="" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" tabStopVal="4000" tabStopUnit="HWPUNIT" outlineShapeIDRef="1" memoShapeIDRef="0" textVerticalWidthHead="0" masterPageCnt="0">
+        <hp:grid lineGrid="0" charGrid="0" wonggojiFormat="0"/>
+        <hp:startNum pageStartsOn="BOTH" page="${pIdx + 1}" pic="1" tbl="1" equation="1"/>
+        <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="NONE" fill="NONE" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
+        <hp:lineNumberShape restartType="0" countBy="0" distance="0" startNumber="0"/>
+        <hp:pagePr landscape="${landscapeAttr}" width="${widthHwpu}" height="${heightHwpu}" gutterType="LEFT_ONLY">
+          <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
+        </hp:pagePr>
+        <hp:footNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="283" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="EACH_COLUMN" beneathText="0"/>
+        </hp:footNotePr>
+        <hp:endNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="0" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="END_OF_DOCUMENT" beneathText="0"/>
+        </hp:endNotePr>
+        <hp:pageBorderFill type="BOTH" borderFillIDRef="1" textBorder="PAPER" headerInside="0" footerInside="0" fillArea="PAPER">
+          <hp:offset left="0" right="0" top="0" bottom="0"/>
+        </hp:pageBorderFill>
+      </hp:secPr>
+      <hp:ctrl>
+        <hp:colPr id="" type="NEWSPAPER" layout="LEFT" colCnt="1" sameSz="1" sameGap="0"/>
+      </hp:ctrl>
+    </hp:run>`
           : "";
 
+      const allRuns = [secPrRunXml, ...shapesXml].filter(Boolean);
       pageParas.push(`<hp:p id="${pIdx}" paraPrIDRef="0" styleIDRef="0"${pageBreakAttr} columnBreak="0" merged="0">
-  ${secPrXml}
-  ${shapesXml.join("\n  ")}
+  ${allRuns.join("\n  ")}
 </hp:p>`);
     }
 
@@ -466,13 +488,13 @@ ${paraPrEntries}
   }
 
   private renderElement(
-    shapeId: number,
+    nextId: () => number,
     elem: CanvasElement,
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number,
     getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number,
     resources?: Record<string, CanvasResource>
-  ): string {
+  ): string[] {
     const xHwpu = ptToHwpu(elem.bounds.x);
     const yHwpu = ptToHwpu(elem.bounds.y);
     const wHwpu = Math.max(100, ptToHwpu(elem.bounds.width));
@@ -561,7 +583,6 @@ ${paraPrEntries}
           const arBox = wHwpu / hHwpu;
 
           if (arImg > arBox * 1.01) {
-            // Image is wider than container: crop left & right
             const visW = dimH * arBox;
             const cropX = (dimW - visW) / 2.0;
             clipLeft = Math.round(cropX);
@@ -569,7 +590,6 @@ ${paraPrEntries}
             clipTop = 0;
             clipBottom = dimH;
           } else if (arImg < arBox * 0.99) {
-            // Image is taller than container: crop top & bottom
             const visH = dimW / arBox;
             const cropY = (dimH - visH) / 2.0;
             clipLeft = 0;
@@ -584,63 +604,63 @@ ${paraPrEntries}
           }
         }
 
-        return `<hp:pic id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="0">
-  <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${picW}" height="${picH}"/>
-  <hp:curSz width="${picW}" height="${picH}"/>
-  <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(picW / 2)}" centerY="${Math.round(picH / 2)}" rotateimage="1"/>
-  <hp:renderingInfo>
-    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-  </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${picX}" vertOffset="${picY}"/>
-  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  <hp:imgRect pt0_x="0" pt0_y="0" pt1_x="${picW}" pt1_y="0" pt2_x="${picW}" pt2_y="${picH}" pt3_x="0" pt3_y="${picH}"/>
-  <hp:imgClip left="${clipLeft}" right="${clipRight}" top="${clipTop}" bottom="${clipBottom}"/>
-  <hp:imgDim dimwidth="${dimW}" dimheight="${dimH}"/>
-  <hp:inImgDim dimwidth="${dimW}" dimheight="${dimH}"/>
-  <hc:img binaryItemIDRef="${binId}" binRef="${binId}" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/>
-</hp:pic>`;
+        const picId = nextId();
+        return [
+          this.renderPicXml({
+            id: picId,
+            zOrder,
+            x: picX,
+            y: picY,
+            w: picW,
+            h: picH,
+            binId,
+            clipLeft,
+            clipRight,
+            clipTop,
+            clipBottom,
+            dimW,
+            dimH,
+          }),
+        ];
       }
     }
 
-    // 2. Line (KS X 6101 native hp:line)
+    // 2. Line (KS X 6101 native hp:line with isReverseHV and hc:pt0, hc:pt1)
     if (elem.type === "line") {
+      const lineId = nextId();
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");
       const strokeW = Math.max(10, Math.round((elem.style.strokeWidth || 1) * 10)).toString();
       const strokeStyle = elem.style.strokeDashed ? "DASH" : "SOLID";
       const lineShapeW = Math.max(1, wHwpu);
       const lineShapeH = Math.max(0, hHwpu);
-      return `<hp:line id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" isReverseHWP97="0">
-  <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${lineShapeW}" height="${lineShapeH}"/>
-  <hp:curSz width="${lineShapeW}" height="${lineShapeH}"/>
-  <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(lineShapeW / 2)}" centerY="${Math.round(lineShapeH / 2)}" rotateimage="1"/>
-  <hp:renderingInfo>
-    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-  </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
-  <hp:lineShape color="#${strokeColor}" width="${strokeW}" style="${strokeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  <hp:pt0 x="0" y="0"/>
-  <hp:pt1 x="${lineShapeW}" y="${lineShapeH}"/>
-</hp:line>`;
+      return [
+        this.renderLineXml({
+          id: lineId,
+          zOrder,
+          x: xHwpu,
+          y: yHwpu,
+          w: lineShapeW,
+          h: lineShapeH,
+          p0: { x: 0, y: 0 },
+          p1: { x: lineShapeW, y: lineShapeH },
+          colorHex: strokeColor,
+          width: strokeW,
+          style: strokeStyle,
+          endCap: "FLAT",
+        }),
+      ];
     }
 
-    // 3. Card / Rect / Textbox
+    // Common text & style calculation
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
     const hasFill = !!elem.style.fillColor;
     const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
 
     const lineStyle = hasStroke ? (elem.style.strokeDashed ? "DASH" : "SOLID") : "NONE";
-    const lineColor = hasStroke ? `#${cleanHex(elem.style.strokeColor)}` : "#000000";
+    const lineColor = hasStroke ? cleanHex(elem.style.strokeColor, "000000") : "000000";
     const lineWidth = hasStroke ? Math.round((elem.style.strokeWidth || 1) * 10).toString() : "0";
 
-    const fillBrush = hasFill
+    const fillBrushXml = hasFill
       ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
       : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
 
@@ -682,19 +702,21 @@ ${paraPrEntries}
       const vertAlignAttr =
         elem.verticalAlign === "center" ? "CENTER" : elem.verticalAlign === "bottom" ? "BOTTOM" : "TOP";
 
-      const textMarginXml = elem.innerPaddingPt
-        ? `\n    <hp:textMargin left="${ptToHwpu(elem.innerPaddingPt.left ?? 0)}" right="${ptToHwpu(elem.innerPaddingPt.right ?? 0)}" top="${ptToHwpu(elem.innerPaddingPt.top ?? 0)}" bottom="${ptToHwpu(elem.innerPaddingPt.bottom ?? 0)}"/>`
-        : "";
+      const marginL = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.left ?? 0) : 0;
+      const marginR = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.right ?? 0) : 0;
+      const marginT = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.top ?? 0) : 0;
+      const marginB = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.bottom ?? 0) : 0;
 
       drawTextPart = `
-  <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">${textMarginXml}
-    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="${shapeH}" hasTextRef="0" hasNumRef="0">
+  <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="0" hasTextRef="0" hasNumRef="0">
       ${parasXml.join("\n      ")}
     </hp:subList>
+    <hp:textMargin left="${marginL}" right="${marginR}" top="${marginT}" bottom="${marginB}"/>
   </hp:drawText>`;
     }
 
-    // 4. Vector Shape (KS X 6101 native hp:polygon for closed paths / hp:line for open subpaths)
+    // 3. Vector Shape (KS X 6101 native hp:polygon for closed paths / hp:line for open subpaths)
     if (elem.type === "vector") {
       let subpaths = elem.vectorSubpaths;
       if (!subpaths || subpaths.length === 0) {
@@ -709,16 +731,15 @@ ${paraPrEntries}
         const renderedShapes: string[] = [];
         for (let idx = 0; idx < subpaths.length; idx++) {
           const sp = subpaths[idx];
-          const subId = `${shapeId}_${idx + 1}`;
           const pts = sp.points;
 
-          // Open subpath: emit connected <hp:line> segments so Hancom does NOT draw a closing stroke or fill!
+          // Open subpath: emit connected <hp:line> segments
           if (!sp.closed && pts.length >= 2) {
             const openStrokeColor = hasStroke
               ? lineColor
               : hasFill
-              ? `#${cleanHex(elem.style.fillColor)}`
-              : "#000000";
+              ? cleanHex(elem.style.fillColor, "000000")
+              : "000000";
             const openStrokeWidth = hasStroke ? lineWidth : "15";
             const openStrokeStyle = elem.style.strokeDashed ? "DASH" : "SOLID";
             const endCap = pts.length > 2 ? "ROUND" : "FLAT";
@@ -726,82 +747,332 @@ ${paraPrEntries}
             for (let segIdx = 0; segIdx < pts.length - 1; segIdx++) {
               const p0 = pts[segIdx];
               const p1 = pts[segIdx + 1];
-              const segId = pts.length === 2 ? subId : `${subId}_${segIdx + 1}`;
-              renderedShapes.push(`<hp:line id="${segId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${segId}" isReverseHWP97="0">
-  <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
-  <hp:curSz width="${shapeW}" height="${shapeH}"/>
-  <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
-  <hp:renderingInfo>
-    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-  </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
-  <hp:lineShape color="${openStrokeColor}" width="${openStrokeWidth}" style="${openStrokeStyle}" endCap="${endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  <hp:pt0 x="${p0.x}" y="${p0.y}"/>
-  <hp:pt1 x="${p1.x}" y="${p1.y}"/>
-</hp:line>`);
+              const lineId = nextId();
+              renderedShapes.push(
+                this.renderLineXml({
+                  id: lineId,
+                  zOrder,
+                  x: xHwpu,
+                  y: yHwpu,
+                  w: shapeW,
+                  h: shapeH,
+                  p0: { x: p0.x, y: p0.y },
+                  p1: { x: p1.x, y: p1.y },
+                  colorHex: openStrokeColor,
+                  width: openStrokeWidth,
+                  style: openStrokeStyle,
+                  endCap,
+                })
+              );
             }
             continue;
           }
 
-          const ptXml =
-            pts.length > 0
-              ? pts.map((p) => `<hp:pt x="${p.x}" y="${p.y}"/>`).join("\n  ")
-              : `<hp:pt x="0" y="0"/>\n  <hp:pt x="${shapeW}" y="0"/>\n  <hp:pt x="${shapeW}" y="${shapeH}"/>\n  <hp:pt x="0" y="${shapeH}"/>`;
-
+          // Closed polygon
+          const polyId = nextId();
           const subFillBrush =
             sp.closed && hasFill
-              ? fillBrush
+              ? fillBrushXml
               : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
 
-          renderedShapes.push(`<hp:polygon id="${subId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${subId}" ratio="0">
-  <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
-  <hp:curSz width="${shapeW}" height="${shapeH}"/>
-  <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
-  <hp:renderingInfo>
-    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
-  </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
-  <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  ${subFillBrush}
-  ${ptXml}${idx === 0 ? drawTextPart : ""}
-</hp:polygon>`);
+          const polyPts =
+            pts.length > 0
+              ? pts
+              : [
+                  { x: 0, y: 0 },
+                  { x: shapeW, y: 0 },
+                  { x: shapeW, y: shapeH },
+                  { x: 0, y: shapeH },
+                ];
+
+          renderedShapes.push(
+            this.renderPolygonXml({
+              id: polyId,
+              zOrder,
+              x: xHwpu,
+              y: yHwpu,
+              w: shapeW,
+              h: shapeH,
+              points: polyPts,
+              colorHex: lineColor,
+              width: lineWidth,
+              style: lineStyle,
+              fillBrushXml: subFillBrush,
+              drawTextXml: idx === 0 ? drawTextPart : "",
+            })
+          );
         }
 
-        return renderedShapes.join("\n</hp:run>\n<hp:run>");
+        return renderedShapes;
       }
     }
 
-    const isOval = elem.type === "oval";
-    const shapeTag = isOval ? "hp:oval" : "hp:rect";
+    // 4. Oval / Ellipse
+    if (elem.type === "oval") {
+      const ovalId = nextId();
+      return [
+        this.renderOvalXml({
+          id: ovalId,
+          zOrder,
+          x: xHwpu,
+          y: yHwpu,
+          w: shapeW,
+          h: shapeH,
+          colorHex: lineColor,
+          width: lineWidth,
+          style: lineStyle,
+          fillBrushXml,
+          drawTextXml: drawTextPart,
+        }),
+      ];
+    }
+
+    // 5. Card / Rect / Textbox
     const cornerRadius = elem.style?.cornerRadius || 0;
     const minDim = Math.min(elem.bounds.width, elem.bounds.height);
     const ratio =
-      !isOval && cornerRadius > 0 && minDim > 0
+      cornerRadius > 0 && minDim > 0
         ? Math.min(50, Math.max(0, Math.round((cornerRadius / (minDim / 2)) * 50)))
         : 0;
 
-    return `<${shapeTag} id="${shapeId}" zOrder="${zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${shapeId}" ratio="${ratio}">
+    const rectId = nextId();
+    return [
+      this.renderRectXml({
+        id: rectId,
+        zOrder,
+        x: xHwpu,
+        y: yHwpu,
+        w: shapeW,
+        h: shapeH,
+        colorHex: lineColor,
+        width: lineWidth,
+        style: lineStyle,
+        fillBrushXml,
+        drawTextXml: drawTextPart,
+        ratio,
+      }),
+    ];
+  }
+
+  /**
+   * Helper: Serializes <hp:rect> with strict KS X 6101 element sequence and coordinates
+   */
+  private renderRectXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    fillColorHex?: string;
+    lineColorHex: string;
+    lineWidth: string;
+    lineStyle: string;
+    ratio: number;
+    fillBrushXml?: string;
+    drawTextXml?: string;
+  }): string {
+    const fillBrush =
+      p.fillBrushXml ||
+      (p.fillColorHex
+        ? `<hc:fillBrush><hc:winBrush faceColor="#${p.fillColorHex}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
+        : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`);
+
+    const drawText = p.drawTextXml || "";
+
+    return `<hp:rect id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" ratio="${p.ratio}">
   <hp:offset x="0" y="0"/>
-  <hp:orgSz width="${shapeW}" height="${shapeH}"/>
-  <hp:curSz width="${shapeW}" height="${shapeH}"/>
+  <hp:orgSz width="${p.w}" height="${p.h}"/>
+  <hp:curSz width="${p.w}" height="${p.h}"/>
   <hp:flip horizontal="0" vertical="0"/>
-  <hp:rotationInfo angle="0" centerX="${Math.round(shapeW / 2)}" centerY="${Math.round(shapeH / 2)}" rotateimage="1"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(p.w / 2)}" centerY="${Math.round(p.h / 2)}" rotateimage="1"/>
   <hp:renderingInfo>
     <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:pos treatAsChar="0" horzRelTo="PAPER" vertRelTo="PAPER" horzAlign="LEFT" vertAlign="TOP" horzOffset="${xHwpu}" vertOffset="${yHwpu}"/>
-  <hp:lineShape color="${lineColor}" width="${lineWidth}" style="${lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
-  ${fillBrush}${drawTextPart}
-</${shapeTag}>`;
+  <hp:lineShape color="#${p.lineColorHex}" width="${p.lineWidth}" style="${p.lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  ${fillBrush}${drawText}
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="${p.w}" y="0"/>
+  <hc:pt2 x="${p.w}" y="${p.h}"/>
+  <hc:pt3 x="0" y="${p.h}"/>
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect>`;
+  }
+
+  /**
+   * Helper: Serializes <hp:oval> with center, axis, and start/end coordinates
+   */
+  private renderOvalXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    colorHex: string;
+    width: string;
+    style: string;
+    fillBrushXml: string;
+    drawTextXml: string;
+  }): string {
+    const cx = Math.round(p.w / 2);
+    const cy = Math.round(p.h / 2);
+
+    return `<hp:oval id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" intervalDirty="0" hasArcPr="0" arcType="NORMAL">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${p.w}" height="${p.h}"/>
+  <hp:curSz width="${p.w}" height="${p.h}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${cx}" centerY="${cy}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  ${p.fillBrushXml}${p.drawTextXml}
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:center x="${cx}" y="${cy}"/>
+  <hc:ax1 x="${cx}" y="0"/>
+  <hc:ax2 x="${p.w}" y="${cy}"/>
+  <hc:start1 x="0" y="0"/>
+  <hc:end1 x="0" y="0"/>
+  <hc:start2 x="0" y="0"/>
+  <hc:end2 x="0" y="0"/>
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:oval>`;
+  }
+
+  /**
+   * Helper: Serializes <hp:line> with isReverseHV and hc:pt0, hc:pt1
+   */
+  private renderLineXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    p0: { x: number; y: number };
+    p1: { x: number; y: number };
+    colorHex: string;
+    width: string;
+    style: string;
+    endCap: string;
+  }): string {
+    return `<hp:line id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" isReverseHV="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${p.w}" height="${p.h}"/>
+  <hp:curSz width="${p.w}" height="${p.h}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(p.w / 2)}" centerY="${Math.round(p.h / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="${p.endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="${p.p0.x}" y="${p.p0.y}"/>
+  <hc:pt1 x="${p.p1.x}" y="${p.p1.y}"/>
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:line>`;
+  }
+
+  /**
+   * Helper: Serializes <hp:polygon> with hc:pt list
+   */
+  private renderPolygonXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    points: Array<{ x: number; y: number }>;
+    colorHex: string;
+    width: string;
+    style: string;
+    fillBrushXml: string;
+    drawTextXml: string;
+  }): string {
+    const ptXml = p.points.map((pt) => `<hc:pt x="${pt.x}" y="${pt.y}"/>`).join("\n  ");
+
+    return `<hp:polygon id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${p.w}" height="${p.h}"/>
+  <hp:curSz width="${p.w}" height="${p.h}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(p.w / 2)}" centerY="${Math.round(p.h / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  ${p.fillBrushXml}${p.drawTextXml}
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  ${ptXml}
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:polygon>`;
+  }
+
+  /**
+   * Helper: Serializes <hp:pic> with nested imgRect points, imgClip, inMargin, imgDim, and hc:img
+   */
+  private renderPicXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    binId: string;
+    clipLeft: number;
+    clipRight: number;
+    clipTop: number;
+    clipBottom: number;
+    dimW: number;
+    dimH: number;
+  }): string {
+    return `<hp:pic id="${p.id}" zOrder="${p.zOrder}" numberingType="PICTURE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" reverse="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="${p.w}" height="${p.h}"/>
+  <hp:curSz width="${p.w}" height="${p.h}"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="${Math.round(p.w / 2)}" centerY="${Math.round(p.h / 2)}" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:imgRect>
+    <hc:pt0 x="0" y="0"/>
+    <hc:pt1 x="${p.w}" y="0"/>
+    <hc:pt2 x="${p.w}" y="${p.h}"/>
+    <hc:pt3 x="0" y="${p.h}"/>
+  </hp:imgRect>
+  <hp:imgClip left="${p.clipLeft}" right="${p.clipRight}" top="${p.clipTop}" bottom="${p.clipBottom}"/>
+  <hp:inMargin left="0" right="0" top="0" bottom="0"/>
+  <hp:imgDim dimwidth="${p.dimW}" dimheight="${p.dimH}"/>
+  <hc:img binaryItemIDRef="${p.binId}" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/>
+  <hp:effects/>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:pic>`;
   }
 }

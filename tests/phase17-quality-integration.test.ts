@@ -47,9 +47,9 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
       expect(lineMatch).toBeDefined();
       expect(lineMatch![0]).toContain('color="#336699"');
       expect(lineMatch![0]).toContain('style="SOLID"');
-      expect(lineMatch![0]).toContain('<hp:pt0 x="0" y="0"/>');
-      expect(lineMatch![0]).toContain('<hp:pt1 x="40000" y="100"/>');
-      expect(lineMatch![0]).toContain('isReverseHWP97="0"');
+      expect(lineMatch![0]).toContain('<hc:pt0 x="0" y="0"/>');
+      expect(lineMatch![0]).toContain('<hc:pt1 x="40000" y="100"/>');
+      expect(lineMatch![0]).toContain('isReverseHV="0"');
       // Ensure it did not fall back to <hp:rect>
       expect(secXml).not.toContain('<hp:rect');
     });
@@ -141,9 +141,12 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
 
       // 100 px * 75 = 7500 HWPU; 50 px * 75 = 3750 HWPU
       expect(secXml).toContain('<hp:imgDim dimwidth="7500" dimheight="3750"/>');
-      expect(secXml).toContain('<hp:inImgDim dimwidth="7500" dimheight="3750"/>');
       expect(secXml).toContain('binaryItemIDRef="BIN0001"');
-      expect(secXml).toContain('binRef="BIN0001"');
+      // Phase 20 OWPML Schema Fix: ensure spurious inImgDim and binRef are not emitted
+      expect(secXml).not.toContain('<hp:inImgDim');
+      expect(secXml).not.toContain('binRef="BIN0001"');
+      expect(secXml).toContain('<hp:imgRect>');
+      expect(secXml).toContain('<hc:pt1 x="10000" y="0"/>');
     });
   });
 
