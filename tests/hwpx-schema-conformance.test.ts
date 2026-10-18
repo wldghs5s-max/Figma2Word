@@ -291,5 +291,52 @@ describe("Phase 20: HWPX OWPML / KS X 6101 Schema Conformance & Recovery Suite",
     expect(headerXml).not.toContain('lang="hangul"');
     expect(headerXml).not.toContain('lang="latin"');
   });
+
+  it("renders complete mandatory children in default charPr id=0 when charPrList is empty", async () => {
+    const emptyDoc: CanvasDocument = {
+      title: "Empty CharPr Test",
+      pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
+      marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
+      pages: [{ pageNumber: 1, bounds: { x: 0, y: 0, width: 595.28, height: 841.89 }, elements: [] }],
+      resources: {},
+      diagnostics: { notices: [], warnings: [] },
+    };
+
+    const renderer = new HwpxCanvasRenderer();
+    const buf = await renderer.renderToBuffer(emptyDoc);
+    const zip = await JSZip.loadAsync(buf);
+    const headerXml = await zip.file("Contents/header.xml")!.async("string");
+
+    // Must contain complete child set conforming to OWPML charPr schema
+    expect(headerXml).toContain('<hh:charPr id="0"');
+    expect(headerXml).toContain('<hh:fontRef hangul="0"');
+    expect(headerXml).toContain('<hh:ratio hangul="100"');
+    expect(headerXml).toContain('<hh:spacing hangul="0"');
+    expect(headerXml).toContain('<hh:relSz hangul="100"');
+    expect(headerXml).toContain('<hh:offset hangul="0"');
+  });
+
+  it("strictly sets secCnt='1' in header.xml for single-section multi-page documents", async () => {
+    const multiPageDoc: CanvasDocument = {
+      title: "Multi Page Section Count Test",
+      pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
+      marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
+      pages: [
+        { pageNumber: 1, bounds: { x: 0, y: 0, width: 595.28, height: 841.89 }, elements: [] },
+        { pageNumber: 2, bounds: { x: 0, y: 0, width: 595.28, height: 841.89 }, elements: [] },
+        { pageNumber: 3, bounds: { x: 0, y: 0, width: 595.28, height: 841.89 }, elements: [] },
+      ],
+      resources: {},
+      diagnostics: { notices: [], warnings: [] },
+    };
+
+    const renderer = new HwpxCanvasRenderer();
+    const buf = await renderer.renderToBuffer(multiPageDoc);
+    const zip = await JSZip.loadAsync(buf);
+    const headerXml = await zip.file("Contents/header.xml")!.async("string");
+
+    // secCnt must match actual section files in package (1), not page count
+    expect(headerXml).toMatch(/<hh:head\b[^>]*secCnt="1"/);
+  });
 });
 

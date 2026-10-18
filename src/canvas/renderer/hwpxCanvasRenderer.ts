@@ -191,7 +191,7 @@ export class HwpxCanvasRenderer {
     zip.file("Contents/section0.xml", section0Xml);
 
     // 8. Contents/header.xml (outputs registered fontfaces, charPr & paraPr styles)
-    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList, doc.pages.length || 1));
+    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList, 1));
 
     return zip;
   }
@@ -313,6 +313,12 @@ ${items}
     if (charPrList.length === 0) {
       charPrEntries = `\n    <hh:charPr id="0" height="1000" textColor="#000000" shadeColor="none" useFontSpace="1" useKerning="1" symMark="NONE" borderFillIDRef="1">
       <hh:fontRef hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:ratio hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
+      <hh:spacing hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:relSz hangul="100" latin="100" hanja="100" japanese="100" other="100" symbol="100" user="100"/>
+      <hh:offset hangul="0" latin="0" hanja="0" japanese="0" other="0" symbol="0" user="0"/>
+      <hh:underline type="NONE" shape="SOLID" color="#000000"/>
+      <hh:strikeout shape="NONE" color="#000000"/>
     </hh:charPr>`;
     }
 
@@ -625,8 +631,40 @@ ${paraPrEntries}
       }
     }
 
-    // 2. Line (KS X 6101 native hp:line with isReverseHV and hc:pt0, hc:pt1)
+    // 2. Line (Canonical representation: thin filled rect for H/V dividers matching authentic Hancom, or native hp:line)
     if (elem.type === "line") {
+      const isHorizontal = elem.bounds.height <= 4 || elem.bounds.width >= elem.bounds.height * 2;
+      const isVertical = elem.bounds.width <= 4 || elem.bounds.height >= elem.bounds.width * 2;
+      const isSolid = !elem.style.strokeDashed;
+
+      // Authentic Hancom standard: 100% of horizontal/vertical dividers are serialized as thin filled rectangles
+      if ((isHorizontal || isVertical) && isSolid) {
+        const rectId = nextId();
+        const strokeColor = cleanHex(elem.style.strokeColor, "000000");
+        const strokeWidthPt = elem.style.strokeWidth || 1;
+        const strokeHwpu = Math.max(75, Math.round(strokeWidthPt * 100));
+
+        const lineW = isHorizontal ? wHwpu : strokeHwpu;
+        const lineH = isHorizontal ? strokeHwpu : hHwpu;
+
+        return [
+          this.renderRectXml({
+            id: rectId,
+            zOrder,
+            x: xHwpu,
+            y: yHwpu,
+            w: lineW,
+            h: lineH,
+            fillColorHex: strokeColor,
+            lineColorHex: "000000",
+            lineWidth: "0",
+            lineStyle: "NONE",
+            ratio: 0,
+          }),
+        ];
+      }
+
+      // Otherwise render as native KS X 6101 / OWPML <hp:line> with valid startPt/endPt and isReverseHV="0"
       const lineId = nextId();
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");
       const strokeW = Math.max(10, Math.round((elem.style.strokeWidth || 1) * 10)).toString();
@@ -641,8 +679,8 @@ ${paraPrEntries}
           y: yHwpu,
           w: lineShapeW,
           h: lineShapeH,
-          p0: { x: 0, y: 0 },
-          p1: { x: lineShapeW, y: lineShapeH },
+          startPt: { x: 0, y: 0 },
+          endPt: { x: lineShapeW, y: lineShapeH },
           colorHex: strokeColor,
           width: strokeW,
           style: strokeStyle,
@@ -699,13 +737,33 @@ ${paraPrEntries}
       });
 
       const drawName = escapeXml(elem.name || elem.id || "");
-      const vertAlignAttr =
-        elem.verticalAlign === "center" ? "CENTER" : elem.verticalAlign === "bottom" ? "BOTTOM" : "TOP";
+      const cornerRadiusPt = elem.style?.cornerRadius || 0;
+      const isPillOrBadge =
+        (elem.bounds.height <= 36 || cornerRadiusPt >= elem.bounds.height / 3) && paragraphs.length <= 1;
 
-      const marginL = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.left ?? 0) : 0;
-      const marginR = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.right ?? 0) : 0;
-      const marginT = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.top ?? 0) : 0;
-      const marginB = elem.innerPaddingPt ? ptToHwpu(elem.innerPaddingPt.bottom ?? 0) : 0;
+      const vertAlignAttr =
+        elem.verticalAlign === "center" || (!elem.verticalAlign && isPillOrBadge)
+          ? "CENTER"
+          : elem.verticalAlign === "bottom"
+          ? "BOTTOM"
+          : "TOP";
+
+      // If shape has rounded corners and no explicit padding, provide safe internal margin to avoid clipping
+      const defaultPadL = cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.4) : 0;
+      const defaultPadT = cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.3) : 0;
+
+      const marginL = elem.innerPaddingPt
+        ? ptToHwpu(elem.innerPaddingPt.left ?? defaultPadL)
+        : ptToHwpu(defaultPadL);
+      const marginR = elem.innerPaddingPt
+        ? ptToHwpu(elem.innerPaddingPt.right ?? defaultPadL)
+        : ptToHwpu(defaultPadL);
+      const marginT = elem.innerPaddingPt
+        ? ptToHwpu(elem.innerPaddingPt.top ?? defaultPadT)
+        : ptToHwpu(defaultPadT);
+      const marginB = elem.innerPaddingPt
+        ? ptToHwpu(elem.innerPaddingPt.bottom ?? defaultPadT)
+        : ptToHwpu(defaultPadT);
 
       drawTextPart = `
   <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
@@ -973,7 +1031,7 @@ ${paraPrEntries}
   }
 
   /**
-   * Helper: Serializes <hp:line> with hc:pt0, hc:pt1
+   * Helper: Serializes <hp:line> with hc:startPt, hc:endPt conforming to OWPML LineType
    */
   private renderLineXml(p: {
     id: number;
@@ -982,8 +1040,10 @@ ${paraPrEntries}
     y: number;
     w: number;
     h: number;
-    p0: { x: number; y: number };
-    p1: { x: number; y: number };
+    startPt?: { x: number; y: number };
+    endPt?: { x: number; y: number };
+    p0?: { x: number; y: number };
+    p1?: { x: number; y: number };
     colorHex: string;
     width: string;
     style: string;
@@ -995,7 +1055,12 @@ ${paraPrEntries}
       ? p.style
       : "SOLID";
 
-    return `<hp:line id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
+    const startX = p.startPt?.x ?? p.p0?.x ?? 0;
+    const startY = p.startPt?.y ?? p.p0?.y ?? 0;
+    const endX = p.endPt?.x ?? p.p1?.x ?? p.w;
+    const endY = p.endPt?.y ?? p.p1?.y ?? p.h;
+
+    return `<hp:line id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" isReverseHV="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${p.w}" height="${p.h}"/>
   <hp:curSz width="${p.w}" height="${p.h}"/>
@@ -1008,8 +1073,8 @@ ${paraPrEntries}
   </hp:renderingInfo>
   <hp:lineShape color="#${safeColor}" width="${safeWidth}" style="${safeStyle}" endCap="${p.endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
-  <hc:pt0 x="${p.p0.x}" y="${p.p0.y}"/>
-  <hc:pt1 x="${p.p1.x}" y="${p.p1.y}"/>
+  <hc:startPt x="${startX}" y="${startY}"/>
+  <hc:endPt x="${endX}" y="${endY}"/>
   <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
   <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
   <hp:outMargin left="0" right="0" top="0" bottom="0"/>
@@ -1017,7 +1082,7 @@ ${paraPrEntries}
   }
 
   /**
-   * Helper: Serializes <hp:polygon> with hc:pt list
+   * Helper: Serializes <hp:polygon> with hc:pt list conforming to OWPML PolygonType
    */
   private renderPolygonXml(p: {
     id: number;
@@ -1039,7 +1104,16 @@ ${paraPrEntries}
       ? p.style
       : "NONE";
 
-    const ptXml = p.points.map((pt) => `<hc:pt x="${pt.x}" y="${pt.y}"/>`).join("\n  ");
+    const closedPts = [...p.points];
+    if (closedPts.length >= 3) {
+      const first = closedPts[0];
+      const last = closedPts[closedPts.length - 1];
+      if (first.x !== last.x || first.y !== last.y) {
+        closedPts.push({ x: first.x, y: first.y });
+      }
+    }
+
+    const ptXml = closedPts.map((pt) => `<hc:pt x="${pt.x}" y="${pt.y}"/>`).join("\n  ");
 
     return `<hp:polygon id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
   <hp:offset x="0" y="0"/>

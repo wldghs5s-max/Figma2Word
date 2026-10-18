@@ -12,9 +12,9 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
   // 1. Native HWPX Line Rendering for LINE Elements
   // =========================================================================
   describe("Track A: HWPX Native Line Rendering", () => {
-    it("should render Figma LINE nodes as native <hp:line> with pt0 and pt1 in HWPX", async () => {
+    it("should render horizontal/vertical divider lines as canonical thin filled <hp:rect> in HWPX", async () => {
       const lineDoc: CanvasDocument = {
-        title: "Native Line Test",
+        title: "Divider Line Test",
         pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
         marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
         pages: [
@@ -42,15 +42,50 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
       const zip = await JSZip.loadAsync(hwpxBuf);
       const secXml = await zip.file("Contents/section0.xml")!.async("string");
 
-      // Verify <hp:line> tag presence and attributes
+      // Verify canonical thin filled <hp:rect> matching authentic Hancom reference documents
+      expect(secXml).toContain('<hc:winBrush faceColor="#336699"');
+      expect(secXml).toMatch(/<hp:sz width="40000" height="200"/);
+      expect(secXml).toMatch(/<hp:lineShape color="#000000" width="0" style="NONE"/);
+    });
+
+    it("should render dashed or diagonal lines as native <hp:line> with startPt and endPt in HWPX", async () => {
+      const dashedLineDoc: CanvasDocument = {
+        title: "Native Dashed Line Test",
+        pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
+        marginsPt: { top: 0, right: 0, bottom: 0, left: 0 },
+        pages: [
+          {
+            pageNumber: 1,
+            bounds: { x: 0, y: 0, width: 595.28, height: 841.89 },
+            elements: [
+              {
+                id: "div_dashed",
+                name: "Dashed Line",
+                type: "line",
+                bounds: { x: 50, y: 100, width: 400, height: 2 },
+                zIndex: 1,
+                style: { strokeColor: "#3B82F6", strokeWidth: 2, strokeDashed: true },
+              },
+            ],
+          },
+        ],
+        resources: {},
+        diagnostics: { notices: [], warnings: [] },
+      };
+
+      const hwpxRenderer = new HwpxCanvasRenderer();
+      const hwpxBuf = await hwpxRenderer.renderToBuffer(dashedLineDoc);
+      const zip = await JSZip.loadAsync(hwpxBuf);
+      const secXml = await zip.file("Contents/section0.xml")!.async("string");
+
+      // Verify native <hp:line> with startPt and endPt conforming to OWPML LineType
       const lineMatch = secXml.match(/<hp:line\b[\s\S]*?<\/hp:line>/);
       expect(lineMatch).toBeDefined();
-      expect(lineMatch![0]).toContain('color="#336699"');
-      expect(lineMatch![0]).toContain('style="SOLID"');
-      expect(lineMatch![0]).toContain('<hc:pt0 x="0" y="0"/>');
-      expect(lineMatch![0]).toContain('<hc:pt1 x="40000" y="100"/>');
-      // Ensure it did not fall back to <hp:rect>
-      expect(secXml).not.toContain('<hp:rect');
+      expect(lineMatch![0]).toContain('isReverseHV="0"');
+      expect(lineMatch![0]).toContain('color="#3B82F6"');
+      expect(lineMatch![0]).toContain('style="DASH"');
+      expect(lineMatch![0]).toContain('<hc:startPt x="0" y="0"/>');
+      expect(lineMatch![0]).toContain('<hc:endPt x="40000" y="200"/>');
     });
 
     it("should strictly cap rounded rectangle ratio to 50 for pills and semi-circles", async () => {

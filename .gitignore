@@ -18,6 +18,8 @@ debug/*
 !debug/hwpx-phase20-baseline/**
 !debug/hwpx-phase21/
 !debug/hwpx-phase21/**
+!debug/hwpx-phase22/
+!debug/hwpx-phase22/**
 scratch/
 test-results/
 playwright-report/
@@ -29,6 +31,7 @@ test-docx-outputs/
 !debug/hwpx-recovery/*.hwpx
 !debug/hwpx-phase20-baseline/*.hwpx
 !debug/hwpx-phase21/*.hwpx
+!debug/hwpx-phase22/*.hwpx
 review-packages/
 research/rea-document-engine/phase13c/renders/
 research/rea-document-engine/phase13c/**/*.png

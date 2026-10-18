@@ -140,9 +140,9 @@ describe("Phase 16.1 Independent Audit Findings Remediation Tests", () => {
       const lineMatches = secXml.match(/<hp:line\b/g);
       expect(lineMatches).toBeDefined();
       expect(lineMatches!.length).toBe(2);
-      expect(secXml).toContain('<hc:pt0 x="0" y="5000"/>');
-      expect(secXml).toContain('<hc:pt1 x="3750" y="10000"/>');
-      expect(secXml).toContain('<hc:pt1 x="10000" y="0"/>');
+      expect(secXml).toContain('<hc:startPt x="0" y="5000"/>');
+      expect(secXml).toContain('<hc:endPt x="3750" y="10000"/>');
+      expect(secXml).toContain('<hc:endPt x="10000" y="0"/>');
     });
 
     it("should distinguish closed vs open subpaths in mixed multi-contour paths", async () => {
@@ -187,8 +187,8 @@ describe("Phase 16.1 Independent Audit Findings Remediation Tests", () => {
       expect(lineMatches!.length).toBe(1);
 
       expect(secXml).toContain('<hc:winBrush faceColor="#FF0000"');
-      expect(secXml).toContain('<hc:pt0 x="4000" y="4000"/>');
-      expect(secXml).toContain('<hc:pt1 x="16000" y="16000"/>');
+      expect(secXml).toContain('<hc:startPt x="4000" y="4000"/>');
+      expect(secXml).toContain('<hc:endPt x="16000" y="16000"/>');
     });
   });
 
