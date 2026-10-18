@@ -104,11 +104,10 @@ describe("Phase 16 H2 Document Format & Geometry Hardening Tests", () => {
       const pagePrMatch = secXml.match(/<hp:pagePr\b[^>]*\/?>/);
       expect(pagePrMatch).toBeDefined();
       const pagePrXml = pagePrMatch![0];
-      // 841.89 * 100 = 84189 HWPU
-      expect(pagePrXml).toContain('width="84189"');
-      // 595.28 * 100 = 59528 HWPU
-      expect(pagePrXml).toContain('height="59528"');
-      expect(pagePrXml).toContain('landscape="WIDELY"');
+      // Landscape A4 in OWPML (KS X 6101): landscape="NARROWLY" and portrait-base dimensions (59528 x 84189)
+      expect(pagePrXml).toContain('width="59528"');
+      expect(pagePrXml).toContain('height="84189"');
+      expect(pagePrXml).toContain('landscape="NARROWLY"');
     });
   });
 

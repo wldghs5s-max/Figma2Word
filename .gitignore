@@ -26,6 +26,8 @@ debug/*
 !debug/hwpx-phase23-1/**
 !debug/cross-format-phase23/
 !debug/cross-format-phase23/**
+!debug/hwpx-page-orientation-fix/
+!debug/hwpx-page-orientation-fix/**
 scratch/
 test-results/
 playwright-report/
@@ -41,6 +43,7 @@ test-docx-outputs/
 !debug/hwpx-phase23/*.hwpx
 !debug/hwpx-phase23-1/*.hwpx
 !debug/cross-format-phase23/*.hwpx
+!debug/hwpx-page-orientation-fix/*.hwpx
 review-packages/
 research/rea-document-engine/phase13c/renders/
 research/rea-document-engine/phase13c/**/*.png

@@ -92,8 +92,8 @@ describe("Phase 18: Architecture Hardening & Real-World Fidelity Suite", () => {
       const roundtripHwpxBuf = await hwpxRenderer.renderToBuffer(parsedFromDocx);
       const rtZip = await JSZip.loadAsync(roundtripHwpxBuf);
       const rtSecXml = await rtZip.file("Contents/section0.xml")!.async("string");
+      expect(rtSecXml).toContain('landscape="WIDELY" width="59530" height="84190"');
       expect(rtSecXml).toContain('landscape="NARROWLY" width="59530" height="84190"');
-      expect(rtSecXml).toContain('landscape="WIDELY" width="84190" height="59530"');
     });
   });
 

@@ -399,9 +399,13 @@ ${paraPrEntries}
       const pageWidthPt = page.bounds.width || doc.pageSize.widthPt || 595.28;
       const pageHeightPt = page.bounds.height || doc.pageSize.heightPt || 841.89;
       const isLandscape = pageWidthPt > pageHeightPt;
-      const landscapeAttr = isLandscape ? "WIDELY" : "NARROWLY";
-      const widthHwpu = Math.round(pageWidthPt * 100);
-      const heightHwpu = Math.round(pageHeightPt * 100);
+      // In KS X 6101 (OWPML): WIDELY = Portrait (세로), NARROWLY = Landscape (가로)
+      const landscapeAttr = isLandscape ? "NARROWLY" : "WIDELY";
+      // OWPML paper dimensions are strictly defined in portrait-base coordinates (width <= height)
+      const baseWidthPt = isLandscape ? Math.min(pageWidthPt, pageHeightPt) : pageWidthPt;
+      const baseHeightPt = isLandscape ? Math.max(pageWidthPt, pageHeightPt) : pageHeightPt;
+      const widthHwpu = Math.round(baseWidthPt * 100);
+      const heightHwpu = Math.round(baseHeightPt * 100);
 
       const shapesXml: string[] = [];
 

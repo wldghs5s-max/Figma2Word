@@ -45,9 +45,9 @@ describe("Phase 16.1 Independent Audit Findings Remediation Tests", () => {
 
       const pagePrMatch = secXml.match(/<hp:pagePr\b[^>]*\/?>/);
       expect(pagePrMatch).toBeDefined();
-      expect(pagePrMatch![0]).toContain('landscape="WIDELY"');
-      expect(pagePrMatch![0]).toContain('width="84189"');
-      expect(pagePrMatch![0]).toContain('height="59528"');
+      expect(pagePrMatch![0]).toContain('landscape="NARROWLY"');
+      expect(pagePrMatch![0]).toContain('width="59528"');
+      expect(pagePrMatch![0]).toContain('height="84189"');
     });
 
     it("should preserve portrait A4 dimensions for portrait documents (multi-page-report)", () => {

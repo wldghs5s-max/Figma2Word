@@ -276,9 +276,9 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
       expect(secPrMatches).toBeDefined();
       expect(secPrMatches!.length).toBe(2);
 
-      // Page 1 is NARROWLY, Page 2 is WIDELY
+      // Page 1 is Portrait (WIDELY), Page 2 is Landscape (NARROWLY), with portrait-base dimensions
+      expect(secXml).toContain('landscape="WIDELY" width="59528" height="84189"');
       expect(secXml).toContain('landscape="NARROWLY" width="59528" height="84189"');
-      expect(secXml).toContain('landscape="WIDELY" width="84189" height="59528"');
     });
   });
 

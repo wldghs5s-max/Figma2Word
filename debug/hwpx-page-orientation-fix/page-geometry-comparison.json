@@ -1,0 +1,220 @@
+[
+  {
+    "docName": "stage6-portrait",
+    "figmaBounds": {
+      "width": 794,
+      "height": 1123,
+      "orientation": "portrait"
+    },
+    "canvasIR": {
+      "pageCount": 1,
+      "pageSize": {
+        "widthPt": 595.28,
+        "heightPt": 841.89,
+        "orientation": "portrait"
+      },
+      "pages": [
+        {
+          "pageNumber": 1,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        }
+      ]
+    },
+    "hwpx": {
+      "pagePrList": [
+        {
+          "landscape": "WIDELY",
+          "width": "59528",
+          "height": "84189",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "docx": {
+      "sectPrList": [
+        {
+          "orient": "portrait",
+          "widthTwips": "11906",
+          "heightTwips": "16838",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "orientationMatches": true
+  },
+  {
+    "docName": "stage7-portrait",
+    "figmaBounds": {
+      "width": 595.28,
+      "height": 841.89,
+      "orientation": "portrait"
+    },
+    "canvasIR": {
+      "pageCount": 9,
+      "pageSize": {
+        "widthPt": 595.28,
+        "heightPt": 841.89,
+        "orientation": "portrait"
+      },
+      "pages": [
+        {
+          "pageNumber": 1,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 2,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 3,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 4,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 5,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 6,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 7,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 8,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        },
+        {
+          "pageNumber": 9,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        }
+      ]
+    },
+    "hwpx": {
+      "pagePrList": [
+        {
+          "landscape": "WIDELY",
+          "width": "59528",
+          "height": "84189",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "docx": {
+      "sectPrList": [
+        {
+          "orient": "portrait",
+          "widthTwips": "11906",
+          "heightTwips": "16838",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "orientationMatches": true
+  },
+  {
+    "docName": "diag-a4-portrait",
+    "canvasIR": {
+      "pageCount": 1,
+      "pageSize": {
+        "widthPt": 595.28,
+        "heightPt": 841.89,
+        "orientation": "portrait"
+      },
+      "pages": [
+        {
+          "pageNumber": 1,
+          "width": 595.28,
+          "height": 841.89,
+          "orientation": "portrait"
+        }
+      ]
+    },
+    "hwpx": {
+      "pagePrList": [
+        {
+          "landscape": "WIDELY",
+          "width": "59528",
+          "height": "84189",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "docx": {
+      "sectPrList": [
+        {
+          "orient": "portrait",
+          "widthTwips": "11906",
+          "heightTwips": "16838",
+          "interpretedOrientation": "portrait"
+        }
+      ]
+    },
+    "orientationMatches": true
+  },
+  {
+    "docName": "diag-a4-landscape",
+    "canvasIR": {
+      "pageCount": 1,
+      "pageSize": {
+        "widthPt": 841.89,
+        "heightPt": 595.28,
+        "orientation": "landscape"
+      },
+      "pages": [
+        {
+          "pageNumber": 1,
+          "width": 841.89,
+          "height": 595.28,
+          "orientation": "landscape"
+        }
+      ]
+    },
+    "hwpx": {
+      "pagePrList": [
+        {
+          "landscape": "NARROWLY",
+          "width": "59528",
+          "height": "84189",
+          "interpretedOrientation": "landscape"
+        }
+      ]
+    },
+    "docx": {
+      "sectPrList": [
+        {
+          "orient": "landscape",
+          "widthTwips": "16838",
+          "heightTwips": "11906",
+          "interpretedOrientation": "landscape"
+        }
+      ]
+    },
+    "orientationMatches": true
+  }
+]

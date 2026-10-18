@@ -27,6 +27,7 @@ def audit_hwpx_package(path):
         "entries": [],
         "mandatory_files": {},
         "header_info": {},
+        "page_pr": [],
         "shapes": Counter(),
         "violations": [],
         "warnings": [],
@@ -87,6 +88,15 @@ def audit_hwpx_package(path):
             if "undefined" in sdata_str.lower():
                 report["violations"].append("Found literal 'undefined' attribute leak in section0.xml")
 
+            # Audit pagePr (Page Orientation and Dimensions)
+            for pp in sroot.findall(".//{*}pagePr"):
+                report["page_pr"].append({
+                    "landscape": pp.get("landscape"),
+                    "width": pp.get("width"),
+                    "height": pp.get("height"),
+                    "gutterType": pp.get("gutterType")
+                })
+
             for elem in sroot.iter():
                 tag = clean_tag(elem.tag)
                 if tag in ["rect", "line", "ellipse", "polygon", "pic", "oval"]:
@@ -140,6 +150,13 @@ def compare_hwpx(ref_path, target_path):
         print(f"  [CRITICAL MISMATCH] Target section file count ({len(sec_files_target)}) != secCnt ({sec_cnt_target})")
     else:
         print(f"  [PASSED] Target section file count ({len(sec_files_target)}) matches secCnt ({sec_cnt_target})")
+
+    print("\n2.5 PAGE PROPERTIES & ORIENTATION:")
+    print(f"  Target PagePr:    {target_rep['page_pr']}")
+    print(f"  Reference PagePr: {ref_rep['page_pr']}")
+    for i, t_pp in enumerate(target_rep['page_pr']):
+        orient = "Portrait (세로)" if t_pp.get("landscape") == "WIDELY" else "Landscape (가로)"
+        print(f"  Target Page {i+1}: {orient} | landscape={t_pp.get('landscape')} width={t_pp.get('width')} height={t_pp.get('height')}")
 
     print("\n3. SHAPE DISTRIBUTION COMPARISON:")
     all_shape_keys = sorted(set(list(target_rep['shapes'].keys()) + list(ref_rep['shapes'].keys())))
