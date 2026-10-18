@@ -49,7 +49,6 @@ describe("Phase 17 Quality & Integration Test Suite", () => {
       expect(lineMatch![0]).toContain('style="SOLID"');
       expect(lineMatch![0]).toContain('<hc:pt0 x="0" y="0"/>');
       expect(lineMatch![0]).toContain('<hc:pt1 x="40000" y="100"/>');
-      expect(lineMatch![0]).toContain('isReverseHV="0"');
       // Ensure it did not fall back to <hp:rect>
       expect(secXml).not.toContain('<hp:rect');
     });

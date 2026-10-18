@@ -131,7 +131,7 @@ describe("Phase 20: HWPX OWPML / KS X 6101 Schema Conformance & Recovery Suite",
     expect(outMarginIdx).toBeGreaterThan(posIdx);
   });
 
-  it("renders dedicated geometry for hp:oval conforming to KS X 6101 ellipse specification", async () => {
+  it("renders dedicated geometry for hp:ellipse conforming to KS X 6101 ellipse specification", async () => {
     const doc: CanvasDocument = {
       title: "Oval Geometry Test",
       pageSize: { name: "A4", widthPt: 595.28, heightPt: 841.89, unit: "pt" },
@@ -160,8 +160,8 @@ describe("Phase 20: HWPX OWPML / KS X 6101 Schema Conformance & Recovery Suite",
     const zip = await JSZip.loadAsync(buf);
     const secXml = await zip.file("Contents/section0.xml")!.async("string");
 
-    // hp:oval tag and attributes
-    expect(secXml).toContain("<hp:oval");
+    // hp:ellipse tag and attributes (conforming to KS X 6101 and authentic Hancom corpus)
+    expect(secXml).toContain("<hp:ellipse");
     expect(secXml).toContain('intervalDirty="0"');
     expect(secXml).toContain('hasArcPr="0"');
     expect(secXml).toContain('arcType="NORMAL"');
@@ -169,16 +169,16 @@ describe("Phase 20: HWPX OWPML / KS X 6101 Schema Conformance & Recovery Suite",
     // Dedicated oval geometry tags
     // W = 10000 HWPU, H = 8000 HWPU
     // center: (5000, 4000)
-    // ax1: (5000, 0)
-    // ax2: (10000, 4000)
-    // start1..end2: (0, 0)
+    // ax1: (10000, 4000)
+    // ax2: (5000, 8000)
+    // start1..end2: (10000, 4000)
     expect(secXml).toContain('<hc:center x="5000" y="4000"/>');
-    expect(secXml).toContain('<hc:ax1 x="5000" y="0"/>');
-    expect(secXml).toContain('<hc:ax2 x="10000" y="4000"/>');
-    expect(secXml).toContain('<hc:start1 x="0" y="0"/>');
-    expect(secXml).toContain('<hc:end1 x="0" y="0"/>');
-    expect(secXml).toContain('<hc:start2 x="0" y="0"/>');
-    expect(secXml).toContain('<hc:end2 x="0" y="0"/>');
+    expect(secXml).toContain('<hc:ax1 x="10000" y="4000"/>');
+    expect(secXml).toContain('<hc:ax2 x="5000" y="8000"/>');
+    expect(secXml).toContain('<hc:start1 x="10000" y="4000"/>');
+    expect(secXml).toContain('<hc:end1 x="10000" y="4000"/>');
+    expect(secXml).toContain('<hc:start2 x="10000" y="4000"/>');
+    expect(secXml).toContain('<hc:end2 x="10000" y="4000"/>');
 
     // Must also contain shadow, sz, pos, outMargin in proper sequence
     const centerIdx = secXml.indexOf("<hc:center");

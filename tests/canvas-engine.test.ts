@@ -526,8 +526,8 @@ describe("Canvas Engine - Visual Fidelity & Parser Improvements (Phase 13C)", ()
     const hwpxBuf = await hwpxRenderer.renderToBuffer(canvasDoc);
     const hwpxZip = await JSZip.loadAsync(hwpxBuf);
     const sectionXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
-    expect(sectionXml).toContain("<hp:oval");
-    expect(sectionXml).toContain("</hp:oval>");
+    expect(sectionXml).toContain("<hp:ellipse");
+    expect(sectionXml).toContain("</hp:ellipse>");
   });
 
   it("parses Figma VECTOR node with icon context into vector CanvasElement with native VML path", async () => {

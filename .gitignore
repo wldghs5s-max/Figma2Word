@@ -11,9 +11,13 @@ out/
 # Output generated docx files (keep test fixtures, ignore dynamic outputs)
 output/
 temp/
-debug/
+debug/*
 !debug/hwpx-recovery/
 !debug/hwpx-recovery/**
+!debug/hwpx-phase20-baseline/
+!debug/hwpx-phase20-baseline/**
+!debug/hwpx-phase21/
+!debug/hwpx-phase21/**
 scratch/
 test-results/
 playwright-report/
@@ -23,6 +27,8 @@ test-docx-outputs/
 완성본-*/
 *.hwpx
 !debug/hwpx-recovery/*.hwpx
+!debug/hwpx-phase20-baseline/*.hwpx
+!debug/hwpx-phase21/*.hwpx
 review-packages/
 research/rea-document-engine/phase13c/renders/
 research/rea-document-engine/phase13c/**/*.png

@@ -844,6 +844,9 @@ ${paraPrEntries}
         y: yHwpu,
         w: shapeW,
         h: shapeH,
+        lineColorHex: lineColor,
+        lineWidth: lineWidth,
+        lineStyle: lineStyle,
         colorHex: lineColor,
         width: lineWidth,
         style: lineStyle,
@@ -865,17 +868,30 @@ ${paraPrEntries}
     w: number;
     h: number;
     fillColorHex?: string;
-    lineColorHex: string;
-    lineWidth: string;
-    lineStyle: string;
+    lineColorHex?: string;
+    lineWidth?: string;
+    lineStyle?: string;
+    colorHex?: string;
+    width?: string;
+    style?: string;
     ratio: number;
     fillBrushXml?: string;
     drawTextXml?: string;
   }): string {
+    const rawColor = p.lineColorHex || p.colorHex || "000000";
+    const rawWidth = p.lineWidth || p.width || "0";
+    const rawStyle = p.lineStyle || p.style || "NONE";
+
+    const cleanLineColor = cleanHex(rawColor, "000000");
+    const safeWidth = /^\d+$/.test(String(rawWidth).trim()) ? String(rawWidth).trim() : "0";
+    const safeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(rawStyle)
+      ? rawStyle
+      : "NONE";
+
     const fillBrush =
       p.fillBrushXml ||
       (p.fillColorHex
-        ? `<hc:fillBrush><hc:winBrush faceColor="#${p.fillColorHex}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
+        ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(p.fillColorHex)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
         : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`);
 
     const drawText = p.drawTextXml || "";
@@ -891,7 +907,7 @@ ${paraPrEntries}
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:lineShape color="#${p.lineColorHex}" width="${p.lineWidth}" style="${p.lineStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${cleanLineColor}" width="${safeWidth}" style="${safeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${fillBrush}${drawText}
   <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
   <hc:pt0 x="0" y="0"/>
@@ -905,7 +921,7 @@ ${paraPrEntries}
   }
 
   /**
-   * Helper: Serializes <hp:oval> with center, axis, and start/end coordinates
+   * Helper: Serializes <hp:ellipse> conforming to KS X 6101 and authentic Hancom documents
    */
   private renderOvalXml(p: {
     id: number;
@@ -923,7 +939,13 @@ ${paraPrEntries}
     const cx = Math.round(p.w / 2);
     const cy = Math.round(p.h / 2);
 
-    return `<hp:oval id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" intervalDirty="0" hasArcPr="0" arcType="NORMAL">
+    const safeColor = cleanHex(p.colorHex, "000000");
+    const safeWidth = /^\d+$/.test(String(p.width).trim()) ? String(p.width).trim() : "0";
+    const safeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(p.style)
+      ? p.style
+      : "NONE";
+
+    return `<hp:ellipse intervalDirty="0" hasArcPr="0" arcType="NORMAL" id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${p.w}" height="${p.h}"/>
   <hp:curSz width="${p.w}" height="${p.h}"/>
@@ -934,24 +956,24 @@ ${paraPrEntries}
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${safeColor}" width="${safeWidth}" style="${safeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${p.fillBrushXml}${p.drawTextXml}
   <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
   <hc:center x="${cx}" y="${cy}"/>
-  <hc:ax1 x="${cx}" y="0"/>
-  <hc:ax2 x="${p.w}" y="${cy}"/>
-  <hc:start1 x="0" y="0"/>
-  <hc:end1 x="0" y="0"/>
-  <hc:start2 x="0" y="0"/>
-  <hc:end2 x="0" y="0"/>
+  <hc:ax1 x="${p.w}" y="${cy}"/>
+  <hc:ax2 x="${cx}" y="${p.h}"/>
+  <hc:start1 x="${p.w}" y="${cy}"/>
+  <hc:end1 x="${p.w}" y="${cy}"/>
+  <hc:start2 x="${p.w}" y="${cy}"/>
+  <hc:end2 x="${p.w}" y="${cy}"/>
   <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
   <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
   <hp:outMargin left="0" right="0" top="0" bottom="0"/>
-</hp:oval>`;
+</hp:ellipse>`;
   }
 
   /**
-   * Helper: Serializes <hp:line> with isReverseHV and hc:pt0, hc:pt1
+   * Helper: Serializes <hp:line> with hc:pt0, hc:pt1
    */
   private renderLineXml(p: {
     id: number;
@@ -967,7 +989,13 @@ ${paraPrEntries}
     style: string;
     endCap: string;
   }): string {
-    return `<hp:line id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" isReverseHV="0">
+    const safeColor = cleanHex(p.colorHex, "000000");
+    const safeWidth = /^\d+$/.test(String(p.width).trim()) ? String(p.width).trim() : "10";
+    const safeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(p.style)
+      ? p.style
+      : "SOLID";
+
+    return `<hp:line id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${p.w}" height="${p.h}"/>
   <hp:curSz width="${p.w}" height="${p.h}"/>
@@ -978,7 +1006,7 @@ ${paraPrEntries}
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="${p.endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${safeColor}" width="${safeWidth}" style="${safeStyle}" endCap="${p.endCap}" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
   <hc:pt0 x="${p.p0.x}" y="${p.p0.y}"/>
   <hc:pt1 x="${p.p1.x}" y="${p.p1.y}"/>
@@ -1005,6 +1033,12 @@ ${paraPrEntries}
     fillBrushXml: string;
     drawTextXml: string;
   }): string {
+    const safeColor = cleanHex(p.colorHex, "000000");
+    const safeWidth = /^\d+$/.test(String(p.width).trim()) ? String(p.width).trim() : "0";
+    const safeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(p.style)
+      ? p.style
+      : "NONE";
+
     const ptXml = p.points.map((pt) => `<hc:pt x="${pt.x}" y="${pt.y}"/>`).join("\n  ");
 
     return `<hp:polygon id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
@@ -1018,7 +1052,7 @@ ${paraPrEntries}
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:lineShape color="#${p.colorHex}" width="${p.width}" style="${p.style}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${safeColor}" width="${safeWidth}" style="${safeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${p.fillBrushXml}${p.drawTextXml}
   <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
   ${ptXml}
