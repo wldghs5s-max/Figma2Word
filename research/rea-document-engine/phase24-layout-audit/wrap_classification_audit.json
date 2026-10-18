@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-10-18T15:00:46.148Z",
+  "stage6": {
+    "total": 5,
+    "singleLine": 4,
+    "multiLine": 1,
+    "singleLineRatio": 0.8,
+    "sampleMultiLine": [
+      {
+        "id": "1:40",
+        "name": "Executive Summary Lead Paragraph",
+        "reasons": [
+          "Box height ratio (3.17 >= 1.45 lines) indicates multi-line"
+        ]
+      }
+    ]
+  },
+  "stage7": {
+    "total": 424,
+    "singleLine": 411,
+    "multiLine": 13,
+    "singleLineRatio": 0.9693396226415094,
+    "sampleMultiLine": [
+      {
+        "id": "7:998",
+        "name": "전반적인 외벽 균열 상태는 안전 범주에 있습니다. 최우선 보수 대상 동은 109동, 108동, 102동 순으로 도출되었습니다.",
+        "reasons": [
+          "Box height ratio (2.05 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:381",
+        "name": "주의: 본 균열 폭 측정 결과는 GSD(Ground Sample Distance) 기준의 AI 영상 분석 추정치이며, 물리적 정밀 측정을 요하는 0.3mm 미만의 미세균열은 집계에 포함되지 않았습니다.",
+        "reasons": [
+          "Box height ratio (2.00 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:527",
+        "name": "정규화 합산 결과 109동 > 108동 > 102동 순으로 긴급 보수가 요구됩니다. 특히 109동은 면적률 및 심각밀도가 최고치에 달하므로 우기 도래 전 선제 조치가 강력히 권장됩니다.",
+        "reasons": [
+          "Box height ratio (2.00 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:540",
+        "name": "드론 고해상도 이미지 스캔 데이터를 정규 격자망으로 투영한 결과물입니다. 열(X축)은 각 동의 외벽면 방향(A~D면)을, 행(Y축)은 아파트 층수를 모사하며 균열이 조밀하게 분포할수록 진한 다홍빛 색상으로 가시화됩니다.",
+        "reasons": [
+          "Box height ratio (2.00 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:868",
+        "name": "해운대동신아파트(해동신) 1차 외벽 균열 진단 결과, 단지 전체 CDI는 0.031%로 양호한 수준입니다. 다만 109동과 108동은 상대적으로 균열 밀도가 높아 조기 보수를 권장합니다. 특히 109동 5층 A면의 수직 균열(폭 0.82cm)은 구조적 영향 가능성이 있으므로 정밀 조사를 병행할 것을 제안합니다. 드론 AI 분석 결과에 기반한 본 보고서는 건축물 관리법 제12조에 따른 정기 안전점검 자료로 활용 가능하며, 구조 안전성 판단은 별도 전문기관 정밀안전진단을 통해 확인하시기 바랍니다. 보수 시공 시 균열 진행 여부 모니터링을 위한 2차 촬영(시공후)을 3개월 이내에 진행할 것을 권고합니다.",
+        "reasons": [
+          "Box height ratio (5.05 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:874",
+        "name": "본 보고서는 인공지능 기반 영상 패턴 분석 결과이며, 건축물 자체의 구조 안전성 판정을 대체하지 않습니다. 실제 균열의 보수 시공 및 구조적 안전 진단에 대해서는 전문 자격을 보유한 구조안전 기술자의 정밀 현장 실사가 수반되어야 합니다.",
+        "reasons": [
+          "Box height ratio (2.06 >= 1.45 lines) indicates multi-line"
+        ]
+      },
+      {
+        "id": "7:911",
+        "name": "균열 면적 ÷ 순 외벽 면적 × 100 (%) 건물 외벽 면적 대비 검출된 총 균열 면적의 비율입니다.",
+        "reasons": [
+          "Explicit hard newline detected in text runs"
+        ]
+      },
+      {
+        "id": "7:915",
+        "name": "심각 균열 면적(폭 1.0mm 이상) ÷ 전체 균열 면적 × 100 (%) 전체 균열 중 구조적 보수가 필요한 균열의 점유도입니다.",
+        "reasons": [
+          "Explicit hard newline detected in text runs"
+        ]
+      },
+      {
+        "id": "7:919",
+        "name": "CDI 등급 수치 × 0.7 + 경과 연수 노후도 × 0.3 (100점 만점) 현재 물리적 상태와 준공 연도를 종합 가산한 외벽 자산 건강도 지수입니다.",
+        "reasons": [
+          "Explicit hard newline detected in text runs"
+        ]
+      },
+      {
+        "id": "7:923",
+        "name": "(현재 CDI - 이전 CDI) ÷ 이전 CDI × 100 (%) 다년도 진단 시 외벽 균열이 진행되는 증감 가속 추세선입니다.",
+        "reasons": [
+          "Explicit hard newline detected in text runs"
+        ]
+      },
+      {
+        "id": "7:927",
+        "name": "Ground Sample Distance (mm/px) 이미지의 1픽셀이 실제 지상(외벽)에서 나타내는 크기 단위입니다.",
+        "reasons": [
+          "Explicit hard newline detected in text runs"
+        ]
+      },
+      {
+        "id": "7:952",
+        "name": "등급 A는 타 동 대비 균열 발생 밀도와 심각도가 가장 낮음을 의미하는 상대 지표이며, 영구적인 절대적 무결함 상태를 뜻하는 보증 등급이 아닙니다.",
+        "reasons": [
+          "High character count (82 >= 80 chars) with HEIGHT resize indicates paragraph flow"
+        ]
+      },
+      {
+        "id": "7:955",
+        "name": "촬영 고도에 따른 드론 이미지의 GSD(mm/px) 특성으로 인해 매우 미세한 균열이나 먼지선, 백화 무늬가 실제 폭 대비 약간 크게 측정될 가능성이 상존합니다. 따라서 수리 물량 견적 산정 시에는 이 보정 계수를 감안하시어 실견적과 대조할 것을 권장합니다.",
+        "reasons": [
+          "Box height ratio (2.06 >= 1.45 lines) indicates multi-line"
+        ]
+      }
+    ]
+  },
+  "authenticHwpxComparison": {
+    "authenticTotalTextboxes": 429,
+    "authenticSqueezeCount": 412,
+    "authenticBreakCount": 17,
+    "authenticSqueezeRatio": 0.9603729603729604,
+    "stage7PredictedSqueezeRatio": 0.9693396226415094,
+    "alignmentDelta": 0.00896666226854903
+  }
+}
