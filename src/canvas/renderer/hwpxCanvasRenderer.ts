@@ -700,7 +700,7 @@ ${paraPrEntries}
 
     const fillBrushXml = hasFill
       ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
-      : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
+      : `<hc:fillBrush/>`;
 
     const shapeW = wHwpu;
     const shapeH = hHwpu;
@@ -742,15 +742,15 @@ ${paraPrEntries}
         (elem.bounds.height <= 36 || cornerRadiusPt >= elem.bounds.height / 3) && paragraphs.length <= 1;
 
       const vertAlignAttr =
-        elem.verticalAlign === "center" || (!elem.verticalAlign && isPillOrBadge)
+        elem.verticalAlign === "center" || (hasFill && !elem.verticalAlign && isPillOrBadge)
           ? "CENTER"
           : elem.verticalAlign === "bottom"
           ? "BOTTOM"
           : "TOP";
 
       // If shape has rounded corners and no explicit padding, provide safe internal margin to avoid clipping
-      const defaultPadL = cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.4) : 0;
-      const defaultPadT = cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.3) : 0;
+      const defaultPadL = hasFill && cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.4) : 0;
+      const defaultPadT = hasFill && cornerRadiusPt > 0 && vertAlignAttr !== "CENTER" ? Math.round(cornerRadiusPt * 0.3) : 0;
 
       const marginL = elem.innerPaddingPt
         ? ptToHwpu(elem.innerPaddingPt.left ?? defaultPadL)
@@ -767,7 +767,7 @@ ${paraPrEntries}
 
       drawTextPart = `
   <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
-    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="SQUEEZE" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="0" hasTextRef="0" hasNumRef="0">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${shapeW}" textHeight="0" hasTextRef="0" hasNumRef="0">
       ${parasXml.join("\n      ")}
     </hp:subList>
     <hp:textMargin left="${marginL}" right="${marginR}" top="${marginT}" bottom="${marginB}"/>
@@ -831,7 +831,7 @@ ${paraPrEntries}
           const subFillBrush =
             sp.closed && hasFill
               ? fillBrushXml
-              : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`;
+              : `<hc:fillBrush/>`;
 
           const polyPts =
             pts.length > 0
@@ -950,7 +950,7 @@ ${paraPrEntries}
       p.fillBrushXml ||
       (p.fillColorHex
         ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(p.fillColorHex)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
-        : `<hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>`);
+        : `<hc:fillBrush/>`);
 
     const drawText = p.drawTextXml || "";
 
