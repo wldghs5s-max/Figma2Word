@@ -157,3 +157,4 @@ HWPX OWPML 규격의 `<hp:rect>`는 그리기 객체(Shape Object)로서 다음�
 
 1. **DOCX의 성공 비결**: DOCX 렌더러는 이미 다중행 문단과 단일행 라벨을 정밀하게 구분(`isMultiLineBox`)하여 단일행에는 `mso-wrap-style:none`을 적용하고 있었습니다.
 2. **HWPX의 실패 원인**: HWPX 렌더러는 Phase 23에서 텍스트의 특성(단일행 vs 다중행)을 전혀 고려하지 않고 전면 `lineWrap="BREAK"`를 일괄 적용함으로써, DOCX가 세심하게 회피했던 2줄 개행 함정에 스스로 빠졌습니다.
+

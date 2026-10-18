@@ -207,3 +207,4 @@ drawTextPart = `
 - **정품 HWPX 레퍼런스**: `완성본-20261012/report-1차-진단-편집가능-최종보정.hwpx`
 - **최신 생성 산출물**: `debug/hwpx-page-orientation-fix/stage7-portrait.hwpx` 및 `stage7-portrait.docx`
 - **세부 감사 보고서 디렉터리**: `research/rea-document-engine/argon-independent-audit/` (01~07)
+

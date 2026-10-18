@@ -155,3 +155,4 @@ function analyzeDoc(name: string, filePath: string) {
 
 analyzeDoc("Stage 6 (Proposal)", "samples/real-world/sample-a-proposal-doc.json");
 analyzeDoc("Stage 7 (Customer Report)", "debug/customer/Report1-Live-Snapshot.json");
+

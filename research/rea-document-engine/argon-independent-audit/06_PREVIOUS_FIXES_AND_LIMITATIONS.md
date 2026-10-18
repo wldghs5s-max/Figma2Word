@@ -74,3 +74,4 @@
 2. **이진법적 사고의 실패 (All-or-Nothing Fallacy)**:
    - "SQUEEZE가 문제니까 전부 BREAK로 바꾸자"는 극단적 접근이 새로운 대규모 결함을 낳았습니다.
    - DOCX 렌더러가 `mso-wrap-style:none`과 `square`를 정교하게 선별하듯이, 정품 HWPX도 96%의 `SQUEEZE`와 4%의 `BREAK`를 혼합 사용하는 하이브리드 아키텍처를 취하고 있습니다.
+
