@@ -307,12 +307,26 @@ export class FigmaCanvasParser {
             const fs = child.style?.fontSize || 12;
             const lh = child.style?.lineHeightPx || Math.round(fs * 1.4);
             const chars = child.characters || "";
-            const charsPerLine = Math.max(8, Math.floor(innerW / (fs * 0.72)));
             const explicitLines = chars.split(/\r\n|\r|\n/);
-            const totalLines = explicitLines.reduce(
-              (sum, l) => sum + Math.max(1, Math.ceil(l.length / charsPerLine)),
-              0
-            );
+            const totalLines = explicitLines.reduce((sum, line) => {
+              if (line.length === 0) return sum + 1;
+              let lineW = 0;
+              for (let i = 0; i < line.length; i++) {
+                const code = line.charCodeAt(i);
+                if (
+                  (code >= 0x1100 && code <= 0x11ff) ||
+                  (code >= 0x3130 && code <= 0x318f) ||
+                  (code >= 0xac00 && code <= 0xd7a3) ||
+                  (code >= 0x4e00 && code <= 0x9fff) ||
+                  (code >= 0xff00 && code <= 0xffef)
+                ) {
+                  lineW += fs * 1.0;
+                } else {
+                  lineW += fs * 0.55;
+                }
+              }
+              return sum + Math.max(1, Math.ceil(lineW / innerW));
+            }, 0);
             cw = innerW;
             ch = Math.max(lh + 4, totalLines * lh + 4);
           } else if (

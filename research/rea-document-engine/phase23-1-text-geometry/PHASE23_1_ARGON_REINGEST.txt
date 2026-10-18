@@ -1,0 +1,122 @@
+================================================================================
+FIGMA2WORD — PHASE 23.1 INDEPENDENT AUDIT RE-INGESTION DOSSIER (FOR ARGON)
+================================================================================
+Timestamp: 2026-10-18
+Target Repository: wldghs5s-max/Figma2Word
+Baseline Commit: 7eff9cf (Phase 23)
+Author: Antigravity Advanced Agentic Coding Pair
+Subject: Canonical Text Geometry & Overflow Recovery Audit
+
+--------------------------------------------------------------------------------
+1. PROJECT ARCHITECTURE & DESIGN PRINCIPLES
+--------------------------------------------------------------------------------
+- Core IR: Canvas IR (Canonical JSON) is the SINGLE SOURCE OF TRUTH.
+  Neither DOCX nor HWPX is primary. All parsers (Figma, DOCX, HWPX) target Canvas IR,
+  and all format renderers emit their native formats from the identical Canvas IR.
+- Absolute Coordinate Preservation: Canvas IR uses absolute page coordinates.
+  No artificial automatic pushing or displacement of neighboring elements is permitted.
+- Font-Agnostic Fidelity: Glyphs and metrics depend on system-installed fonts.
+  No document-specific or font-specific arbitrary width multipliers are permitted.
+- KS X 6101 / OWPML Clean Conformance: Zero AST violations against authentic Hancom standard.
+
+--------------------------------------------------------------------------------
+2. USER OBSERVATIONS FROM PHASE 23 (GROUND TRUTH)
+--------------------------------------------------------------------------------
+In Phase 23, `lineWrap="BREAK"` was introduced in `<hp:subList>`:
+- The forced horizontal squashing/overlap in Phase 22 was partially relieved.
+- However, wrapped text invaded downstream elements placed below it.
+- Text boxes appeared narrower than intended, with text breaking long before the right border.
+- Text colliding with downstream elements caused overlapping or occluded glyphs.
+- Requirement: Identify root causes without rolling back Phase 23 advancements (`BREAK`, `<hc:fillBrush/>`).
+
+--------------------------------------------------------------------------------
+3. FORENSIC ROOT CAUSE ANALYSIS & EMPIRICAL EVIDENCE
+--------------------------------------------------------------------------------
+By analyzing the authentic reference `report-1차-진단-편집가능-최종보정.hwpx` (55 paraPr and 837 rect elements),
+four root causes were rigorously identified:
+
+[Root Cause 1] OWPML Paragraph Property Flaws (`hh:paraPr`):
+- `snapToGrid="1"`: The renderer was previously serializing `snapToGrid="1"` on every paragraph.
+  In Hancom Office, this snaps characters to the document grid, artificially inflating inter-character
+  gaps and causing lines to wrap much sooner than the available width.
+  -> Reference Evidence: 55 out of 55 `paraPr` in the authentic reference use `snapToGrid="0"`.
+- Missing `hh:breakSetting`: Hancom defaulted to word-level breaking (`KEEP_WORD`) for Korean text.
+  When a Korean word did not fit in the remaining space of a line, the whole word wrapped, leaving
+  20~40pt of empty space on the right edge. This created the visual impression of a "narrow text box"
+  and pushed extra lines downward.
+  -> Reference Evidence: Reference specifies:
+     `<hh:breakSetting breakLatinWord="KEEP_WORD" breakNonLatinWord="BREAK_WORD" lineWrap="BREAK"/>`.
+- Missing `hh:autoSpacing`: Hancom inserted automatic extra spaces between East Asian and English/digits.
+  -> Reference Evidence: Reference explicitly sets `<hh:autoSpacing eAsianEng="0" eAsianNum="0"/>`.
+- Missing `hh:margin` and `hh:border`:
+  -> Reference Evidence: Reference specifies explicit zero margins (`intent=0, left=0, right=0, prev=0, next=0`).
+
+[Root Cause 2] Text Box Margin Inset Flaw (`hp:textMargin`):
+- The renderer was previously injecting `defaultPadL = cornerRadius * 0.4` as `marginL` and `marginR`.
+- This stole 10~15pt from the text box width.
+- -> Reference Evidence: 837 out of 837 rects in the authentic reference have `left="0"` and `right="0"`.
+  Unless explicit `innerPaddingPt` is given in Canvas IR, `left` and `right` must strictly be 0.
+
+[Root Cause 3] Auto-Layout Bounds Synthesis for CJK Text:
+- In `figmaCanvasParser.ts`, `synthesizeMissingChildBounds` used `innerW / (fs * 0.72)` for text.
+- Latin text is ~0.55em, but CJK/Hangul characters are full-width 1.0em.
+- Underestimating character width calculated 3 lines instead of 4, assigning height 57pt instead of 76pt,
+  placing the next sibling element too close vertically.
+- -> Fixed by measuring line length proportionally (CJK=1.0em, Latin=0.55em).
+
+[Root Cause 4] Source Geometry Conflict in Figma Snapshot (Category E):
+- In Stage 7 Page 9 (`Report1-Live-Snapshot.json`), node `7:952` contains 82 Korean characters
+  recorded in Figma with `height: 17px` (12.7pt) under font `Manrope`.
+- 82 Korean characters physically require ~676pt on 1 line or 24.7pt on 2 lines.
+- The next heading `7:954` was placed at `y=527.0pt`, directly where line 2 renders.
+- This is a Source Geometry Conflict in the source data. Per project principles, the renderer must
+  preserve the Canvas IR faithfully without arbitrary displacement, and report this via diagnostics.
+
+--------------------------------------------------------------------------------
+4. IMPLEMENTATION & CODE DIFF
+--------------------------------------------------------------------------------
+- File: `src/canvas/renderer/hwpxCanvasRenderer.ts`:
+  1. Updated `buildHeaderXml`:
+     Serializes `snapToGrid="0"`, `<hh:breakSetting breakLatinWord="KEEP_WORD" breakNonLatinWord="BREAK_WORD" lineWrap="BREAK"/>`,
+     `<hh:autoSpacing eAsianEng="0" eAsianNum="0"/>`, `<hh:margin>` with 0 intent/left/right/prev/next,
+     and `<hh:border borderFillIDRef="1"/>`.
+  2. Updated `renderElement`:
+     `marginL`, `marginR`, `marginT`, `marginB` strictly use `elem.innerPaddingPt` when present, else 0.
+  3. Safe fallback for `doc.resources || {}` in `buildZip` (eliminates TypeError on empty resource docs).
+- File: `src/canvas/renderer/docxCanvasRenderer.ts`:
+  1. Safe fallback for `doc.resources || {}` in `buildZip`.
+- File: `src/canvas/parser/figmaCanvasParser.ts`:
+  1. Updated `synthesizeMissingChildBounds`:
+     Accurately measures character line widths accounting for CJK full-width (1.0em) vs Latin (0.55em).
+- File: `scripts/detect_text_collision.ts`:
+  1. Implemented `TextCollisionDetector` diagnosing Category A, B, C, D, E events.
+
+--------------------------------------------------------------------------------
+5. VERIFICATION & AUDIT EVIDENCE
+--------------------------------------------------------------------------------
+1. TypeScript: `npx tsc --noEmit` -> 0 errors.
+2. Build: `npm run build` -> SUCCESS.
+3. Vitest: `npx vitest run` -> 58 test files, 370 tests passed (100%).
+4. AST Comparator: `python scripts/compare_hwpx_ast.py` -> 0 violations detected against authentic reference.
+5. Deliverables in `debug/hwpx-phase23-1/`:
+   - `stage6-representative-report.hwpx` & `.docx`
+   - `stage7-full-report.hwpx` & `.docx`
+   - `diag-narrow-textbox.hwpx` & `.docx`
+   - `diag-multiline-text.hwpx` & `.docx`
+   - `diag-textbox-margin.hwpx` & `.docx`
+   - `diag-adjacent-text.hwpx` & `.docx`
+   - `README.md`
+6. Research Reports in `research/rea-document-engine/phase23-1-text-geometry/`:
+   - 01_EXECUTIVE_SUMMARY.md
+   - 02_GEOMETRY_TRACE.md
+   - 03_OVERFLOW_COLLISION_ANALYSIS.md
+   - 04_REFERENCE_OWPML_ANALYSIS.md
+   - 05_FIX_AND_AB_COMPARISON.md
+   - 06_CROSS_FORMAT_FIDELITY.md
+   - 07_TEST_AND_REGRESSION.md
+   - 08_NEXT_PHASE_HANDOFF.md
+   - PHASE23_1_ARGON_REINGEST.txt
+
+================================================================================
+END OF DOSSIER — READY FOR ARGON AUDIT
+================================================================================

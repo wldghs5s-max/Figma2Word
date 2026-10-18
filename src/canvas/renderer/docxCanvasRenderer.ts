@@ -83,7 +83,7 @@ export class DocxCanvasRenderer {
     const imageRelMap = new Map<string, string>(); // resourceId -> rId
     let rIdCounter = 2; // rId1 is styles.xml
 
-    for (const [resId, res] of Object.entries(doc.resources)) {
+    for (const [resId, res] of Object.entries(doc.resources || {})) {
       const rId = `rId${rIdCounter++}`;
       imageRelMap.set(resId, rId);
       zip.file(`word/media/${resId}`, res.data);

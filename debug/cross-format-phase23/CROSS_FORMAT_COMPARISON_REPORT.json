@@ -1,0 +1,38 @@
+[
+  {
+    "suiteName": "Stage 6 (Proposal Report)",
+    "sourceNodesCount": 1,
+    "canvasElementsCount": 8,
+    "hwpxPackageValid": true,
+    "docxPackageValid": true,
+    "textRunsCount": 5,
+    "textsSample": [
+      "전략 기획 / AI 혁신 과제",
+      "2026 차세대 엔터프라이즈 AI 자동화 구축 제안서",
+      "본 제안서는 사내 디자인 및 기획 자산의 신속한 문서화",
+      "1. 핵심 기대 효과 및 도입 타당성",
+      "※ 본 문서는 Figma2Word 엔진에 의해 자동 생"
+    ],
+    "hwpxSize": 6635,
+    "docxSize": 5396,
+    "conformanceStatus": "PASSED"
+  },
+  {
+    "suiteName": "Stage 7 (Customer 9-Page Full Report)",
+    "sourceNodesCount": 9,
+    "canvasElementsCount": 780,
+    "hwpxPackageValid": true,
+    "docxPackageValid": true,
+    "textRunsCount": 434,
+    "textsSample": [
+      "드론 AI 외벽 진단",
+      "1차 진단",
+      "2026 정밀 진단 종합보고",
+      "해운대동신아파트",
+      "외벽 균열 진단 종합보고서 · 9개 동 · 기준 202"
+    ],
+    "hwpxSize": 14215855,
+    "docxSize": 14200148,
+    "conformanceStatus": "PASSED"
+  }
+]

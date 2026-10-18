@@ -74,7 +74,7 @@ export class HwpxCanvasRenderer {
     const imageBinMap = new Map<string, { binId: string; ext: string; mimeType: string }>();
     let binCounter = 1;
 
-    for (const [resId, res] of Object.entries(doc.resources)) {
+    for (const [resId, res] of Object.entries(doc.resources || {})) {
       const binId = `BIN${binCounter.toString().padStart(4, "0")}`;
       const isJpeg =
         res.mimeType === "image/jpeg" ||
@@ -324,9 +324,14 @@ ${items}
 
     const paraPrEntries = paraPrList
       .map(
-        (p) => `      <hh:paraPr id="${p.id}" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="1" suppressLineNumbers="0" checked="0">
+        (p) => `      <hh:paraPr id="${p.id}" tabPrIDRef="0" condense="0" fontLineHeight="0" snapToGrid="0" suppressLineNumbers="0" checked="0">
         <hh:align horizontal="${p.horizontal}" vertical="BASELINE"/>
+        <hh:heading type="NONE" idRef="0" level="0"/>
+        <hh:breakSetting breakLatinWord="KEEP_WORD" breakNonLatinWord="BREAK_WORD" widowOrphan="0" keepWithNext="0" keepLines="0" pageBreakBefore="0" lineWrap="BREAK"/>
+        <hh:autoSpacing eAsianEng="0" eAsianNum="0"/>
+        <hh:margin><hc:intent value="0" unit="HWPUNIT"/><hc:left value="0" unit="HWPUNIT"/><hc:right value="0" unit="HWPUNIT"/><hc:prev value="0" unit="HWPUNIT"/><hc:next value="0" unit="HWPUNIT"/></hh:margin>
         <hh:lineSpacing type="${p.spacingType}" value="${p.spacingValue}" unit="${p.spacingUnit}"/>
+        <hh:border borderFillIDRef="1" offsetLeft="0" offsetRight="0" offsetTop="0" offsetBottom="0" connect="0" ignoreMargin="0"/>
       </hh:paraPr>`
       )
       .join("\n");
@@ -748,22 +753,11 @@ ${paraPrEntries}
           ? "BOTTOM"
           : "TOP";
 
-      // If shape has rounded corners and no explicit padding, provide safe internal margin to avoid clipping
-      const defaultPadL = hasFill && cornerRadiusPt > 0 ? Math.round(cornerRadiusPt * 0.4) : 0;
-      const defaultPadT = hasFill && cornerRadiusPt > 0 && vertAlignAttr !== "CENTER" ? Math.round(cornerRadiusPt * 0.3) : 0;
-
-      const marginL = elem.innerPaddingPt
-        ? ptToHwpu(elem.innerPaddingPt.left ?? defaultPadL)
-        : ptToHwpu(defaultPadL);
-      const marginR = elem.innerPaddingPt
-        ? ptToHwpu(elem.innerPaddingPt.right ?? defaultPadL)
-        : ptToHwpu(defaultPadL);
-      const marginT = elem.innerPaddingPt
-        ? ptToHwpu(elem.innerPaddingPt.top ?? defaultPadT)
-        : ptToHwpu(defaultPadT);
-      const marginB = elem.innerPaddingPt
-        ? ptToHwpu(elem.innerPaddingPt.bottom ?? defaultPadT)
-        : ptToHwpu(defaultPadT);
+      // Margin in OWPML textMargin: strictly use explicit innerPaddingPt, otherwise 0 matching authentic Hancom standard
+      const marginL = elem.innerPaddingPt?.left ? ptToHwpu(elem.innerPaddingPt.left) : 0;
+      const marginR = elem.innerPaddingPt?.right ? ptToHwpu(elem.innerPaddingPt.right) : 0;
+      const marginT = elem.innerPaddingPt?.top ? ptToHwpu(elem.innerPaddingPt.top) : 0;
+      const marginB = elem.innerPaddingPt?.bottom ? ptToHwpu(elem.innerPaddingPt.bottom) : 0;
 
       drawTextPart = `
   <hp:drawText lastWidth="${shapeW}" name="${drawName}" editable="1">
