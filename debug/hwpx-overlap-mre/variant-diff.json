@@ -1,0 +1,87 @@
+{
+  "mre-A-baseline": {
+    "description": "Current baseline produced by HwpxCanvasRenderer without modification.",
+    "isolatedVariable": "None (Control Group)",
+    "mutations": []
+  },
+  "mre-B-wrap-only": {
+    "description": "Conditionally changes lineWrap from BREAK to SQUEEZE for single-line textboxes. Multi-line body paragraph (7:998) remains BREAK.",
+    "isolatedVariable": "lineWrap attribute on hp:subList in Contents/section0.xml",
+    "mutations": [
+      {
+        "file": "Contents/section0.xml",
+        "target": "hp:subList lineWrap attribute",
+        "mutatedTextboxesCount": 10,
+        "multiLineRetainedAsBreak": "7:998 (전반적인 외벽 균열 상태는...)",
+        "beforeSnippet": "<hp:subList id=\"\" textDirection=\"HORIZONTAL\" lineWrap=\"BREAK\" ...>",
+        "afterSnippet": "<hp:subList id=\"\" textDirection=\"HORIZONTAL\" lineWrap=\"SQUEEZE\" ...>"
+      }
+    ]
+  },
+  "mre-C-lineheight-only": {
+    "description": "Changes fallback lineSpacing from PERCENT 160% to FIXED 1125 HWPUNIT (matching authentic Hancom standard).",
+    "isolatedVariable": "hh:lineSpacing in Contents/header.xml",
+    "mutations": [
+      {
+        "file": "Contents/header.xml",
+        "target": "hh:lineSpacing on default paraPr (ids 0, 1, 2, 3)",
+        "mutatedParaPrCount": 4,
+        "beforeSnippet": "<hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"PERCENT\"/>",
+        "afterSnippet": "<hh:lineSpacing type=\"FIXED\" value=\"1125\" unit=\"HWPUNIT\"/>"
+      }
+    ]
+  },
+  "mre-D-font-only": {
+    "description": "Changes fontRef mapping for HANGUL from Inter (font id 1) to Malgun Gothic (font id 0), matching DOCX East Asia dual-font model.",
+    "isolatedVariable": "hh:fontRef in Contents/header.xml",
+    "mutations": [
+      {
+        "file": "Contents/header.xml",
+        "target": "hh:fontRef hangul attribute across charPr entries",
+        "mutatedCharPrCount": 8,
+        "beforeSnippet": "<hh:fontRef hangul=\"1\" latin=\"1\" .../> (Font 1 = Inter)",
+        "afterSnippet": "<hh:fontRef hangul=\"0\" latin=\"1\" .../> (Font 0 = 맑은 고딕)"
+      }
+    ]
+  },
+  "mre-E-geometry-only": {
+    "description": "Restores center-aligned banner (7:1082) box height from inflated 37.48 pt to authentic text geometry 11.99 pt with top vertical alignment.",
+    "isolatedVariable": "hp:rect dimensions and vertAlign on 7:1082 in Contents/section0.xml",
+    "mutations": [
+      {
+        "file": "Contents/section0.xml",
+        "target": "7:1082 (품질 가공 단계) hp:rect geometry and alignment",
+        "beforeSnippet": "<hp:rect ... height=\"3748\" ... vertAlign=\"CENTER\" vertOffset=\"49704\">",
+        "afterSnippet": "<hp:rect ... height=\"1199\" ... vertAlign=\"TOP\" vertOffset=\"50978\">"
+      }
+    ]
+  },
+  "mre-F-combined": {
+    "description": "Holistic combination of B (single-line SQUEEZE), C (authentic fixed lineSpacing 1125 HWPU), and D (Hangul font mapping).",
+    "isolatedVariable": "Combined B + C + D",
+    "mutations": [
+      {
+        "file": "Contents/section0.xml",
+        "target": "hp:subList lineWrap attribute",
+        "mutatedTextboxesCount": 10,
+        "multiLineRetainedAsBreak": "7:998 (전반적인 외벽 균열 상태는...)",
+        "beforeSnippet": "<hp:subList id=\"\" textDirection=\"HORIZONTAL\" lineWrap=\"BREAK\" ...>",
+        "afterSnippet": "<hp:subList id=\"\" textDirection=\"HORIZONTAL\" lineWrap=\"SQUEEZE\" ...>"
+      },
+      {
+        "file": "Contents/header.xml",
+        "target": "hh:lineSpacing on default paraPr (ids 0, 1, 2, 3)",
+        "mutatedParaPrCount": 4,
+        "beforeSnippet": "<hh:lineSpacing type=\"PERCENT\" value=\"160\" unit=\"PERCENT\"/>",
+        "afterSnippet": "<hh:lineSpacing type=\"FIXED\" value=\"1125\" unit=\"HWPUNIT\"/>"
+      },
+      {
+        "file": "Contents/header.xml",
+        "target": "hh:fontRef hangul attribute across charPr entries",
+        "mutatedCharPrCount": 8,
+        "beforeSnippet": "<hh:fontRef hangul=\"1\" latin=\"1\" .../> (Font 1 = Inter)",
+        "afterSnippet": "<hh:fontRef hangul=\"0\" latin=\"1\" .../> (Font 0 = 맑은 고딕)"
+      }
+    ]
+  }
+}
