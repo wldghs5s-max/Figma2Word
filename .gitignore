@@ -9,6 +9,7 @@ build/
 out/
 
 # Output generated docx files (keep test fixtures, ignore dynamic outputs)
+펜테크*
 output/
 temp/
 debug/*

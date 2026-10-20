@@ -522,6 +522,28 @@ export function App() {
     }, 200);
   };
 
+  const handleDownloadSnapshot = () => {
+    if (!loadedSnapshot) return;
+    const snapshot = createFigmaSnapshot(
+      loadedSnapshot.targetNode,
+      loadedSnapshot.imageMap,
+      {
+        fileName: loadedSnapshot.fileName || outputBaseName,
+        fileKey: loadedSnapshot.fileKey,
+        nodeId: loadedSnapshot.nodeId,
+      }
+    );
+    const jsonBlob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(jsonBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${loadedSnapshot.fileName || outputBaseName || 'figma-snapshot'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const countElementTypes = (doc: CanvasDocument) => {
     let text = 0, card = 0, image = 0, vector = 0, oval = 0;
     for (const page of doc.pages) {
@@ -725,6 +747,24 @@ export function App() {
             >
               {isLoading ? '연동 및 변환 중...' : 'Figma 실시간 가져오기 & 변환 실행'}
             </button>
+
+            {loadedSnapshot && (
+              <div style={{ marginTop: 14, padding: '12px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6 }}>
+                <div style={{ fontSize: 13, color: '#065f46', marginBottom: 8 }}>
+                  ⚡ <strong>메모리 스냅샷 보존 중</strong>: [{loadedSnapshot.fileName || 'Figma 디자인'}]
+                  {loadedSnapshot.imageMap && ` (오프라인 이미지 ${Object.keys(loadedSnapshot.imageMap).length}개 포함)`}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSnapshot}
+                    style={{ padding: '8px 16px', borderRadius: 5, border: '1px solid #059669', background: '#fff', color: '#065f46', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    💾 Figma JSON 스냅샷 저장 (.json 다운로드)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div>
@@ -895,6 +935,16 @@ export function App() {
               style={{ padding: '10px 18px', borderRadius: 6, border: 'none', background: '#4f46e5', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               📦 Word + 한글 동시 다운로드
+            </button>
+          )}
+
+          {loadedSnapshot && (
+            <button
+              type="button"
+              onClick={handleDownloadSnapshot}
+              style={{ padding: '10px 18px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              💾 Figma JSON 스냅샷 저장 (.json 다운로드)
             </button>
           )}
         </div>

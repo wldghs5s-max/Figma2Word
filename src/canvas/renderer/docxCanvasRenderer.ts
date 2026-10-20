@@ -264,20 +264,19 @@ export class DocxCanvasRenderer {
         }
       }
 
-      const curWidthTwips = ptToTwip(pageWidthPt);
-      const curHeightTwips = ptToTwip(pageHeightPt);
+      const curWidthTwips = ptToTwip(Math.min(1584, pageWidthPt));
+      const curHeightTwips = ptToTwip(Math.min(1584, pageHeightPt));
       const curIsLandscape = pageWidthPt > pageHeightPt;
       const curOrient = curIsLandscape ? "landscape" : "portrait";
 
-      const nextPage = pIdx < doc.pages.length - 1 ? doc.pages[pIdx + 1] : undefined;
-      const nextWidthPt = nextPage ? (nextPage.bounds.width || doc.pageSize.widthPt) : undefined;
-      const nextHeightPt = nextPage ? (nextPage.bounds.height || doc.pageSize.heightPt) : undefined;
-      const nextDiffers =
-        nextPage !== undefined &&
-        (Math.abs(pageWidthPt - nextWidthPt!) > 1 || Math.abs(pageHeightPt - nextHeightPt!) > 1);
+      const isLast = pIdx === doc.pages.length - 1;
 
       let pPrXml = "";
-      if (nextDiffers) {
+      if (!isLast) {
+        // In Word VML drawing architecture, every page MUST be an isolated section
+        // (<w:sectPr><w:type w:val="nextPage"/>...</w:sectPr>) so that Word establishes
+        // a new drawing origin (0, 0) for absolute-positioned VML shapes.
+        // Without this, adjacent pages with identical dimensions collapse onto the exact same canvas!
         pPrXml = `<w:pPr>
   <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
   <w:autoSpaceDE w:val="0"/>
@@ -289,10 +288,8 @@ export class DocxCanvasRenderer {
   </w:sectPr>
 </w:pPr>`;
       } else {
-        const pageBreakBeforeXml =
-          pIdx > 0 ? "<w:pageBreakBefore/>" : '<w:pageBreakBefore w:val="0"/>';
+        // Final page paragraph has no sectPr in pPr (it will be at the end of body)
         pPrXml = `<w:pPr>
-  ${pageBreakBeforeXml}
   <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
   <w:autoSpaceDE w:val="0"/>
   <w:autoSpaceDN w:val="0"/>
@@ -309,8 +306,8 @@ export class DocxCanvasRenderer {
     const lastPage = doc.pages.length > 0 ? doc.pages[doc.pages.length - 1] : undefined;
     const lastWidthPt = lastPage ? (lastPage.bounds.width || doc.pageSize.widthPt) : doc.pageSize.widthPt;
     const lastHeightPt = lastPage ? (lastPage.bounds.height || doc.pageSize.heightPt) : doc.pageSize.heightPt;
-    const finalWidthTwips = ptToTwip(lastWidthPt);
-    const finalHeightTwips = ptToTwip(lastHeightPt);
+    const finalWidthTwips = ptToTwip(Math.min(1584, lastWidthPt));
+    const finalHeightTwips = ptToTwip(Math.min(1584, lastHeightPt));
     const isLandscape = lastWidthPt > lastHeightPt;
     const orient = isLandscape ? "landscape" : "portrait";
     const sectPrXml = `<w:sectPr>
@@ -407,9 +404,18 @@ export class DocxCanvasRenderer {
       }
     }
 
+    // Subtle horizontal tolerance buffer for single-line auto-width text (textAutoResize === "WIDTH_AND_HEIGHT"):
+    // Word's font substitution (e.g. Pretendard -> local font / DirectWrite) can measure glyphs 1-3% wider than Figma's canvas.
+    // Adding a minor 3-4pt buffer avoids accidental single-word wrapping without altering visible design layout.
+    let effectiveWidth = width;
+    if (elem.type === "text" && elem.textAutoResize === "WIDTH_AND_HEIGHT") {
+      const buffer = Math.max(3, effectiveWidth * 0.03);
+      effectiveWidth += buffer;
+    }
+
     const baseStyle = `position:absolute;left:0;top:0;margin-left:${x.toFixed(
       3
-    )}pt;margin-top:${y.toFixed(3)}pt;width:${width.toFixed(
+    )}pt;margin-top:${y.toFixed(3)}pt;width:${effectiveWidth.toFixed(
       3
     )}pt;height:${height.toFixed(
       3
@@ -610,26 +616,27 @@ export class DocxCanvasRenderer {
     }
 
     // 3. Card or Text
+    const style = elem.style || {};
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
-    const hasFill = !!elem.style.fillColor && elem.style.fillColor !== "none";
-    const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
+    const hasFill = !!style.fillColor && style.fillColor !== "none";
+    const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
 
     const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
-    const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(elem.style.fillColor)}"` : "";
+    const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(style.fillColor)}"` : "";
 
     const strokedAttr = hasStroke ? 'stroked="t"' : 'stroked="f"';
-    const strokecolorAttr = hasStroke ? `strokecolor="#${cleanHex(elem.style.strokeColor)}"` : "";
+    const strokecolorAttr = hasStroke ? `strokecolor="#${cleanHex(style.strokeColor)}"` : "";
     const strokeweightAttr = hasStroke
-      ? `strokeweight="${(elem.style.strokeWidth || 1).toFixed(2)}pt"`
+      ? `strokeweight="${(style.strokeWidth || 1).toFixed(2)}pt"`
       : "";
 
     // Corner radius or Oval
     const isOval = elem.type === "oval";
-    const isRound = !isOval && !!elem.style.cornerRadius && elem.style.cornerRadius > 0;
+    const isRound = !isOval && !!style.cornerRadius && style.cornerRadius > 0;
     const tag = isOval ? "v:oval" : isRound ? "v:roundrect" : "v:rect";
     const minDim = Math.max(1e-3, Math.min(width, height));
     const arcsizeAttr = isRound
-      ? `arcsize="${Math.min(0.5, (elem.style.cornerRadius || 0) / minDim).toFixed(3)}"`
+      ? `arcsize="${Math.min(0.5, (style.cornerRadius || 0) / minDim).toFixed(3)}"`
       : "";
 
     let textboxContentXml = "";
@@ -706,12 +713,16 @@ export class DocxCanvasRenderer {
         : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
 
       const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
+      const isSingleLineAutoWidth =
+        elem.textAutoResize === "WIDTH_AND_HEIGHT" &&
+        !elem.textRuns.some((r) => r.text && /[\r\n]/.test(r.text));
+      const noWrapXml = isSingleLineAutoWidth ? "<w:noWrap/>\n              " : "";
       textboxContentXml = `
       <v:textbox style="${fitTextAttr};mso-next-textbox:none;${vAnchor}" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>
-              <w:jc w:val="${jcVal}"/>
+              ${noWrapXml}<w:jc w:val="${jcVal}"/>
               ${spacingXml}
               <w:contextualSpacing w:val="0"/>
               <w:autoSpaceDE w:val="0"/>
@@ -723,10 +734,10 @@ export class DocxCanvasRenderer {
       </v:textbox>`;
     }
 
-    const dashChild = hasStroke && elem.style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+    const dashChild = hasStroke && style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
     const opacityChild =
-      hasFill && elem.style.fillOpacity !== undefined && elem.style.fillOpacity < 1
-        ? `<v:fill opacity="${elem.style.fillOpacity.toFixed(2)}"/>`
+      hasFill && style.fillOpacity !== undefined && style.fillOpacity < 1
+        ? `<v:fill opacity="${style.fillOpacity.toFixed(2)}"/>`
         : "";
 
     return `<w:r>

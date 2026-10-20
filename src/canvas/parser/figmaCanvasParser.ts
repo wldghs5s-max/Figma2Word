@@ -214,6 +214,26 @@ export class FigmaCanvasParser {
           child.type === "COMPONENT" ||
           child.type === "GROUP"
         ) {
+          // If it is a GROUP, filter out non-screen guide/measurement plugin containers
+          if (child.type === "GROUP" && !this.selectedFrameIds) {
+            const name = (child.name || "").trim().toLowerCase();
+            const isMeasurementGuide =
+              name.includes("📏") ||
+              name.includes("container") ||
+              name.includes("redline") ||
+              name.includes("measurement") ||
+              (Array.isArray(child.children) &&
+                child.children.some(
+                  (c) =>
+                    c.name &&
+                    (c.name.includes("INNER_PADDING") ||
+                      c.name.includes("OUTER_SPACING") ||
+                      c.name.includes("REDLINE"))
+                ));
+            if (isMeasurementGuide) {
+              continue;
+            }
+          }
           candidateFrames.push(child);
         }
       }
