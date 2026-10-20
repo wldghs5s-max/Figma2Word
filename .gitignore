@@ -80,3 +80,6 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+# Phase 26 large rendering artifacts (keep reports & metrics, ignore binary outputs)
+research/rea-document-engine/phase26-visual-fidelity/artifacts/
+

@@ -635,8 +635,12 @@ export class DocxCanvasRenderer {
     const isRound = !isOval && !!style.cornerRadius && style.cornerRadius > 0;
     const tag = isOval ? "v:oval" : isRound ? "v:roundrect" : "v:rect";
     const minDim = Math.max(1e-3, Math.min(width, height));
+    // In Microsoft VML roundrect specification, arcsize defines the corner radius
+    // as a fraction of HALF the smaller dimension of the shape's bounding box:
+    // radius = arcsize * (minDim / 2)  =>  arcsize = (2 * radius) / minDim.
+    // The maximum allowable arcsize is 0.5 (representing a fully rounded half-circle corner).
     const arcsizeAttr = isRound
-      ? `arcsize="${Math.min(0.5, (style.cornerRadius || 0) / minDim).toFixed(3)}"`
+      ? `arcsize="${Math.min(0.5, (2 * (style.cornerRadius || 0)) / minDim).toFixed(3)}"`
       : "";
 
     let textboxContentXml = "";

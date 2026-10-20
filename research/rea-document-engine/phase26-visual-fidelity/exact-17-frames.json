@@ -1,0 +1,325 @@
+[
+  {
+    "pageNumber": 1,
+    "frameId": "763:5068",
+    "frameName": "디자인 시스템 1",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": -2914,
+      "width": 1920,
+      "height": 1080
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 810
+    },
+    "elementCount": 72
+  },
+  {
+    "pageNumber": 2,
+    "frameId": "766:256",
+    "frameName": "디자인 시스템 2",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 1414,
+      "y": -2914,
+      "width": 1920,
+      "height": 1080
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 810
+    },
+    "elementCount": 50
+  },
+  {
+    "pageNumber": 3,
+    "frameId": "757:88",
+    "frameName": "Desktop - 1",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -2147,
+      "y": -1635,
+      "width": 1440,
+      "height": 1024
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 841.89,
+      "height": 595.28
+    },
+    "elementCount": 1
+  },
+  {
+    "pageNumber": 4,
+    "frameId": "759:759",
+    "frameName": "Desktop - 대시보드 (지도뷰)",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": -1635,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 100
+  },
+  {
+    "pageNumber": 5,
+    "frameId": "757:92",
+    "frameName": "Desktop - 2",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 3107,
+      "y": -1635,
+      "width": 1449,
+      "height": 1580
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1086.75,
+      "height": 1185
+    },
+    "elementCount": 9
+  },
+  {
+    "pageNumber": 6,
+    "frameId": "757:142",
+    "frameName": "촬영계획",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 4630,
+      "y": -1635,
+      "width": 1449,
+      "height": 1083
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1086.75,
+      "height": 812.25
+    },
+    "elementCount": 4
+  },
+  {
+    "pageNumber": 7,
+    "frameId": "757:158",
+    "frameName": "촬영계획 - 건물을 선택시",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 6153,
+      "y": -1635,
+      "width": 1449,
+      "height": 1083
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1086.75,
+      "height": 812.25
+    },
+    "elementCount": 1
+  },
+  {
+    "pageNumber": 8,
+    "frameId": "759:911",
+    "frameName": "사업목록 선택된 화면",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": -379,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 101
+  },
+  {
+    "pageNumber": 9,
+    "frameId": "757:124",
+    "frameName": "필터 팝업",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 3005,
+      "y": 155,
+      "width": 1178,
+      "height": 1291
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 883.5,
+      "height": 968.25
+    },
+    "elementCount": 4
+  },
+  {
+    "pageNumber": 10,
+    "frameId": "759:1076",
+    "frameName": "신규등록 - 1",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": 915,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 152
+  },
+  {
+    "pageNumber": 11,
+    "frameId": "766:2289",
+    "frameName": "필터",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 1496,
+      "y": 1114,
+      "width": 504,
+      "height": 613
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 378,
+      "height": 459.75
+    },
+    "elementCount": 71
+  },
+  {
+    "pageNumber": 12,
+    "frameId": "757:118",
+    "frameName": "Frame 1",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 2911,
+      "y": 1586,
+      "width": 1178,
+      "height": 1291
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 883.5,
+      "height": 968.25
+    },
+    "elementCount": 6
+  },
+  {
+    "pageNumber": 13,
+    "frameId": "766:2942",
+    "frameName": "사업정보 수정",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 1496,
+      "y": 1958,
+      "width": 504,
+      "height": 935
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 378,
+      "height": 701.25
+    },
+    "elementCount": 89
+  },
+  {
+    "pageNumber": 14,
+    "frameId": "759:1314",
+    "frameName": "신규등록 - 2",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": 2225,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 141
+  },
+  {
+    "pageNumber": 15,
+    "frameId": "759:1858",
+    "frameName": "사업목록 클릭 시",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -561,
+      "y": 3519,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 228
+  },
+  {
+    "pageNumber": 16,
+    "frameId": "759:1533",
+    "frameName": "사업목록 클릭 시 - 탭디자인1",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": 4240,
+      "y": 4839,
+      "width": 1920,
+      "height": 1221
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 915.75
+    },
+    "elementCount": 209
+  },
+  {
+    "pageNumber": 17,
+    "frameId": "768:3434",
+    "frameName": "사업목록 클릭 시",
+    "type": "FRAME",
+    "figmaBox": {
+      "x": -568,
+      "y": 4865,
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 83
+  }
+]

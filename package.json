@@ -13,7 +13,10 @@
     "generate-fixtures": "tsx src/fixtures/generate.ts",
     "dev:web": "npm --prefix apps/web run dev",
     "build:web": "npm --prefix apps/web run build",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "visual:baseline": "tsx tools/visual-regression/cli.ts",
+    "visual:compare": "tsx tools/visual-regression/run_comparison.ts",
+    "visual:metrics": "tsx tools/visual-regression/compute_full_metrics.ts"
   },
   "keywords": [
     "figma",

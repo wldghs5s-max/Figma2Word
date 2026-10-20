@@ -1,0 +1,182 @@
+{
+  "project": "Figma2Word — Phase 26",
+  "sourceJson": "debug/phase25-web-ui-fidelity/pentech_v3_original.json",
+  "generatedAt": "2026-10-20T06:05:00.000Z",
+  "totalCandidateFrames": 17,
+  "apiAccessStatus": {
+    "figmaApiAvailable": false,
+    "reason": "No Figma API Personal Access Token configured in local environment. Per principle 1.1 & 3, credential circumvention is strictly prohibited."
+  },
+  "frames": [
+    {
+      "pageNumber": 1,
+      "frameId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "figmaBounds": { "x": -561, "y": -2914, "width": 1920, "height": 1080 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 810 },
+      "elementCount": 72,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Design system colors, typography, badges, and labels"
+    },
+    {
+      "pageNumber": 2,
+      "frameId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "figmaBounds": { "x": 1414, "y": -2914, "width": 1920, "height": 1080 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 810 },
+      "elementCount": 50,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Design system buttons, tabs, input fields"
+    },
+    {
+      "pageNumber": 3,
+      "frameId": "757:88",
+      "frameName": "Desktop - 1",
+      "figmaBounds": { "x": -2147, "y": -1635, "width": 1440, "height": 1024 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 841.89, "height": 595.28 },
+      "elementCount": 1,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Dashboard image view fitted to standard A4 landscape"
+    },
+    {
+      "pageNumber": 4,
+      "frameId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "figmaBounds": { "x": -561, "y": -1635, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 100,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Primary dashboard map overview and status widgets"
+    },
+    {
+      "pageNumber": 5,
+      "frameId": "757:92",
+      "frameName": "Desktop - 2",
+      "figmaBounds": { "x": 3107, "y": -1635, "width": 1449, "height": 1580 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1086.75, "height": 1185 },
+      "elementCount": 9,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Dashboard detail screen with attached review comments"
+    },
+    {
+      "pageNumber": 6,
+      "frameId": "757:142",
+      "frameName": "촬영계획",
+      "figmaBounds": { "x": 4630, "y": -1635, "width": 1449, "height": 1083 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1086.75, "height": 812.25 },
+      "elementCount": 4,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Drone shoot planning screen"
+    },
+    {
+      "pageNumber": 7,
+      "frameId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "figmaBounds": { "x": 6153, "y": -1635, "width": 1449, "height": 1083 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1086.75, "height": 812.25 },
+      "elementCount": 1,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Shoot planning building selection popup"
+    },
+    {
+      "pageNumber": 8,
+      "frameId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "figmaBounds": { "x": -561, "y": -379, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 101,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project list selected view with left table and right map"
+    },
+    {
+      "pageNumber": 9,
+      "frameId": "757:124",
+      "frameName": "필터 팝업",
+      "figmaBounds": { "x": 3005, "y": 155, "width": 1178, "height": 1291 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 883.5, "height": 968.25 },
+      "elementCount": 4,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Filter modal popup overlay screen"
+    },
+    {
+      "pageNumber": 10,
+      "frameId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "figmaBounds": { "x": -561, "y": 915, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 152,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project creation wizard step 1"
+    },
+    {
+      "pageNumber": 11,
+      "frameId": "766:2289",
+      "frameName": "필터",
+      "figmaBounds": { "x": 1496, "y": 1114, "width": 504, "height": 613 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 378, "height": 459.75 },
+      "elementCount": 71,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Filter dropdown component"
+    },
+    {
+      "pageNumber": 12,
+      "frameId": "757:118",
+      "frameName": "Frame 1",
+      "figmaBounds": { "x": 2911, "y": 1586, "width": 1178, "height": 1291 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 883.5, "height": 968.25 },
+      "elementCount": 6,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project edit feedback card"
+    },
+    {
+      "pageNumber": 13,
+      "frameId": "766:2942",
+      "frameName": "사업정보 수정",
+      "figmaBounds": { "x": 1496, "y": 1958, "width": 504, "height": 935 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 378, "height": 701.25 },
+      "elementCount": 89,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project information modification form dialog"
+    },
+    {
+      "pageNumber": 14,
+      "frameId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "figmaBounds": { "x": -561, "y": 2225, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 141,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project creation wizard step 2"
+    },
+    {
+      "pageNumber": 15,
+      "frameId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "figmaBounds": { "x": -561, "y": 3519, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 228,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project detail view with flight shoot planning"
+    },
+    {
+      "pageNumber": 16,
+      "frameId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "figmaBounds": { "x": 4240, "y": 4839, "width": 1920, "height": 1221 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 915.75 },
+      "elementCount": 209,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project detail tab layout variant 1"
+    },
+    {
+      "pageNumber": 17,
+      "frameId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "figmaBounds": { "x": -568, "y": 4865, "width": 1920, "height": 1170 },
+      "canvasBoundsPt": { "x": 0, "y": 0, "width": 1440, "height": 877.5 },
+      "elementCount": 83,
+      "referenceStatus": "approximate_reference",
+      "referenceNotes": "Project detail KMZ drone layer view"
+    }
+  ]
+}

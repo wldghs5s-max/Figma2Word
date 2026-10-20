@@ -217,19 +217,28 @@ export class FigmaCanvasParser {
           // If it is a GROUP, filter out non-screen guide/measurement plugin containers
           if (child.type === "GROUP" && !this.selectedFrameIds) {
             const name = (child.name || "").trim().toLowerCase();
+            const hasGuideChildren =
+              Array.isArray(child.children) &&
+              child.children.some(
+                (c) =>
+                  c.name &&
+                  (c.name.includes("INNER_PADDING") ||
+                    c.name.includes("OUTER_SPACING") ||
+                    c.name.includes("REDLINE") ||
+                    c.name.includes("DIMENSION") ||
+                    c.name.includes("GUIDE_LINE"))
+              );
+
+            // Avoid false positives: "container" alone is commonly used for legitimate UI groups (e.g. "Main Container").
+            // Only filter if it has the measurement ruler emoji "📏", explicit "redline"/"measurement" keywords,
+            // or structural proof of guide/padding children.
             const isMeasurementGuide =
               name.includes("📏") ||
-              name.includes("container") ||
               name.includes("redline") ||
               name.includes("measurement") ||
-              (Array.isArray(child.children) &&
-                child.children.some(
-                  (c) =>
-                    c.name &&
-                    (c.name.includes("INNER_PADDING") ||
-                      c.name.includes("OUTER_SPACING") ||
-                      c.name.includes("REDLINE"))
-                ));
+              (name.includes("container") && hasGuideChildren) ||
+              hasGuideChildren;
+
             if (isMeasurementGuide) {
               continue;
             }
