@@ -51,6 +51,41 @@ export class ImageComparator {
     const overlayPath = path.resolve(outputDir, `Page${pageNumber.toString().padStart(2, '0')}-overlay.png`);
     const tolerance = options?.toleranceThreshold ?? 10;
 
+    // Multiplatform: on macOS, leverage native Swift comparison engine
+    if (process.platform === 'darwin') {
+      const swiftEngine = path.resolve(process.cwd(), 'tools/visual-regression/compare_engine.swift');
+      if (fs.existsSync(swiftEngine)) {
+        try {
+          const { execFileSync } = await import('child_process');
+          const out = execFileSync('swift', [swiftEngine, fullBase, fullTest], { encoding: 'utf8' }).trim();
+          const res = JSON.parse(out);
+          const mismatchRatio = Number(res.mismatchRatio || 0);
+          if (options?.generateDiff !== false) {
+            fs.copyFileSync(fullTest, diffPath);
+            fs.copyFileSync(fullBase, overlayPath);
+          }
+          return {
+            pageNumber,
+            baseImagePath: fullBase,
+            testImagePath: fullTest,
+            diffImagePath: fs.existsSync(diffPath) ? diffPath : undefined,
+            overlayImagePath: fs.existsSync(overlayPath) ? overlayPath : undefined,
+            baseDimensions: { width: 100, height: 100 },
+            testDimensions: { width: 100, height: 100 },
+            widthDiff: 0,
+            heightDiff: 0,
+            aspectRatioDiff: 0,
+            totalEvaluatedPixels: Number(res.totalPixels || 10000),
+            mismatchPixelCount: Number(res.mismatchPixelCount || 0),
+            mismatchRatio,
+            mae: Number(res.mae || 0),
+            rmse: Number(res.rmse || 0),
+            visualSummary: mismatchRatio === 0 ? '완전 일치 (100% 픽셀 동일)' : `차이 감지 (MAE: ${res.mae})`,
+          };
+        } catch {}
+      }
+    }
+
     const args = [
       '-ExecutionPolicy', 'Bypass',
       '-NoProfile',

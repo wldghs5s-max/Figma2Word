@@ -1,174 +1,448 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as crypto from 'crypto';
 
 export interface WordEnvironmentSnapshot {
   wordWasRunning: boolean;
   initialDocumentNames: string[];
+  initialDocumentPaths: string[];
+  initialDocumentCount: number;
 }
 
-export interface OpenedWordDocument {
+export interface AutomatedWordHandle {
+  runId: string;
+  sourceDocxPath: string;
+  isolatedDocxPath: string;
+  isolatedDir: string;
+  normalizedPosixPath: string;
   docName: string;
+  docIndex: number;
   sectionsCount: number;
+  isOwned: boolean;
+}
+
+/**
+ * Backward compatibility alias for earlier pipeline consumers.
+ */
+export interface OpenedWordDocument extends AutomatedWordHandle {
   fullPath: string;
 }
 
 /**
- * Captures the current running state of Microsoft Word and list of already open document names.
- * Never touches or closes any user documents.
+ * Normalizes a file path for robust matching across macOS POSIX, /var vs /private/var
+ * aliases, and Unicode NFC vs NFD character encodings.
  */
-export function captureWordState(): WordEnvironmentSnapshot {
-  try {
-    const isRunningScript = `
-      tell application "System Events"
-        return (count of (processes whose name is "Microsoft Word")) > 0
-      end tell
-    `;
-    const isRunning = execSync(`osascript -e '${isRunningScript}'`, { encoding: 'utf8', timeout: 5000 }).trim() === 'true';
-
-    if (!isRunning) {
-      return { wordWasRunning: false, initialDocumentNames: [] };
-    }
-
-    const docListScript = `
-      tell application "Microsoft Word"
-        set docList to {}
-        repeat with d in documents
-          try
-            set end of docList to (name of d as text)
-          end try
-        end repeat
-        return docList as text
-      end tell
-    `;
-    // Note: docList might be comma-separated
-    const out = execSync(`osascript -e '${docListScript}'`, { encoding: 'utf8', timeout: 5000 }).trim();
-    const names = out ? out.split(',').map((s) => s.trim()).filter(Boolean) : [];
-    return { wordWasRunning: true, initialDocumentNames: names };
-  } catch (err) {
-    // If Word is not running or queries fail, treat as not running
-    return { wordWasRunning: false, initialDocumentNames: [] };
-  }
+export function normalizeWordPath(p: string): string {
+  if (!p) return '';
+  return p.replace(/^\/private/, '').normalize('NFC');
 }
 
 /**
- * Safely opens ONLY the target DOCX file in Word without closing any existing user documents.
- * Polls specifically for the newly opened target document.
+ * Escapes strings safely for interpolation inside AppleScript string literals.
+ */
+export function escapeAppleScript(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+/**
+ * Executes an AppleScript via stdin directly through execFileSync, eliminating shell injection vulnerabilities.
+ */
+export function runAppleScript(script: string, timeoutMs: number = 15000): string {
+  return execFileSync('osascript', [], { input: script, encoding: 'utf8', timeout: timeoutMs }).trim();
+}
+
+/**
+ * Captures the current running state of Microsoft Word and list of already open document paths.
+ * Enforces fail-closed error handling: if Word is running but queries fail, throws an error
+ * instead of assuming 0 documents to prevent accidental interference with user documents.
+ */
+export function captureWordState(): WordEnvironmentSnapshot {
+  const isRunningScript = `
+    tell application "System Events"
+      return (count of (processes whose name is "Microsoft Word")) > 0
+    end tell
+  `;
+  let isRunning = false;
+  try {
+    isRunning = runAppleScript(isRunningScript, 5000) === 'true';
+  } catch (err: any) {
+    throw new Error(
+      `[WordAutomation] Fail-closed: unable to query System Events for Word status: ${err.message}`
+    );
+  }
+
+  if (!isRunning) {
+    return {
+      wordWasRunning: false,
+      initialDocumentNames: [],
+      initialDocumentPaths: [],
+      initialDocumentCount: 0,
+    };
+  }
+
+  // Word is running: query all open documents.
+  // Fail-closed principle: if this query fails, DO NOT assume 0 documents!
+  const queryDocsScript = `
+tell application "Microsoft Word"
+  set out to {}
+  repeat with i from 1 to (count of documents)
+    set d to document i
+    try
+      set p to (posix full name of d as text)
+      set s to (saved of d as boolean)
+      set n to (name of d as text)
+      set sCount to (count of sections of d)
+      set end of out to (i as text) & "<#SEP#>" & n & "<#SEP#>" & p & "<#SEP#>" & (s as text) & "<#SEP#>" & (sCount as text)
+    on error
+    end try
+  end repeat
+  set AppleScript's text item delimiters to "<#ROW#>"
+  return out as text
+end tell
+`;
+
+  let rawOut = '';
+  try {
+    rawOut = runAppleScript(queryDocsScript, 10000);
+  } catch (err: any) {
+    throw new Error(
+      `[WordAutomation] Fail-closed: Microsoft Word is running but document state query failed: ${err.message}. Aborting to protect existing user documents.`
+    );
+  }
+
+  const names: string[] = [];
+  const paths: string[] = [];
+  if (rawOut) {
+    const rows = rawOut.split('<#ROW#>');
+    for (const r of rows) {
+      const parts = r.split('<#SEP#>');
+      if (parts.length >= 3) {
+        names.push(parts[1]);
+        paths.push(normalizeWordPath(parts[2]));
+      }
+    }
+  }
+
+  return {
+    wordWasRunning: true,
+    initialDocumentNames: names,
+    initialDocumentPaths: paths,
+    initialDocumentCount: names.length,
+  };
+}
+
+/**
+ * Safely opens ONLY the target DOCX file in Word within an isolated temporary directory.
+ * Matches strictly by normalized POSIX path (no filename or prefix matching).
+ * Refuses ownership if the document was already open before automation ran.
  */
 export async function openTargetDocumentSafely(
   docxPath: string,
   snapshot: WordEnvironmentSnapshot,
   maxWaitSeconds: number = 25
 ): Promise<OpenedWordDocument> {
-  const resolvedPath = path.resolve(docxPath);
-  const targetBaseName = path.basename(resolvedPath);
+  const resolvedSource = path.resolve(docxPath);
+  if (!fs.existsSync(resolvedSource)) {
+    throw new Error(`Target DOCX does not exist: ${resolvedSource}`);
+  }
 
-  // Use macOS LaunchServices 'open -a' to grant Security-Scoped Bookmark without sandbox permission dialogs
-  execSync(`open -a "Microsoft Word" "${resolvedPath}"`);
+  // 1. Create unique execution run folder in os.tmpdir() with UUID
+  const runId = 'vr_' + Date.now() + '_' + crypto.randomUUID().slice(0, 8);
+  const isolatedDir = path.join(os.tmpdir(), 'f2w_word_isolation', runId);
+  fs.mkdirSync(isolatedDir, { recursive: true });
 
-  let foundDocName = '';
-  let sectionsCount = 0;
+  const isolatedDocxPath = path.join(isolatedDir, path.basename(resolvedSource));
+  fs.copyFileSync(resolvedSource, isolatedDocxPath);
+
+  const normalizedTargetPosix = normalizeWordPath(isolatedDocxPath);
+
+  // 2. Reject ownership if this exact path is already open in Word
+  if (snapshot.initialDocumentPaths.includes(normalizedTargetPosix)) {
+    try {
+      fs.rmSync(isolatedDir, { recursive: true, force: true });
+    } catch {}
+    throw new Error(
+      `[WordAutomation] Target document path is already open in Word prior to automation: ${normalizedTargetPosix}. Automation refuses to claim ownership.`
+    );
+  }
+
+  // 3. Open ONLY the isolated copy via macOS LaunchServices without shell injection
+  try {
+    execFileSync('open', ['-a', 'Microsoft Word', isolatedDocxPath]);
+  } catch (err: any) {
+    try {
+      fs.rmSync(isolatedDir, { recursive: true, force: true });
+    } catch {}
+    throw new Error(
+      `[WordAutomation] Failed to launch Word for isolated document: ${err.message}`
+    );
+  }
+
+  // 4. Poll for the document matching normalizedTargetPosix strictly
+  let matchedDoc: { index: number; name: string; sectionsCount: number } | null = null;
 
   for (let i = 0; i < maxWaitSeconds; i++) {
     await new Promise((r) => setTimeout(r, 1000));
     try {
-      // Find specifically the document whose name matches targetBaseName
-      const findScript = `
-        tell application "Microsoft Word"
-          repeat with d in documents
-            try
-              set dName to (name of d as text)
-              -- Check if this document matches our target base name
-              if dName is equal to "${targetBaseName}" or dName starts with "${path.parse(targetBaseName).name}" then
-                set sCount to (count of sections of d)
-                return dName & "|" & (sCount as text)
-              end if
-            end try
-          end repeat
-          return "NOT_FOUND"
-        end tell
-      `;
-      const res = execSync(`osascript -e '${findScript}'`, { encoding: 'utf8', timeout: 5000 }).trim();
-      if (res !== 'NOT_FOUND' && res.includes('|')) {
-        const parts = res.split('|');
-        foundDocName = parts[0];
-        sectionsCount = parseInt(parts[1], 10) || 0;
-        break;
+      const queryScript = `
+tell application "Microsoft Word"
+  set out to {}
+  repeat with i from 1 to (count of documents)
+    set d to document i
+    try
+      set p to (posix full name of d as text)
+      set s to (saved of d as boolean)
+      set n to (name of d as text)
+      set sCount to (count of sections of d)
+      set end of out to (i as text) & "<#SEP#>" & n & "<#SEP#>" & p & "<#SEP#>" & (s as text) & "<#SEP#>" & (sCount as text)
+    on error
+    end try
+  end repeat
+  set AppleScript's text item delimiters to "<#ROW#>"
+  return out as text
+end tell
+`;
+      const raw = runAppleScript(queryScript, 5000);
+      if (raw) {
+        const rows = raw.split('<#ROW#>');
+        for (const row of rows) {
+          const parts = row.split('<#SEP#>');
+          if (parts.length >= 5) {
+            const idx = parseInt(parts[0], 10);
+            const name = parts[1];
+            const p = normalizeWordPath(parts[2]);
+            const sCount = parseInt(parts[4], 10) || 0;
+            // STRICT normalized POSIX path match ONLY. No name or prefix matching!
+            if (p === normalizedTargetPosix) {
+              matchedDoc = { index: idx, name, sectionsCount: sCount };
+              break;
+            }
+          }
+        }
       }
-    } catch {}
+      if (matchedDoc) break;
+    } catch {
+      // transient polling error, keep polling
+    }
   }
 
-  if (!foundDocName) {
-    throw new Error(`Timeout waiting for target document "${targetBaseName}" to load in Microsoft Word.`);
+  if (!matchedDoc) {
+    try {
+      fs.rmSync(isolatedDir, { recursive: true, force: true });
+    } catch {}
+    throw new Error(
+      `[WordAutomation] Timeout waiting for target document "${path.basename(resolvedSource)}" to load at isolated path: ${normalizedTargetPosix}`
+    );
   }
 
   return {
-    docName: foundDocName,
-    sectionsCount,
-    fullPath: resolvedPath,
+    runId,
+    sourceDocxPath: resolvedSource,
+    isolatedDocxPath,
+    isolatedDir,
+    normalizedPosixPath: normalizedTargetPosix,
+    docName: matchedDoc.name,
+    docIndex: matchedDoc.index,
+    sectionsCount: matchedDoc.sectionsCount,
+    isOwned: true,
+    fullPath: resolvedSource,
   };
 }
 
 /**
  * Exports ONLY the target document to PDF and closes ONLY that document.
+ * Requires an AutomatedWordHandle verifying that the automation owns the document.
  * Crucial: Existing user documents are strictly untouched.
  */
 export function exportAndCloseTargetDocOnly(
-  targetDocName: string,
+  handle: AutomatedWordHandle | string,
   outPdfPath: string,
   timeoutSeconds: number = 600
 ): void {
-  const resolvedPdf = path.resolve(outPdfPath);
-  const script = `
-    with timeout of ${timeoutSeconds} seconds
-      tell application "Microsoft Word"
-        set foundDoc to missing value
-        repeat with d in documents
-          try
-            if (name of d as text) is equal to "${targetDocName}" then
-              set foundDoc to d
-              exit repeat
-            end if
-          end try
-        end repeat
+  let targetNormalizedPath = '';
+  let isolatedDir: string | undefined;
 
-        if foundDoc is not missing value then
-          save as foundDoc file name "${resolvedPdf}" file format format PDF
-          close foundDoc saving no
-          return "OK"
-        else
-          return "TARGET_NOT_FOUND"
-        end if
-      end tell
-    end timeout
-  `;
-
-  const res = execSync(`osascript -e '${script}'`, { encoding: 'utf8', timeout: (timeoutSeconds + 10) * 1000 }).trim();
-  if (res === 'TARGET_NOT_FOUND') {
-    throw new Error(`Could not find target document "${targetDocName}" to export and close.`);
+  if (typeof handle === 'object' && handle !== null) {
+    if (!handle.isOwned) {
+      throw new Error(`[WordAutomation] Cannot close document: automation does not own this document.`);
+    }
+    targetNormalizedPath = handle.normalizedPosixPath;
+    isolatedDir = handle.isolatedDir;
+  } else if (typeof handle === 'string') {
+    if (path.isAbsolute(handle)) {
+      targetNormalizedPath = normalizeWordPath(handle);
+    } else {
+      throw new Error(
+        `[WordAutomation] Direct document name matching is forbidden in Phase 28. AutomatedWordHandle with verified POSIX path is required.`
+      );
+    }
   }
+
+  const resolvedPdf = path.resolve(outPdfPath);
+  const escapedPdf = escapeAppleScript(resolvedPdf);
+  const escapedTarget = escapeAppleScript(targetNormalizedPath);
+
+  // In AppleScript: find document matching targetNormalizedPath strictly
+  const script = `
+with timeout of ${timeoutSeconds} seconds
+  tell application "Microsoft Word"
+    set foundIndex to 0
+    repeat with i from 1 to (count of documents)
+      set d to document i
+      try
+        set p to (posix full name of d as text)
+        if p is equal to "${escapedTarget}" then
+          set foundIndex to i
+          exit repeat
+        end if
+      end try
+    end repeat
+
+    if foundIndex > 0 then
+      set d to document foundIndex
+      save as d file name "${escapedPdf}" file format format PDF
+      close d saving no
+      return "OK"
+    else
+      return "TARGET_NOT_FOUND"
+    end if
+  end tell
+end timeout
+`;
+
+  let res = '';
+  try {
+    res = runAppleScript(script, (timeoutSeconds + 10) * 1000);
+  } catch (err: any) {
+    throw new Error(`[WordAutomation] AppleScript error during PDF export: ${err.message}`);
+  }
+
+  if (res === 'TARGET_NOT_FOUND') {
+    // Secondary check with Node-side normalization to resolve any symlink variance
+    const verifyScript = `
+tell application "Microsoft Word"
+  set out to {}
+  repeat with i from 1 to (count of documents)
+    set d to document i
+    try
+      set p to (posix full name of d as text)
+      set end of out to (i as text) & "<#SEP#>" & p
+    on error
+    end try
+  end repeat
+  set AppleScript's text item delimiters to "<#ROW#>"
+  return out as text
+end tell
+`;
+    const checkRaw = runAppleScript(verifyScript, 5000);
+    let retryIndex = 0;
+    if (checkRaw) {
+      for (const row of checkRaw.split('<#ROW#>')) {
+        const [idxStr, p] = row.split('<#SEP#>');
+        if (normalizeWordPath(p) === targetNormalizedPath) {
+          retryIndex = parseInt(idxStr, 10);
+          break;
+        }
+      }
+    }
+
+    if (retryIndex > 0) {
+      const retryScript = `
+with timeout of ${timeoutSeconds} seconds
+  tell application "Microsoft Word"
+    if (count of documents) >= ${retryIndex} then
+      set d to document ${retryIndex}
+      save as d file name "${escapedPdf}" file format format PDF
+      close d saving no
+      return "OK"
+    end if
+    return "TARGET_NOT_FOUND"
+  end tell
+end timeout
+`;
+      res = runAppleScript(retryScript, (timeoutSeconds + 10) * 1000);
+    }
+  }
+
+  // Always clean up isolated temporary directory
+  if (isolatedDir && fs.existsSync(isolatedDir)) {
+    try {
+      fs.rmSync(isolatedDir, { recursive: true, force: true });
+    } catch {}
+  }
+
   if (res !== 'OK') {
-    throw new Error(`Unexpected Word export result: ${res}`);
+    throw new Error(
+      `[WordAutomation] Failed to export and close target document: result was "${res}". No user documents were modified.`
+    );
   }
 }
 
 /**
  * Safely cleans up ONLY our target document if it remains open after an error.
+ * Matches strictly by normalized POSIX path and cleans up temporary isolation directory.
  * Never closes any other document.
  */
-export function cleanupTargetDocOnly(targetDocName: string): void {
-  if (!targetDocName) return;
+export function cleanupTargetDocOnly(handle: AutomatedWordHandle | string): void {
+  if (!handle) return;
+  let targetNormalizedPath = '';
+  let isolatedDir: string | undefined;
+
+  if (typeof handle === 'object' && handle !== null) {
+    targetNormalizedPath = handle.normalizedPosixPath;
+    isolatedDir = handle.isolatedDir;
+  } else if (typeof handle === 'string') {
+    if (path.isAbsolute(handle)) {
+      targetNormalizedPath = normalizeWordPath(handle);
+    } else {
+      // Mock name or non-path: safe no-op
+      return;
+    }
+  }
+
+  if (!targetNormalizedPath) return;
+
   try {
-    const script = `
-      tell application "Microsoft Word"
-        repeat with d in documents
-          try
-            if (name of d as text) is equal to "${targetDocName}" then
-              close d saving no
-            end if
-          end try
-        end repeat
-      end tell
-    `;
-    execSync(`osascript -e '${script}'`, { encoding: 'utf8', timeout: 5000 });
+    const checkScript = `
+tell application "Microsoft Word"
+  set out to {}
+  repeat with i from 1 to (count of documents)
+    set d to document i
+    try
+      set p to (posix full name of d as text)
+      set end of out to (i as text) & "<#SEP#>" & p
+    on error
+    end try
+  end repeat
+  set AppleScript's text item delimiters to "<#ROW#>"
+  return out as text
+end tell
+`;
+    const checkRaw = runAppleScript(checkScript, 5000);
+    if (checkRaw) {
+      for (const row of checkRaw.split('<#ROW#>')) {
+        const [idxStr, p] = row.split('<#SEP#>');
+        if (normalizeWordPath(p) === targetNormalizedPath) {
+          const idx = parseInt(idxStr, 10);
+          const closeScript = `
+tell application "Microsoft Word"
+  if (count of documents) >= ${idx} then
+    close (document ${idx}) saving no
+  end if
+end tell
+`;
+          runAppleScript(closeScript, 5000);
+          break;
+        }
+      }
+    }
   } catch {}
+
+  if (isolatedDir && fs.existsSync(isolatedDir)) {
+    try {
+      fs.rmSync(isolatedDir, { recursive: true, force: true });
+    } catch {}
+  }
 }

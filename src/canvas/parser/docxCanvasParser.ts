@@ -420,7 +420,8 @@ export class DocxCanvasParser {
       const arc = parseFloat(attrs["arcsize"]);
       if (!isNaN(arc) && arc > 0) {
         const minSide = Math.max(1, Math.min(width, height));
-        cornerRadius = Math.round(arc * minSide * 100) / 100;
+        // Per W3C VML specification: radius = arcsize * (minSide / 2)
+        cornerRadius = Math.round(arc * (minSide / 2) * 100) / 100;
       }
     }
 

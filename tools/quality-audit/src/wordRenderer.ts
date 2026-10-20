@@ -55,6 +55,18 @@ export class WordRenderer {
       };
     }
 
+    const isAvail = await this.isWordComAvailable();
+    if (!isAvail) {
+      return {
+        success: false,
+        skipped: true,
+        skipReason: 'Word COM is not available on this host environment.',
+        docPath: fullDocxPath,
+        pageCount: 0,
+        pngPaths: [],
+      };
+    }
+
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }

@@ -351,6 +351,53 @@ export class DocxCanvasRenderer {
 </w:r>`;
   }
 
+  private buildRoundedRectPath(
+    wPt: number,
+    hPt: number,
+    radii: [number, number, number, number]
+  ): { coordsize: string; path: string } {
+    const M = 10;
+    const W = Math.round(wPt * M);
+    const H = Math.round(hPt * M);
+
+    const maxR = Math.min(W / 2, H / 2);
+    let rTL = Math.min(Math.max(0, Math.round(radii[0] * M)), maxR);
+    let rTR = Math.min(Math.max(0, Math.round(radii[1] * M)), maxR);
+    let rBR = Math.min(Math.max(0, Math.round(radii[2] * M)), maxR);
+    let rBL = Math.min(Math.max(0, Math.round(radii[3] * M)), maxR);
+
+    const K = 0.55228475;
+    const commands: string[] = [];
+
+    commands.push(`m ${rTL},0`);
+    commands.push(`l ${W - rTR},0`);
+    if (rTR > 0) {
+      const kTR = Math.round(rTR * K);
+      commands.push(`c ${W - rTR + kTR},0,${W},${rTR - kTR},${W},${rTR}`);
+    }
+    commands.push(`l ${W},${H - rBR}`);
+    if (rBR > 0) {
+      const kBR = Math.round(rBR * K);
+      commands.push(`c ${W},${H - rBR + kBR},${W - rBR + kBR},${H},${W - rBR},${H}`);
+    }
+    commands.push(`l ${rBL},${H}`);
+    if (rBL > 0) {
+      const kBL = Math.round(rBL * K);
+      commands.push(`c ${rBL - kBL},${H},0,${H - rBL + kBL},0,${H - rBL}`);
+    }
+    commands.push(`l 0,${rTL}`);
+    if (rTL > 0) {
+      const kTL = Math.round(rTL * K);
+      commands.push(`c 0,${rTL - kTL},${rTL - kTL},0,${rTL},0`);
+    }
+    commands.push("x e");
+
+    return {
+      coordsize: `${W},${H}`,
+      path: commands.join(" "),
+    };
+  }
+
   private renderElement(
     pageIdx: number,
     elemIdx: number,
@@ -630,18 +677,36 @@ export class DocxCanvasRenderer {
       ? `strokeweight="${(style.strokeWidth || 1).toFixed(2)}pt"`
       : "";
 
-    // Corner radius or Oval
+    // Corner radius or Oval or Asymmetric
     const isOval = elem.type === "oval";
-    const isRound = !isOval && !!style.cornerRadius && style.cornerRadius > 0;
-    const tag = isOval ? "v:oval" : isRound ? "v:roundrect" : "v:rect";
+    const radii = style.cornerRadii;
+    const isAsymmetric =
+      !isOval &&
+      Array.isArray(radii) &&
+      radii.length === 4 &&
+      !(radii[0] === radii[1] && radii[1] === radii[2] && radii[2] === radii[3]) &&
+      radii.some((r) => r > 0);
+
+    let tag = isOval ? "v:oval" : "v:rect";
+    let extraShapeAttrs = "";
     const minDim = Math.max(1e-3, Math.min(width, height));
-    // In Microsoft VML roundrect specification, arcsize defines the corner radius
-    // as a fraction of HALF the smaller dimension of the shape's bounding box:
-    // radius = arcsize * (minDim / 2)  =>  arcsize = (2 * radius) / minDim.
-    // The maximum allowable arcsize is 0.5 (representing a fully rounded half-circle corner).
-    const arcsizeAttr = isRound
-      ? `arcsize="${Math.min(0.5, (2 * (style.cornerRadius || 0)) / minDim).toFixed(3)}"`
-      : "";
+
+    if (isAsymmetric && radii) {
+      tag = "v:shape";
+      const built = this.buildRoundedRectPath(width, height, radii);
+      extraShapeAttrs = `coordsize="${built.coordsize}" path="${built.path}" `;
+    } else if (!isOval) {
+      const scalarRadius =
+        (radii && radii[0] > 0 ? radii[0] : style.cornerRadius) || 0;
+      const isRound = scalarRadius > 0;
+      tag = isRound ? "v:roundrect" : "v:rect";
+      if (isRound) {
+        extraShapeAttrs = `arcsize="${Math.min(
+          0.5,
+          (2 * scalarRadius) / minDim
+        ).toFixed(3)}" `;
+      }
+    }
 
     let textboxContentXml = "";
     if (isText && elem.textRuns) {
@@ -717,12 +782,19 @@ export class DocxCanvasRenderer {
         : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
 
       const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
-      const isSingleLineAutoWidth =
-        elem.textAutoResize === "WIDTH_AND_HEIGHT" &&
-        !elem.textRuns.some((r) => r.text && /[\r\n]/.test(r.text));
+      const hasHardNewline = elem.textRuns.some((r) => r.text && /[\r\n]/.test(r.text));
+      const isSingleLine =
+        !hasHardNewline &&
+        (elem.textAutoResize === "WIDTH_AND_HEIGHT" ||
+          (elem.bounds.height > 0 &&
+            firstLineHeight &&
+            elem.bounds.height <= firstLineHeight * 1.45) ||
+          (elem.bounds.height > 0 &&
+            maxFontSize &&
+            elem.bounds.height <= maxFontSize * 1.6));
       // In OpenXML ECMA-376 Part 1 §17.3.1.44, disabling word wrap in paragraph properties is <w:wordWrap w:val="0"/>
       // (Note: <w:noWrap/> is only valid in table cell properties w:tcPr per §17.4.38 and causes Word corruption dialogs)
-      const wordWrapXml = isSingleLineAutoWidth ? '<w:wordWrap w:val="0"/>\n              ' : "";
+      const wordWrapXml = isSingleLine ? '<w:wordWrap w:val="0"/>\n              ' : "";
       textboxContentXml = `
       <v:textbox style="${fitTextAttr};mso-next-textbox:none;${vAnchor}" ${insetAttr}>
         <w:txbxContent>
@@ -752,12 +824,11 @@ export class DocxCanvasRenderer {
             ${altAttr}
             ${titleAttr}
             style="${baseStyle}"
-            ${filledAttr}
+            ${extraShapeAttrs}${filledAttr}
             ${fillcolorAttr}
             ${strokedAttr}
             ${strokecolorAttr}
-            ${strokeweightAttr}
-            ${arcsizeAttr}>${dashChild}${opacityChild}${textboxContentXml}
+            ${strokeweightAttr}>${dashChild}${opacityChild}${textboxContentXml}
     </${tag}>
   </w:pict>
 </w:r>`;

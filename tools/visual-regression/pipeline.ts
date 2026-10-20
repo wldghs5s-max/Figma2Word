@@ -73,7 +73,7 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
   console.log(`[Pipeline] DOCX generated: ${(docxRes.fileSizeBytes / 1024 / 1024).toFixed(2)} MB (${docxRes.pageCount} IR pages)`);
 
   console.log(`[Pipeline] 2. Safely inspecting Microsoft Word state (protecting existing user documents)...`);
-  let openedDocName = '';
+  let openedDocHandle: any = null;
   try {
     const wordSnapshot = captureWordState();
     if (wordSnapshot.wordWasRunning && wordSnapshot.initialDocumentNames.length > 0) {
@@ -81,14 +81,14 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
     }
 
     console.log(`[Pipeline] Opening target DOCX in Microsoft Word...`);
-    const openedDoc = await openTargetDocumentSafely(docxPath, wordSnapshot, 25);
-    openedDocName = openedDoc.docName;
-    const sectionsCount = openedDoc.sectionsCount;
+    openedDocHandle = await openTargetDocumentSafely(docxPath, wordSnapshot, 25);
+    const openedDocName = openedDocHandle.docName;
+    const sectionsCount = openedDocHandle.sectionsCount;
     console.log(`[Pipeline] Target document loaded: "${openedDocName}" (${sectionsCount} sections)`);
 
     // Export to PDF via AppleScript targeting ONLY our document
     console.log(`[Pipeline] 3. Exporting native PDF to ${pdfPath}...`);
-    exportAndCloseTargetDocOnly(openedDocName, pdfPath, 600);
+    exportAndCloseTargetDocOnly(openedDocHandle, pdfPath, 600);
     console.log(`[Pipeline] PDF exported and target document closed successfully (User documents preserved)!`);
 
     // 4. Render PDF pages to PNG using Swift
@@ -120,8 +120,8 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
     fs.writeFileSync(path.join(outDir, 'pipeline-manifest.json'), JSON.stringify(pipelineRes, null, 2));
     return pipelineRes;
   } catch (err: any) {
-    if (openedDocName) {
-      cleanupTargetDocOnly(openedDocName);
+    if (openedDocHandle) {
+      cleanupTargetDocOnly(openedDocHandle);
     }
     return {
       success: false,

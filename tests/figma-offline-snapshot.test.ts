@@ -209,6 +209,7 @@ describe("Step 7: Figma JSON Snapshot & Offline Repeated Conversion", () => {
       fileName: "Temp-File-Test",
     });
 
+    fs.mkdirSync(path.dirname(tempSnapshotPath), { recursive: true });
     fs.writeFileSync(tempSnapshotPath, JSON.stringify(snapshot, null, 2), "utf-8");
 
     try {
