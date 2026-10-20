@@ -82,7 +82,7 @@ describe("Phase 25: Web UI Multi-Section & Typography Fidelity Guard", () => {
     expect(docXml).not.toContain("<w:pageBreakBefore/>");
   });
 
-  it("2. Applies <w:noWrap/> and width buffer to single-line auto-resize textboxes", async () => {
+  it("2. Applies <w:wordWrap w:val=\"0\"/> (ECMA-376) and width buffer to single-line auto-resize textboxes", async () => {
     const syntheticDoc: CanvasDocument = {
       title: "Typography Wrap Guard",
       pageSize: {
@@ -138,8 +138,10 @@ describe("Phase 25: Web UI Multi-Section & Typography Fidelity Guard", () => {
     const zip = await JSZip.loadAsync(buffer);
     const docXml = await zip.file("word/document.xml")!.async("text");
 
-    // Verify <w:noWrap/> is present for single-line auto-width text
-    expect(docXml).toContain("<w:noWrap/>");
+    // Verify <w:wordWrap w:val="0"/> is present for single-line auto-width text (ECMA-376 §17.3.1.44)
+    expect(docXml).toContain('<w:wordWrap w:val="0"/>');
+    // Ensure invalid <w:noWrap/> is NOT present in w:pPr
+    expect(docXml).not.toContain("<w:noWrap/>");
 
     // Verify width buffer was applied to the breadcrumb shape (141 + max(3, 141*0.03) ≈ 145.23pt)
     expect(docXml).toMatch(/width:145\.[0-9]+pt/);

@@ -716,13 +716,15 @@ export class DocxCanvasRenderer {
       const isSingleLineAutoWidth =
         elem.textAutoResize === "WIDTH_AND_HEIGHT" &&
         !elem.textRuns.some((r) => r.text && /[\r\n]/.test(r.text));
-      const noWrapXml = isSingleLineAutoWidth ? "<w:noWrap/>\n              " : "";
+      // In OpenXML ECMA-376 Part 1 §17.3.1.44, disabling word wrap in paragraph properties is <w:wordWrap w:val="0"/>
+      // (Note: <w:noWrap/> is only valid in table cell properties w:tcPr per §17.4.38 and causes Word corruption dialogs)
+      const wordWrapXml = isSingleLineAutoWidth ? '<w:wordWrap w:val="0"/>\n              ' : "";
       textboxContentXml = `
       <v:textbox style="${fitTextAttr};mso-next-textbox:none;${vAnchor}" ${insetAttr}>
         <w:txbxContent>
           <w:p>
             <w:pPr>
-              ${noWrapXml}<w:jc w:val="${jcVal}"/>
+              ${wordWrapXml}<w:jc w:val="${jcVal}"/>
               ${spacingXml}
               <w:contextualSpacing w:val="0"/>
               <w:autoSpaceDE w:val="0"/>
