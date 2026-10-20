@@ -14,7 +14,10 @@ struct CompareResult: Codable {
     let mismatchPixels: Int
     let mismatchRatio: Double
     let mae: Double
-    let ssim: Double
+    let globalSsim: Double
+    let localWindowSsim: Double
+    let worstLocalSsim: Double
+    let edgeDiff: Double
     let diffImagePath: String?
     let error: String?
 }
@@ -25,7 +28,8 @@ if args.count < 3 {
         success: false, image1Path: "", image2Path: "",
         width1: 0, height1: 0, width2: 0, height2: 0,
         evaluatedPixels: 0, mismatchPixels: 0, mismatchRatio: 1.0,
-        mae: 255.0, ssim: 0.0, diffImagePath: nil,
+        mae: 255.0, globalSsim: 0.0, localWindowSsim: 0.0, worstLocalSsim: 0.0, edgeDiff: 255.0,
+        diffImagePath: nil,
         error: "Usage: swift compare_engine.swift <img1> <img2> [diffOut] [tolerance]"
     )
     let d = try! JSONEncoder().encode(res)
@@ -44,7 +48,8 @@ guard let img1 = NSImage(contentsOfFile: path1),
         success: false, image1Path: path1, image2Path: path2,
         width1: 0, height1: 0, width2: 0, height2: 0,
         evaluatedPixels: 0, mismatchPixels: 0, mismatchRatio: 1.0,
-        mae: 255.0, ssim: 0.0, diffImagePath: nil,
+        mae: 255.0, globalSsim: 0.0, localWindowSsim: 0.0, worstLocalSsim: 0.0, edgeDiff: 255.0,
+        diffImagePath: nil,
         error: "Failed to load input images."
     )
     let d = try! JSONEncoder().encode(res)
@@ -58,7 +63,8 @@ guard let cg1 = img1.cgImage(forProposedRect: nil, context: nil, hints: nil),
         success: false, image1Path: path1, image2Path: path2,
         width1: 0, height1: 0, width2: 0, height2: 0,
         evaluatedPixels: 0, mismatchPixels: 0, mismatchRatio: 1.0,
-        mae: 255.0, ssim: 0.0, diffImagePath: nil,
+        mae: 255.0, globalSsim: 0.0, localWindowSsim: 0.0, worstLocalSsim: 0.0, edgeDiff: 255.0,
+        diffImagePath: nil,
         error: "Failed to create CGImage."
     )
     let d = try! JSONEncoder().encode(res)
@@ -71,7 +77,6 @@ let h1 = cg1.height
 let w2 = cg2.width
 let h2 = cg2.height
 
-// Normalize to target comparison canvas: min or max dimensions
 let evalW = min(w1, w2)
 let evalH = min(h1, h2)
 let totalPixels = evalW * evalH
@@ -81,7 +86,8 @@ guard totalPixels > 0 else {
         success: false, image1Path: path1, image2Path: path2,
         width1: w1, height1: h1, width2: w2, height2: h2,
         evaluatedPixels: 0, mismatchPixels: 0, mismatchRatio: 1.0,
-        mae: 255.0, ssim: 0.0, diffImagePath: nil,
+        mae: 255.0, globalSsim: 0.0, localWindowSsim: 0.0, worstLocalSsim: 0.0, edgeDiff: 255.0,
+        diffImagePath: nil,
         error: "Zero comparison area."
     )
     let d = try! JSONEncoder().encode(res)
@@ -89,7 +95,6 @@ guard totalPixels > 0 else {
     exit(1)
 }
 
-// Allocate pixel buffers
 let bytesPerPixel = 4
 let bytesPerRow = evalW * bytesPerPixel
 let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -116,7 +121,10 @@ if diffPath != nil {
 var totalAbsDiff: Double = 0
 var mismatchCount = 0
 
-// Variables for simplified SSIM calculation (mean, variance, covariance)
+// Luminance grid for Local Window SSIM and Edge detection
+var lum1 = [Double](repeating: 0, count: totalPixels)
+var lum2 = [Double](repeating: 0, count: totalPixels)
+
 var sum1: Double = 0
 var sum2: Double = 0
 var sumSq1: Double = 0
@@ -133,9 +141,10 @@ for i in 0..<totalPixels {
     let g2 = Double(ptr2[offset + 1])
     let b2 = Double(ptr2[offset + 2])
     
-    // Luminance
     let y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
     let y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+    lum1[i] = y1
+    lum2[i] = y2
     
     sum1 += y1
     sum2 += y2
@@ -147,7 +156,6 @@ for i in 0..<totalPixels {
     let diffG = abs(g1 - g2)
     let diffB = abs(b1 - b2)
     let maxDiff = max(diffR, max(diffG, diffB))
-    
     let pixelDiff = (diffR + diffG + diffB) / 3.0
     totalAbsDiff += pixelDiff
     
@@ -158,13 +166,11 @@ for i in 0..<totalPixels {
     
     if diffPath != nil {
         if isMismatch {
-            // Highlight in vibrant red
             diffData[offset] = 255
             diffData[offset + 1] = UInt8(max(0, 255 - Int(pixelDiff * 2)))
             diffData[offset + 2] = UInt8(max(0, 255 - Int(pixelDiff * 2)))
             diffData[offset + 3] = 255
         } else {
-            // Muted grayscale for background context
             let muted = UInt8(round(y1 * 0.7 + 76))
             diffData[offset] = muted
             diffData[offset + 1] = muted
@@ -178,21 +184,90 @@ let n = Double(totalPixels)
 let mae = totalAbsDiff / n
 let mismatchRatio = Double(mismatchCount) / n
 
-// Standard SSIM parameters
+// 1. Global SSIM
 let c1: Double = (0.01 * 255) * (0.01 * 255)
 let c2: Double = (0.03 * 255) * (0.03 * 255)
 
 let mu1 = sum1 / n
 let mu2 = sum2 / n
-let sigmaSq1 = (sumSq1 / n) - (mu1 * mu1)
-let sigmaSq2 = (sumSq2 / n) - (mu2 * mu2)
+let sigmaSq1 = max(0, (sumSq1 / n) - (mu1 * mu1))
+let sigmaSq2 = max(0, (sumSq2 / n) - (mu2 * mu2))
 let sigma12 = (sumProd / n) - (mu1 * mu2)
 
-let numerator = (2 * mu1 * mu2 + c1) * (2 * sigma12 + c2)
-let denominator = (mu1 * mu1 + mu2 * mu2 + c1) * (sigmaSq1 + sigmaSq2 + c2)
-var ssim = denominator > 0 ? (numerator / denominator) : 0.0
-if ssim.isNaN || ssim < 0 { ssim = 0.0 }
-if ssim > 1.0 { ssim = 1.0 }
+var globalSsim = ((2 * mu1 * mu2 + c1) * (2 * sigma12 + c2)) / ((mu1 * mu1 + mu2 * mu2 + c1) * (sigmaSq1 + sigmaSq2 + c2))
+if globalSsim.isNaN || globalSsim < 0 { globalSsim = 0.0 }
+if globalSsim > 1.0 { globalSsim = 1.0 }
+
+// 2. Local Window SSIM (8x8 sliding blocks)
+let blockSize = 8
+let blocksX = evalW / blockSize
+let blocksY = evalH / blockSize
+var localSsimSum: Double = 0
+var worstLocalSsim: Double = 1.0
+var totalBlocks = 0
+
+if blocksX > 0 && blocksY > 0 {
+    for by in 0..<blocksY {
+        for bx in 0..<blocksX {
+            var bSum1: Double = 0
+            var bSum2: Double = 0
+            var bSumSq1: Double = 0
+            var bSumSq2: Double = 0
+            var bSumProd: Double = 0
+            let bN = Double(blockSize * blockSize)
+            
+            for ly in 0..<blockSize {
+                let py = by * blockSize + ly
+                let rowOffset = py * evalW
+                for lx in 0..<blockSize {
+                    let px = bx * blockSize + lx
+                    let idx = rowOffset + px
+                    let v1 = lum1[idx]
+                    let v2 = lum2[idx]
+                    bSum1 += v1
+                    bSum2 += v2
+                    bSumSq1 += v1 * v1
+                    bSumSq2 += v2 * v2
+                    bSumProd += v1 * v2
+                }
+            }
+            
+            let bMu1 = bSum1 / bN
+            let bMu2 = bSum2 / bN
+            let bSigSq1 = max(0, (bSumSq1 / bN) - (bMu1 * bMu1))
+            let bSigSq2 = max(0, (bSumSq2 / bN) - (bMu2 * bMu2))
+            let bSig12 = (bSumProd / bN) - (bMu1 * bMu2)
+            
+            var bSsim = ((2 * bMu1 * bMu2 + c1) * (2 * bSig12 + c2)) / ((bMu1 * bMu1 + bMu2 * bMu2 + c1) * (bSigSq1 + bSigSq2 + c2))
+            if bSsim.isNaN || bSsim < 0 { bSsim = 0.0 }
+            if bSsim > 1.0 { bSsim = 1.0 }
+            
+            localSsimSum += bSsim
+            if bSsim < worstLocalSsim {
+                worstLocalSsim = bSsim
+            }
+            totalBlocks += 1
+        }
+    }
+}
+
+let localWindowSsim = totalBlocks > 0 ? (localSsimSum / Double(totalBlocks)) : globalSsim
+
+// 3. Edge Difference (Horizontal & Vertical simple gradient difference)
+var edgeDiffSum: Double = 0
+var edgePixelCount = 0
+for y in 0..<(evalH - 1) {
+    let row = y * evalW
+    let nextRow = (y + 1) * evalW
+    for x in 0..<(evalW - 1) {
+        let idx = row + x
+        let grad1 = abs(lum1[idx + 1] - lum1[idx]) + abs(lum1[nextRow + x] - lum1[idx])
+        let grad2 = abs(lum2[idx + 1] - lum2[idx]) + abs(lum2[nextRow + x] - lum2[idx])
+        edgeDiffSum += abs(grad1 - grad2)
+        edgePixelCount += 1
+    }
+}
+let edgeDiff = edgePixelCount > 0 ? (edgeDiffSum / Double(edgePixelCount)) : 0.0
 
 if let dp = diffPath {
     diffData.withUnsafeMutableBytes { rawBuf in
@@ -220,7 +295,10 @@ let result = CompareResult(
     mismatchPixels: mismatchCount,
     mismatchRatio: (mismatchRatio * 10000).rounded() / 10000,
     mae: (mae * 100).rounded() / 100,
-    ssim: (ssim * 10000).rounded() / 10000,
+    globalSsim: (globalSsim * 10000).rounded() / 10000,
+    localWindowSsim: (localWindowSsim * 10000).rounded() / 10000,
+    worstLocalSsim: (worstLocalSsim * 10000).rounded() / 10000,
+    edgeDiff: (edgeDiff * 100).rounded() / 100,
     diffImagePath: diffPath,
     error: nil
 )

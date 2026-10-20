@@ -1079,13 +1079,11 @@ export class FigmaCanvasParser {
         number
       ];
       style.cornerRadii = radii;
-      const maxR = Math.max(...radii);
-      if (maxR > 0) {
-        const avgR = (radii[0] + radii[1] + radii[2] + radii[3]) / 4;
-        style.cornerRadius = avgR > 0 ? avgR : maxR;
+      const nonZero = radii.filter((r) => r > 0);
+      if (nonZero.length > 0) {
+        style.cornerRadius = nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
       }
-    }
-    if (node.cornerRadius) {
+    } else if (node.cornerRadius) {
       style.cornerRadius = node.cornerRadius * scale;
     }
 

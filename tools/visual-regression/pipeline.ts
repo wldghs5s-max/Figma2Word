@@ -2,6 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { renderJsonToDocx } from './render_docx.js';
+import {
+  captureWordState,
+  openTargetDocumentSafely,
+  exportAndCloseTargetDocOnly,
+  cleanupTargetDocOnly,
+} from './safe_word_automation.js';
 
 export interface PipelineOptions {
   jsonPath: string;
@@ -66,70 +72,24 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
   }
   console.log(`[Pipeline] DOCX generated: ${(docxRes.fileSizeBytes / 1024 / 1024).toFixed(2)} MB (${docxRes.pageCount} IR pages)`);
 
-  console.log(`[Pipeline] 2. Opening DOCX in native Microsoft Word for Mac...`);
+  console.log(`[Pipeline] 2. Safely inspecting Microsoft Word state (protecting existing user documents)...`);
+  let openedDocName = '';
   try {
-    // Clean any prior state in Word
-    try {
-      execSync(`osascript -e 'tell application "Microsoft Word" to close every document saving no'`, { timeout: 10000 });
-    } catch {}
-
-    // Use open -a to provide macOS security scoped access
-    execSync(`open -a "Microsoft Word" "${docxPath}"`);
-
-    // Poll for Word to load document
-    let openedDocName = '';
-    let sectionsCount = 0;
-    const maxRetries = 20;
-
-    for (let i = 0; i < maxRetries; i++) {
-      await new Promise((r) => setTimeout(r, 1000));
-      try {
-        const queryScript = `
-          tell application "Microsoft Word"
-            if (count of documents) > 0 then
-              set dName to name of front document
-              set sCount to count of sections of front document
-              return dName & "|" & (sCount as text)
-            else
-              return "NONE"
-            end if
-          end tell
-        `;
-        const res = execSync(`osascript -e '${queryScript}'`, { encoding: 'utf8', timeout: 5000 }).trim();
-        if (res !== 'NONE' && res.includes('|')) {
-          const parts = res.split('|');
-          openedDocName = parts[0];
-          sectionsCount = parseInt(parts[1], 10);
-          console.log(`[Pipeline] Word document loaded: "${openedDocName}" (${sectionsCount} sections)`);
-          break;
-        }
-      } catch (err: any) {
-        // Continue waiting
-      }
+    const wordSnapshot = captureWordState();
+    if (wordSnapshot.wordWasRunning && wordSnapshot.initialDocumentNames.length > 0) {
+      console.log(`[Pipeline] Detected ${wordSnapshot.initialDocumentNames.length} existing user document(s) in Word. They will be protected and untouched.`);
     }
 
-    if (!openedDocName) {
-      throw new Error('Timeout waiting for Microsoft Word to open document.');
-    }
+    console.log(`[Pipeline] Opening target DOCX in Microsoft Word...`);
+    const openedDoc = await openTargetDocumentSafely(docxPath, wordSnapshot, 25);
+    openedDocName = openedDoc.docName;
+    const sectionsCount = openedDoc.sectionsCount;
+    console.log(`[Pipeline] Target document loaded: "${openedDocName}" (${sectionsCount} sections)`);
 
-    // Export to PDF via AppleScript with generous timeout
+    // Export to PDF via AppleScript targeting ONLY our document
     console.log(`[Pipeline] 3. Exporting native PDF to ${pdfPath}...`);
-    const exportScript = `
-      with timeout of 600 seconds
-        tell application "Microsoft Word"
-          set targetDoc to front document
-          set pdfOut to "${pdfPath}"
-          save as targetDoc file name pdfOut file format format PDF
-          close targetDoc saving no
-          return "OK"
-        end tell
-      end timeout
-    `;
-    const exportResult = execSync(`osascript -e '${exportScript}'`, { encoding: 'utf8', timeout: 600000 }).trim();
-    if (exportResult !== 'OK') {
-      throw new Error(`Word PDF export returned unexpected response: ${exportResult}`);
-    }
-    console.log(`[Pipeline] PDF exported successfully!`);
+    exportAndCloseTargetDocOnly(openedDocName, pdfPath, 600);
+    console.log(`[Pipeline] PDF exported and target document closed successfully (User documents preserved)!`);
 
     // 4. Render PDF pages to PNG using Swift
     console.log(`[Pipeline] 4. Rendering PDF to high-resolution PNGs via Swift PDFKit...`);
@@ -160,6 +120,9 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
     fs.writeFileSync(path.join(outDir, 'pipeline-manifest.json'), JSON.stringify(pipelineRes, null, 2));
     return pipelineRes;
   } catch (err: any) {
+    if (openedDocName) {
+      cleanupTargetDocOnly(openedDocName);
+    }
     return {
       success: false,
       docxPath,

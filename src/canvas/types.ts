@@ -108,8 +108,8 @@ export function resolveScale(
   // policy === 'fit-a4'
   // If frame aspect ratio is close to A4 (0.68 ~ 0.73), scale to fit exact A4 width/height
   const ratio = frameWidthPx / frameHeightPx;
-  const isA4Portrait = ratio >= 0.65 && ratio <= 0.75;
-  const isA4Landscape = ratio >= 1.35 && ratio <= 1.50;
+  const isA4Portrait = ratio >= 0.68 && ratio <= 0.73;
+  const isA4Landscape = ratio >= 1.37 && ratio <= 1.47;
 
   if (isA4Portrait) {
     const scaleX = A4_WIDTH_PT / frameWidthPx;
@@ -135,13 +135,23 @@ export function resolveScale(
     };
   }
 
-  // Fallback to standard 96 DPI CSS conversion
-  const scale = 0.75;
+  // Fallback to standard 96 DPI CSS conversion (scale = 72 / 96 = 0.75)
+  const baseScale = 0.75;
+  const initialWidthPt = frameWidthPx * baseScale;
+  const initialHeightPt = frameHeightPx * baseScale;
+
+  // Microsoft Word physical hardware limit defense: max 22 inches (1,584 pt).
+  // If either dimension exceeds 1,584 pt, apply uniform scale-down preserving exact aspect ratio
+  // so that all internal objects, fonts, and bounding coordinates remain fully inside the printable page!
+  const maxDimPt = Math.max(initialWidthPt, initialHeightPt);
+  const uniformScaleFactor = maxDimPt > 1584 ? 1584 / maxDimPt : 1.0;
+
+  const finalScale = baseScale * uniformScaleFactor;
   return {
-    scaleX: scale,
-    scaleY: scale,
-    targetWidthPt: frameWidthPx * scale,
-    targetHeightPt: frameHeightPx * scale,
+    scaleX: finalScale,
+    scaleY: finalScale,
+    targetWidthPt: Number((initialWidthPt * uniformScaleFactor).toFixed(2)),
+    targetHeightPt: Number((initialHeightPt * uniformScaleFactor).toFixed(2)),
     policy,
   };
 }
