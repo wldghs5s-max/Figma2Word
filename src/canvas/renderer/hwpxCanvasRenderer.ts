@@ -5,6 +5,7 @@ import {
   CanvasElement,
   CanvasTextRun,
   CanvasResource,
+  CanvasShadow,
   ptToHwpu,
 } from "../types.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
@@ -879,6 +880,7 @@ ${paraPrEntries}
           style: lineStyle,
           fillBrushXml,
           drawTextXml: drawTextPart,
+          shadow: elem.style?.shadow,
         }),
       ];
     }
@@ -909,6 +911,7 @@ ${paraPrEntries}
         fillBrushXml,
         drawTextXml: drawTextPart,
         ratio,
+        shadow: elem.style?.shadow,
       }),
     ];
   }
@@ -933,6 +936,7 @@ ${paraPrEntries}
     ratio: number;
     fillBrushXml?: string;
     drawTextXml?: string;
+    shadow?: CanvasShadow;
   }): string {
     const rawColor = p.lineColorHex || p.colorHex || "000000";
     const rawWidth = p.lineWidth || p.width || "0";
@@ -952,6 +956,10 @@ ${paraPrEntries}
 
     const drawText = p.drawTextXml || "";
 
+    const shadowXml = p.shadow
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
+
     return `<hp:rect id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" ratio="${p.ratio}">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${p.w}" height="${p.h}"/>
@@ -965,7 +973,7 @@ ${paraPrEntries}
   </hp:renderingInfo>
   <hp:lineShape color="#${cleanLineColor}" width="${safeWidth}" style="${safeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${fillBrush}${drawText}
-  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  ${shadowXml}
   <hc:pt0 x="0" y="0"/>
   <hc:pt1 x="${p.w}" y="0"/>
   <hc:pt2 x="${p.w}" y="${p.h}"/>
@@ -991,6 +999,7 @@ ${paraPrEntries}
     style: string;
     fillBrushXml: string;
     drawTextXml: string;
+    shadow?: CanvasShadow;
   }): string {
     const cx = Math.round(p.w / 2);
     const cy = Math.round(p.h / 2);
@@ -1000,6 +1009,10 @@ ${paraPrEntries}
     const safeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(p.style)
       ? p.style
       : "NONE";
+
+    const shadowXml = p.shadow
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
 
     return `<hp:ellipse intervalDirty="0" hasArcPr="0" arcType="NORMAL" id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
   <hp:offset x="0" y="0"/>
@@ -1014,7 +1027,7 @@ ${paraPrEntries}
   </hp:renderingInfo>
   <hp:lineShape color="#${safeColor}" width="${safeWidth}" style="${safeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   ${p.fillBrushXml}${p.drawTextXml}
-  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  ${shadowXml}
   <hc:center x="${cx}" y="${cy}"/>
   <hc:ax1 x="${p.w}" y="${cy}"/>
   <hc:ax2 x="${cx}" y="${p.h}"/>

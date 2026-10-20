@@ -425,12 +425,43 @@ export class DocxCanvasParser {
       }
     }
 
+    // 1b. Shadow (<v:shadow>)
+    let shadow: CanvasStyle["shadow"] = undefined;
+    const shadowMatch = shapeXml.match(/<v:shadow\b[^>]*>/);
+    if (shadowMatch) {
+      const sAttrs = parseXmlAttributes(shadowMatch[0]);
+      if (sAttrs["on"] === "t" || sAttrs["on"] === "true") {
+        const sColor = sAttrs["color"]
+          ? sAttrs["color"].startsWith("#")
+            ? sAttrs["color"]
+            : `#${sAttrs["color"]}`
+          : undefined;
+        let sOffX = 0;
+        let sOffY = 0;
+        if (sAttrs["offset"]) {
+          const parts = sAttrs["offset"].split(",");
+          if (parts.length >= 2) {
+            sOffX = parsePt(parts[0]);
+            sOffY = parsePt(parts[1]);
+          }
+        }
+        const sOpacity = sAttrs["opacity"] ? parseFloat(sAttrs["opacity"]) : undefined;
+        shadow = {
+          color: sColor,
+          offsetX: sOffX,
+          offsetY: sOffY,
+          opacity: sOpacity,
+        };
+      }
+    }
+
     const style: CanvasStyle = {
       fillColor,
       strokeColor,
       strokeWidth,
       strokeDashed,
       cornerRadius,
+      shadow,
     };
 
     // 2. Check imagedata

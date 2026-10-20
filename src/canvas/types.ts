@@ -174,6 +174,15 @@ export interface CanvasBorderSides {
   left?: number;
 }
 
+export interface CanvasShadow {
+  color?: string; // hex '#RRGGBB'
+  opacity?: number; // 0.0 ~ 1.0
+  offsetX?: number; // pt
+  offsetY?: number; // pt
+  blur?: number; // pt
+  spread?: number; // pt
+}
+
 export interface CanvasStyle {
   fillColor?: string; // hex '#RRGGBB'
   fillOpacity?: number; // 0.0 ~ 1.0
@@ -183,6 +192,7 @@ export interface CanvasStyle {
   cornerRadius?: number; // pt
   cornerRadii?: [number, number, number, number]; // [tl, tr, br, bl] in pt
   borderSides?: CanvasBorderSides;
+  shadow?: CanvasShadow;
 }
 
 export interface CanvasTextRun {

@@ -451,12 +451,15 @@ export class DocxCanvasRenderer {
       }
     }
 
-    // Subtle horizontal tolerance buffer for single-line auto-width text (textAutoResize === "WIDTH_AND_HEIGHT"):
-    // Word's font substitution (e.g. Pretendard -> local font / DirectWrite) can measure glyphs 1-3% wider than Figma's canvas.
-    // Adding a minor 3-4pt buffer avoids accidental single-word wrapping without altering visible design layout.
+    // Subtle horizontal tolerance buffer for single-line text (wrapStyle === "mso-wrap-style:none"):
+    // Word's DirectWrite / font substitution (e.g. Pretendard -> Malgun Gothic / Arial) can measure glyphs 1-3% wider than Figma.
+    // Adding a minor 2.5-5pt buffer avoids accidental single-word wrapping without altering visible design layout.
     let effectiveWidth = width;
     if (elem.type === "text" && elem.textAutoResize === "WIDTH_AND_HEIGHT") {
       const buffer = Math.max(3, effectiveWidth * 0.03);
+      effectiveWidth += buffer;
+    } else if (hasText && wrapStyle === "mso-wrap-style:none") {
+      const buffer = Math.max(2, Math.min(8, effectiveWidth * 0.025));
       effectiveWidth += buffer;
     }
 
@@ -518,8 +521,11 @@ export class DocxCanvasRenderer {
         hasFill && elem.style.fillOpacity !== undefined && elem.style.fillOpacity < 1
           ? `<v:fill opacity="${elem.style.fillOpacity.toFixed(2)}"/>`
           : "";
+      const shadowChild = elem.style.shadow
+        ? `<v:shadow on="t" type="single" color="#${cleanHex(elem.style.shadow.color, "000000")}" offset="${(elem.style.shadow.offsetX || 0).toFixed(2)}pt,${(elem.style.shadow.offsetY || 0).toFixed(2)}pt"${typeof elem.style.shadow.opacity === "number" ? ` opacity="${elem.style.shadow.opacity.toFixed(2)}"` : ""}/>`
+        : "";
 
-      if (dashChild || opacityChild) {
+      if (dashChild || opacityChild || shadowChild) {
         return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
@@ -532,7 +538,7 @@ export class DocxCanvasRenderer {
              ${fillcolorAttr}
              ${strokedAttr}
              ${strokecolorAttr}
-             ${strokeweightAttr}>${dashChild}${opacityChild}</v:shape>
+             ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}</v:shape>
   </w:pict>
 </w:r>`;
       }
@@ -817,6 +823,18 @@ export class DocxCanvasRenderer {
       hasFill && style.fillOpacity !== undefined && style.fillOpacity < 1
         ? `<v:fill opacity="${style.fillOpacity.toFixed(2)}"/>`
         : "";
+    const shadowChild = style.shadow
+      ? `<v:shadow on="t" type="single" color="#${cleanHex(
+          style.shadow.color,
+          "000000"
+        )}" offset="${(style.shadow.offsetX || 0).toFixed(2)}pt,${(
+          style.shadow.offsetY || 0
+        ).toFixed(2)}pt"${
+          typeof style.shadow.opacity === "number"
+            ? ` opacity="${style.shadow.opacity.toFixed(2)}"`
+            : ""
+        }/>`
+      : "";
 
     return `<w:r>
   <w:pict>
@@ -828,7 +846,7 @@ export class DocxCanvasRenderer {
             ${fillcolorAttr}
             ${strokedAttr}
             ${strokecolorAttr}
-            ${strokeweightAttr}>${dashChild}${opacityChild}${textboxContentXml}
+            ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}${textboxContentXml}
     </${tag}>
   </w:pict>
 </w:r>`;

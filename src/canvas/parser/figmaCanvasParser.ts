@@ -832,6 +832,7 @@ export class FigmaCanvasParser {
                   fillOpacity: style.fillOpacity,
                   cornerRadius: style.cornerRadius,
                   cornerRadii: style.cornerRadii,
+                  shadow: style.shadow,
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
@@ -1085,6 +1086,26 @@ export class FigmaCanvasParser {
       }
     } else if (node.cornerRadius) {
       style.cornerRadius = node.cornerRadius * scale;
+    }
+
+    // 4. Drop Shadow Effect
+    if (node.effects && Array.isArray(node.effects)) {
+      const shadowEffect = node.effects.find(
+        (e: any) => e.type === "DROP_SHADOW" && e.visible !== false
+      );
+      if (shadowEffect && shadowEffect.color) {
+        style.shadow = {
+          color: this.figmaColorToHex(shadowEffect.color),
+          opacity:
+            typeof shadowEffect.color.a === "number"
+              ? shadowEffect.color.a
+              : 1.0,
+          offsetX: (shadowEffect.offset?.x || 0) * scale,
+          offsetY: (shadowEffect.offset?.y || 0) * scale,
+          blur: (shadowEffect.radius || 0) * scale,
+          spread: (shadowEffect.spread || 0) * scale,
+        };
+      }
     }
 
     return style;

@@ -4,11 +4,15 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as crypto from 'crypto';
 
+// Cryptographic session secret for HMAC validation of AutomatedWordHandle instances
+const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+
 export interface WordEnvironmentSnapshot {
   wordWasRunning: boolean;
   initialDocumentNames: string[];
   initialDocumentPaths: string[];
   initialDocumentCount: number;
+  untitledDocumentsCount: number;
 }
 
 export interface AutomatedWordHandle {
@@ -21,6 +25,7 @@ export interface AutomatedWordHandle {
   docIndex: number;
   sectionsCount: number;
   isOwned: boolean;
+  verificationSignature: string;
 }
 
 /**
@@ -47,6 +52,104 @@ export function escapeAppleScript(s: string): string {
 }
 
 /**
+ * Computes an HMAC-SHA256 signature validating the authenticity and integrity
+ * of an AutomatedWordHandle created exclusively by this automation session.
+ */
+export function computeHandleSignature(
+  runId: string,
+  isolatedDir: string,
+  isolatedDocxPath: string
+): string {
+  return crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(`${runId}:${normalizeWordPath(isolatedDir)}:${normalizeWordPath(isolatedDocxPath)}`)
+    .digest('hex');
+}
+
+/**
+ * Strictly verifies ownership authenticity of an AutomatedWordHandle.
+ * Defends against:
+ * 1. String handle overloads and unowned handles
+ * 2. Handle forgery pointing to user documents outside the isolation folder
+ * 3. Path traversal attacks and mismatched runId / isolatedDir
+ * 4. Cryptographic HMAC signature tampering
+ */
+export function validateOwnershipHandle(handle: unknown): asserts handle is AutomatedWordHandle {
+  if (!handle || typeof handle !== 'object') {
+    throw new Error(
+      '[WordAutomation] Security rejection: handle must be a validated AutomatedWordHandle object. String handles and raw names are strictly forbidden.'
+    );
+  }
+
+  const h = handle as Partial<AutomatedWordHandle>;
+
+  if (h.isOwned !== true) {
+    throw new Error(
+      '[WordAutomation] Security rejection: automation does not own this document (isOwned is false). Refusing operation.'
+    );
+  }
+
+  if (!h.runId || typeof h.runId !== 'string' || !h.runId.startsWith('vr_')) {
+    throw new Error(
+      `[WordAutomation] Security rejection: invalid or missing runId "${h.runId}".`
+    );
+  }
+
+  if (!h.isolatedDir || typeof h.isolatedDir !== 'string') {
+    throw new Error('[WordAutomation] Security rejection: missing isolatedDir.');
+  }
+
+  const expectedBaseDir = path.resolve(os.tmpdir(), 'f2w_word_isolation');
+  const resolvedIsolatedDir = path.resolve(h.isolatedDir);
+  const relToBase = path.relative(expectedBaseDir, resolvedIsolatedDir);
+
+  if (relToBase.startsWith('..') || path.isAbsolute(relToBase)) {
+    throw new Error(
+      `[WordAutomation] Security violation: isolatedDir "${resolvedIsolatedDir}" is outside safe isolation base "${expectedBaseDir}". Potential path traversal detected.`
+    );
+  }
+
+  if (path.basename(resolvedIsolatedDir) !== h.runId) {
+    throw new Error(
+      `[WordAutomation] Security violation: isolatedDir basename "${path.basename(
+        resolvedIsolatedDir
+      )}" does not match runId "${h.runId}".`
+    );
+  }
+
+  if (!h.isolatedDocxPath || typeof h.isolatedDocxPath !== 'string') {
+    throw new Error('[WordAutomation] Security rejection: missing isolatedDocxPath.');
+  }
+
+  const resolvedDocxPath = path.resolve(h.isolatedDocxPath);
+  const relToDir = path.relative(resolvedIsolatedDir, resolvedDocxPath);
+
+  if (relToDir.startsWith('..') || path.isAbsolute(relToDir)) {
+    throw new Error(
+      `[WordAutomation] Security violation: isolatedDocxPath "${resolvedDocxPath}" is outside isolatedDir "${resolvedIsolatedDir}".`
+    );
+  }
+
+  const expectedNormalized = normalizeWordPath(resolvedDocxPath);
+  if (h.normalizedPosixPath !== expectedNormalized) {
+    throw new Error(
+      `[WordAutomation] Security violation: normalizedPosixPath does not match normalized isolatedDocxPath.`
+    );
+  }
+
+  const expectedSignature = computeHandleSignature(
+    h.runId,
+    resolvedIsolatedDir,
+    resolvedDocxPath
+  );
+  if (!h.verificationSignature || h.verificationSignature !== expectedSignature) {
+    throw new Error(
+      '[WordAutomation] Security rejection: invalid or forged cryptographic verification signature. Potential handle spoofing attempt rejected.'
+    );
+  }
+}
+
+/**
  * Executes an AppleScript via stdin directly through execFileSync, eliminating shell injection vulnerabilities.
  */
 export function runAppleScript(script: string, timeoutMs: number = 15000): string {
@@ -55,8 +158,10 @@ export function runAppleScript(script: string, timeoutMs: number = 15000): strin
 
 /**
  * Captures the current running state of Microsoft Word and list of already open document paths.
- * Enforces fail-closed error handling: if Word is running but queries fail, throws an error
- * instead of assuming 0 documents to prevent accidental interference with user documents.
+ * Enforces fail-closed error handling:
+ * 1. If Word is running but queries fail, throws an error immediately.
+ * 2. Compares total document count against inspected documents. If count mismatch occurs, fails closed.
+ * 3. Accurately identifies unsaved/untitled documents (<UNTITLED>) to guarantee user data protection.
  */
 export function captureWordState(): WordEnvironmentSnapshot {
   const isRunningScript = `
@@ -79,27 +184,53 @@ export function captureWordState(): WordEnvironmentSnapshot {
       initialDocumentNames: [],
       initialDocumentPaths: [],
       initialDocumentCount: 0,
+      untitledDocumentsCount: 0,
     };
   }
 
-  // Word is running: query all open documents.
-  // Fail-closed principle: if this query fails, DO NOT assume 0 documents!
+  // Word is running: query all open documents with count-parity verification
   const queryDocsScript = `
 tell application "Microsoft Word"
+  set totalDocs to (count of documents)
   set out to {}
-  repeat with i from 1 to (count of documents)
+  repeat with i from 1 to totalDocs
     set d to document i
+    set isUntitled to false
+    set p to ""
+    set n to ""
+    set s to false
+    set sCount to 0
     try
-      set p to (posix full name of d as text)
-      set s to (saved of d as boolean)
       set n to (name of d as text)
-      set sCount to (count of sections of d)
-      set end of out to (i as text) & "<#SEP#>" & n & "<#SEP#>" & p & "<#SEP#>" & (s as text) & "<#SEP#>" & (sCount as text)
     on error
+      set n to ("<DOC_" & (i as text) & ">")
     end try
+    try
+      set s to (saved of d as boolean)
+    on error
+      set s to false
+    end try
+    try
+      set sCount to (count of sections of d)
+    on error
+      set sCount to 0
+    end try
+    try
+      set docPath to (path of d as text)
+      if docPath is "" then
+        set isUntitled to true
+        set p to "<UNTITLED>"
+      else
+        set p to (posix full name of d as text)
+      end if
+    on error
+      set isUntitled to true
+      set p to "<UNTITLED>"
+    end try
+    set end of out to (i as text) & "<#SEP#>" & n & "<#SEP#>" & p & "<#SEP#>" & (s as text) & "<#SEP#>" & (sCount as text) & "<#SEP#>" & (isUntitled as text)
   end repeat
   set AppleScript's text item delimiters to "<#ROW#>"
-  return out as text
+  return (totalDocs as text) & "<#TOTAL#>" & (out as text)
 end tell
 `;
 
@@ -112,15 +243,31 @@ end tell
     );
   }
 
+  const [totalStr, rowsStr] = rawOut.split('<#TOTAL#>');
+  const totalReportedCount = parseInt(totalStr, 10);
+  const rows = rowsStr && rowsStr.length > 0 ? rowsStr.split('<#ROW#>') : [];
+
+  if (rows.length !== totalReportedCount) {
+    throw new Error(
+      `[WordAutomation] Fail-closed: document count mismatch. Word reported ${totalReportedCount} documents but state inspection retrieved ${rows.length}. Aborting to protect existing user documents.`
+    );
+  }
+
   const names: string[] = [];
   const paths: string[] = [];
-  if (rawOut) {
-    const rows = rawOut.split('<#ROW#>');
-    for (const r of rows) {
-      const parts = r.split('<#SEP#>');
-      if (parts.length >= 3) {
-        names.push(parts[1]);
-        paths.push(normalizeWordPath(parts[2]));
+  let untitledCount = 0;
+
+  for (const r of rows) {
+    const parts = r.split('<#SEP#>');
+    if (parts.length >= 6) {
+      names.push(parts[1]);
+      const p = parts[2];
+      const isUnt = parts[5] === 'true' || p === '<UNTITLED>';
+      if (isUnt) {
+        untitledCount++;
+        paths.push('<UNTITLED>');
+      } else {
+        paths.push(normalizeWordPath(p));
       }
     }
   }
@@ -130,6 +277,7 @@ end tell
     initialDocumentNames: names,
     initialDocumentPaths: paths,
     initialDocumentCount: names.length,
+    untitledDocumentsCount: untitledCount,
   };
 }
 
@@ -137,6 +285,7 @@ end tell
  * Safely opens ONLY the target DOCX file in Word within an isolated temporary directory.
  * Matches strictly by normalized POSIX path (no filename or prefix matching).
  * Refuses ownership if the document was already open before automation ran.
+ * Returns a cryptographically signed AutomatedWordHandle.
  */
 export async function openTargetDocumentSafely(
   docxPath: string,
@@ -233,9 +382,17 @@ end tell
       fs.rmSync(isolatedDir, { recursive: true, force: true });
     } catch {}
     throw new Error(
-      `[WordAutomation] Timeout waiting for target document "${path.basename(resolvedSource)}" to load at isolated path: ${normalizedTargetPosix}`
+      `[WordAutomation] Timeout waiting for target document "${path.basename(
+        resolvedSource
+      )}" to load at isolated path: ${normalizedTargetPosix}`
     );
   }
+
+  const verificationSignature = computeHandleSignature(
+    runId,
+    isolatedDir,
+    isolatedDocxPath
+  );
 
   return {
     runId,
@@ -247,63 +404,59 @@ end tell
     docIndex: matchedDoc.index,
     sectionsCount: matchedDoc.sectionsCount,
     isOwned: true,
+    verificationSignature,
     fullPath: resolvedSource,
   };
 }
 
 /**
- * Exports ONLY the target document to PDF and closes ONLY that document.
- * Requires an AutomatedWordHandle verifying that the automation owns the document.
- * Crucial: Existing user documents are strictly untouched.
+ * Exports ONLY the target document to PDF and closes ONLY that document in a single
+ * atomic AppleScript execution block.
+ *
+ * Eliminates race conditions:
+ * - Does NOT pass document indices between separate AppleScript executions.
+ * - Finds, verifies normalized POSIX path, executes PDF export, and closes saving no
+ *   directly on the document object reference inside a single atomic loop.
+ * - Validates ownership authenticity using cryptographic signature before touching Word.
  */
 export function exportAndCloseTargetDocOnly(
-  handle: AutomatedWordHandle | string,
+  handle: AutomatedWordHandle,
   outPdfPath: string,
   timeoutSeconds: number = 600
 ): void {
-  let targetNormalizedPath = '';
-  let isolatedDir: string | undefined;
-
-  if (typeof handle === 'object' && handle !== null) {
-    if (!handle.isOwned) {
-      throw new Error(`[WordAutomation] Cannot close document: automation does not own this document.`);
-    }
-    targetNormalizedPath = handle.normalizedPosixPath;
-    isolatedDir = handle.isolatedDir;
-  } else if (typeof handle === 'string') {
-    if (path.isAbsolute(handle)) {
-      targetNormalizedPath = normalizeWordPath(handle);
-    } else {
-      throw new Error(
-        `[WordAutomation] Direct document name matching is forbidden in Phase 28. AutomatedWordHandle with verified POSIX path is required.`
-      );
-    }
-  }
+  // 1. Strict ownership and cryptographic authenticity validation
+  validateOwnershipHandle(handle);
 
   const resolvedPdf = path.resolve(outPdfPath);
   const escapedPdf = escapeAppleScript(resolvedPdf);
-  const escapedTarget = escapeAppleScript(targetNormalizedPath);
+  const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
 
-  // In AppleScript: find document matching targetNormalizedPath strictly
-  const script = `
+  // 2. Single atomic AppleScript execution:
+  // Lookup -> Re-verify path -> Export PDF -> Close saving no on the SAME object reference 'd'
+  const atomicExportScript = `
 with timeout of ${timeoutSeconds} seconds
   tell application "Microsoft Word"
-    set foundIndex to 0
+    set targetFound to false
     repeat with i from 1 to (count of documents)
       set d to document i
+      set matchConfirmed to false
       try
         set p to (posix full name of d as text)
         if p is equal to "${escapedTarget}" then
-          set foundIndex to i
-          exit repeat
+          set matchConfirmed to true
         end if
       end try
+
+      if matchConfirmed then
+        -- Atomically export and close ONLY this verified document object
+        save as d file name "${escapedPdf}" file format format PDF
+        close d saving no
+        set targetFound to true
+        exit repeat
+      end if
     end repeat
 
-    if foundIndex > 0 then
-      set d to document foundIndex
-      save as d file name "${escapedPdf}" file format format PDF
-      close d saving no
+    if targetFound then
       return "OK"
     else
       return "TARGET_NOT_FOUND"
@@ -314,62 +467,22 @@ end timeout
 
   let res = '';
   try {
-    res = runAppleScript(script, (timeoutSeconds + 10) * 1000);
+    res = runAppleScript(atomicExportScript, (timeoutSeconds + 10) * 1000);
   } catch (err: any) {
-    throw new Error(`[WordAutomation] AppleScript error during PDF export: ${err.message}`);
+    throw new Error(
+      `[WordAutomation] AppleScript error during PDF export: ${err.message}`
+    );
   }
 
-  if (res === 'TARGET_NOT_FOUND') {
-    // Secondary check with Node-side normalization to resolve any symlink variance
-    const verifyScript = `
-tell application "Microsoft Word"
-  set out to {}
-  repeat with i from 1 to (count of documents)
-    set d to document i
-    try
-      set p to (posix full name of d as text)
-      set end of out to (i as text) & "<#SEP#>" & p
-    on error
-    end try
-  end repeat
-  set AppleScript's text item delimiters to "<#ROW#>"
-  return out as text
-end tell
-`;
-    const checkRaw = runAppleScript(verifyScript, 5000);
-    let retryIndex = 0;
-    if (checkRaw) {
-      for (const row of checkRaw.split('<#ROW#>')) {
-        const [idxStr, p] = row.split('<#SEP#>');
-        if (normalizeWordPath(p) === targetNormalizedPath) {
-          retryIndex = parseInt(idxStr, 10);
-          break;
-        }
-      }
-    }
+  // 3. Avoid race condition on filesystem temp deletion:
+  // Allow Word a brief grace interval to release file locks before deleting the isolation folder
+  try {
+    execFileSync('sleep', ['0.15']);
+  } catch {}
 
-    if (retryIndex > 0) {
-      const retryScript = `
-with timeout of ${timeoutSeconds} seconds
-  tell application "Microsoft Word"
-    if (count of documents) >= ${retryIndex} then
-      set d to document ${retryIndex}
-      save as d file name "${escapedPdf}" file format format PDF
-      close d saving no
-      return "OK"
-    end if
-    return "TARGET_NOT_FOUND"
-  end tell
-end timeout
-`;
-      res = runAppleScript(retryScript, (timeoutSeconds + 10) * 1000);
-    }
-  }
-
-  // Always clean up isolated temporary directory
-  if (isolatedDir && fs.existsSync(isolatedDir)) {
+  if (handle.isolatedDir && fs.existsSync(handle.isolatedDir)) {
     try {
-      fs.rmSync(isolatedDir, { recursive: true, force: true });
+      fs.rmSync(handle.isolatedDir, { recursive: true, force: true });
     } catch {}
   }
 
@@ -382,67 +495,53 @@ end timeout
 
 /**
  * Safely cleans up ONLY our target document if it remains open after an error.
- * Matches strictly by normalized POSIX path and cleans up temporary isolation directory.
- * Never closes any other document.
+ * Strictly validates ownership handle; if invalid, safely no-ops without error.
+ * Executes closing atomically on the matched document object reference in one AppleScript call.
+ * Never touches or closes any other document.
  */
-export function cleanupTargetDocOnly(handle: AutomatedWordHandle | string): void {
+export function cleanupTargetDocOnly(handle: unknown): void {
   if (!handle) return;
-  let targetNormalizedPath = '';
-  let isolatedDir: string | undefined;
-
-  if (typeof handle === 'object' && handle !== null) {
-    targetNormalizedPath = handle.normalizedPosixPath;
-    isolatedDir = handle.isolatedDir;
-  } else if (typeof handle === 'string') {
-    if (path.isAbsolute(handle)) {
-      targetNormalizedPath = normalizeWordPath(handle);
-    } else {
-      // Mock name or non-path: safe no-op
-      return;
-    }
-  }
-
-  if (!targetNormalizedPath) return;
 
   try {
-    const checkScript = `
+    validateOwnershipHandle(handle);
+  } catch {
+    // Unowned, invalid, or string handle: safely no-op to guarantee user documents are untouched
+    return;
+  }
+
+  const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
+
+  try {
+    const atomicCloseScript = `
 tell application "Microsoft Word"
-  set out to {}
   repeat with i from 1 to (count of documents)
     set d to document i
+    set matchConfirmed to false
     try
       set p to (posix full name of d as text)
-      set end of out to (i as text) & "<#SEP#>" & p
-    on error
+      if p is equal to "${escapedTarget}" then
+        set matchConfirmed to true
+      end if
     end try
+
+    if matchConfirmed then
+      close d saving no
+      exit repeat
+    end if
   end repeat
-  set AppleScript's text item delimiters to "<#ROW#>"
-  return out as text
 end tell
 `;
-    const checkRaw = runAppleScript(checkScript, 5000);
-    if (checkRaw) {
-      for (const row of checkRaw.split('<#ROW#>')) {
-        const [idxStr, p] = row.split('<#SEP#>');
-        if (normalizeWordPath(p) === targetNormalizedPath) {
-          const idx = parseInt(idxStr, 10);
-          const closeScript = `
-tell application "Microsoft Word"
-  if (count of documents) >= ${idx} then
-    close (document ${idx}) saving no
-  end if
-end tell
-`;
-          runAppleScript(closeScript, 5000);
-          break;
-        }
-      }
-    }
+    runAppleScript(atomicCloseScript, 5000);
   } catch {}
 
-  if (isolatedDir && fs.existsSync(isolatedDir)) {
+  // Safe isolated directory removal
+  try {
+    execFileSync('sleep', ['0.15']);
+  } catch {}
+
+  if (handle.isolatedDir && fs.existsSync(handle.isolatedDir)) {
     try {
-      fs.rmSync(isolatedDir, { recursive: true, force: true });
+      fs.rmSync(handle.isolatedDir, { recursive: true, force: true });
     } catch {}
   }
 }

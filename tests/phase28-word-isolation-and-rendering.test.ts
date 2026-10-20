@@ -13,7 +13,7 @@ import {
 import { computeDynamicMetrics } from "../tools/visual-regression/compute_full_metrics.js";
 import { DocxCanvasRenderer } from "../src/canvas/renderer/docxCanvasRenderer.js";
 import { FigmaCanvasParser } from "../src/canvas/parser/figmaCanvasParser.js";
-import { CanvasDocument, CanvasElement } from "../src/canvas/types/canvasIr.js";
+import { CanvasDocument, CanvasElement } from "../src/canvas/types.js";
 
 describe("Phase 28: Word Automation Complete Isolation & Quality Verification Suite", () => {
   const tmpDir = path.resolve(process.cwd(), "debug/phase28-isolation-test");

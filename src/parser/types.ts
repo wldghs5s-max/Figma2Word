@@ -69,6 +69,7 @@ export interface FigmaNode {
   rectangleCornerRadii?: [number, number, number, number];
   opacity?: number;
   clipsContent?: boolean;
+  effects?: any[];
 
   // Auto Layout attributes
   layoutMode?: "NONE" | "HORIZONTAL" | "VERTICAL" | "GRID" | string;

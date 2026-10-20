@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import JSZip from 'jszip';
 import { FigmaCanvasParser } from '../../src/canvas/parser/figmaCanvasParser.js';
 import { DocxCanvasRenderer } from '../../src/canvas/renderer/docxCanvasRenderer.js';
-import { CanvasDocument } from '../../src/canvas/types/canvasIr.js';
+import { CanvasDocument } from '../../src/canvas/types.js';
 
 export interface DynamicMetricResult {
   project: string;
@@ -241,7 +241,7 @@ export async function computeDynamicMetrics(options: MetricComputeOptions): Prom
   });
 
   return {
-    project: 'Figma2Word — Phase 28 Dynamic Metrics Engine',
+    project: 'Figma2Word — Phase 29 Dynamic Metrics Engine',
     evaluatedAt: new Date().toISOString(),
     sourceJsonPath: jsonPath,
     sourceJsonSha256,

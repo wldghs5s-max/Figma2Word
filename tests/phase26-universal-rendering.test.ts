@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import JSZip from "jszip";
 import { DocxCanvasRenderer } from "../src/canvas/renderer/docxCanvasRenderer.js";
 import { FigmaCanvasParser } from "../src/canvas/parser/figmaCanvasParser.js";
-import { CanvasDocument } from "../src/canvas/types/canvasIr.js";
-import { FigmaNode } from "../src/canvas/types/figmaTypes.js";
+import { CanvasDocument } from "../src/canvas/types.js";
+import { FigmaNode } from "../src/parser/types.js";
 
 describe("Phase 26: Universal Rendering & Fidelity Improvements", () => {
   it("1. Accurately calculates VML arcsize using half-dimension radius formula", async () => {
