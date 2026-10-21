@@ -654,16 +654,52 @@ export class DocxCanvasRenderer {
         3
       )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none${rotStyle}`;
 
+      const imgStyleObj = elem.style || {};
+      const imgRadii = imgStyleObj.cornerRadii;
+      const imgRadius = (imgRadii && imgRadii[0] > 0 ? imgRadii[0] : imgStyleObj.cornerRadius) || 0;
+      const minImgDim = Math.max(1e-3, Math.min(imgBoxW, imgBoxH));
+
+      let imgTag = "v:shape";
+      let imgShapeExtraAttrs = "";
+      if (imgRadius > 0) {
+        imgTag = "v:roundrect";
+        imgShapeExtraAttrs = `arcsize="${Math.min(0.5, (2 * imgRadius) / minImgDim).toFixed(3)}" `;
+      }
+
+      const imgHasStroke = !!imgStyleObj.strokeColor && (imgStyleObj.strokeWidth || 0) > 0;
+      const imgStrokedAttr = imgHasStroke ? 'stroked="t"' : 'stroked="f"';
+      const imgStrokecolorAttr = imgHasStroke ? `strokecolor="#${cleanHex(imgStyleObj.strokeColor)}"` : "";
+      const imgStrokeweightAttr = imgHasStroke
+        ? `strokeweight="${(imgStyleObj.strokeWidth || 1).toFixed(2)}pt"`
+        : "";
+
+      const imgShadowChild = imgStyleObj.shadow
+        ? `<v:shadow on="t" type="single" color="#${cleanHex(
+            imgStyleObj.shadow.color,
+            "000000"
+          )}" offset="${(imgStyleObj.shadow.offsetX || 0).toFixed(2)}pt,${(
+            imgStyleObj.shadow.offsetY || 0
+          ).toFixed(2)}pt"${
+            typeof imgStyleObj.shadow.opacity === "number"
+              ? ` opacity="${imgStyleObj.shadow.opacity.toFixed(2)}"`
+              : ""
+          }/>`
+        : "";
+
+      const imgDashChild = imgHasStroke && imgStyleObj.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+
       return `<w:r>
   <w:pict>
-    <v:shape id="${shapeId}"
+    <${imgTag} id="${shapeId}"
              ${altAttr}
              ${titleAttr}
              style="${imgStyle}"
-             filled="f"
-             stroked="f">
+             ${imgShapeExtraAttrs}filled="f"
+             ${imgStrokedAttr}
+             ${imgStrokecolorAttr}
+             ${imgStrokeweightAttr}>${imgDashChild}${imgShadowChild}
       <v:imagedata r:id="${relId}"${cropAttr} o:title="${escapeXml(elem.name || "image")}"/>
-    </v:shape>
+    </${imgTag}>
   </w:pict>
 </w:r>`;
     }

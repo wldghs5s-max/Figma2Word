@@ -93,7 +93,11 @@ export async function runVisualPipeline(options: PipelineOptions): Promise<Pipel
 
     // 4. Render PDF pages to PNG using Swift
     console.log(`[Pipeline] 4. Rendering PDF to high-resolution PNGs via Swift PDFKit...`);
-    const swiftScript = path.resolve(process.cwd(), 'tools/visual-regression/pdf_to_images.swift');
+    const swiftScript = fs.existsSync(
+      path.resolve(process.cwd(), 'tools/visual-regression/pdf_to_images.swift')
+    )
+      ? path.resolve(process.cwd(), 'tools/visual-regression/pdf_to_images.swift')
+      : path.resolve(process.cwd(), 'Figma2Word/tools/visual-regression/pdf_to_images.swift');
     const scale = options.renderScale || 1.5;
     const swiftCmd = `swift "${swiftScript}" "${pdfPath}" "${imagesDir}" ${scale}`;
     const swiftOut = execSync(swiftCmd, { encoding: 'utf8', timeout: 60000 }).trim();

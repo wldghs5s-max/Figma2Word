@@ -636,6 +636,10 @@ ${paraPrEntries}
             clipBottom,
             dimW,
             dimH,
+            shadow: elem.style?.shadow,
+            strokeColorHex: elem.style?.strokeColor,
+            strokeWidth: elem.style?.strokeWidth ? String(ptToHwpu(elem.style.strokeWidth)) : "0",
+            strokeStyle: elem.style?.strokeDashed ? "DASH" : (elem.style?.strokeWidth ? "SOLID" : "NONE"),
           }),
         ];
       }
@@ -1164,7 +1168,21 @@ ${paraPrEntries}
     clipBottom: number;
     dimW: number;
     dimH: number;
+    shadow?: CanvasShadow;
+    strokeColorHex?: string;
+    strokeWidth?: string;
+    strokeStyle?: string;
   }): string {
+    const safeStrokeColor = cleanHex(p.strokeColorHex, "000000");
+    const safeStrokeWidth = /^\d+$/.test(String(p.strokeWidth).trim()) ? String(p.strokeWidth).trim() : "0";
+    const safeStrokeStyle = ["NONE", "SOLID", "DASH", "DOT", "DASH_DOT", "DASH_DOT_DOT"].includes(p.strokeStyle || "")
+      ? p.strokeStyle!
+      : "NONE";
+
+    const shadowXml = p.shadow
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
+
     return `<hp:pic id="${p.id}" zOrder="${p.zOrder}" numberingType="PICTURE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" reverse="0">
   <hp:offset x="0" y="0"/>
   <hp:orgSz width="${p.w}" height="${p.h}"/>
@@ -1176,7 +1194,7 @@ ${paraPrEntries}
     <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
     <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
   </hp:renderingInfo>
-  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:lineShape color="#${safeStrokeColor}" width="${safeStrokeWidth}" style="${safeStrokeStyle}" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
   <hp:imgRect>
     <hc:pt0 x="0" y="0"/>
     <hc:pt1 x="${p.w}" y="0"/>
@@ -1188,7 +1206,7 @@ ${paraPrEntries}
   <hp:imgDim dimwidth="${p.dimW}" dimheight="${p.dimH}"/>
   <hc:img binaryItemIDRef="${p.binId}" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/>
   <hp:effects/>
-  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  ${shadowXml}
   <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
   <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
   <hp:outMargin left="0" right="0" top="0" bottom="0"/>

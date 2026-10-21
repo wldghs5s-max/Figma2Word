@@ -7,6 +7,18 @@ import * as crypto from 'crypto';
 // Cryptographic session secret for HMAC validation of AutomatedWordHandle instances
 const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 
+export type DocumentLifecycleState =
+  | 'created'           // Isolated copy created on disk
+  | 'open_requested'    // open -a Microsoft Word launched
+  | 'open_confirmed'    // Verified present in Word document list via normalized POSIX path
+  | 'export_requested'  // Export AppleScript called
+  | 'exported'          // PDF successfully exported to target path
+  | 'close_requested'   // Close AppleScript called
+  | 'close_confirmed'   // Document verified closed in Word
+  | 'uncertain'         // Timeout, AppleEvent failure, or Word unresponsive; file held on disk
+  | 'cleanup_pending'   // Awaiting safe cleanup
+  | 'cleanup_completed';// Successfully cleaned up from disk
+
 export interface WordEnvironmentSnapshot {
   wordWasRunning: boolean;
   initialDocumentNames: string[];
@@ -26,6 +38,12 @@ export interface AutomatedWordHandle {
   sectionsCount: number;
   isOwned: boolean;
   verificationSignature: string;
+  lifecycleState?: DocumentLifecycleState;
+  stateHistory?: Array<{
+    state: DocumentLifecycleState;
+    timestamp: number;
+    details?: string;
+  }>;
 }
 
 /**
@@ -33,6 +51,25 @@ export interface AutomatedWordHandle {
  */
 export interface OpenedWordDocument extends AutomatedWordHandle {
   fullPath: string;
+}
+
+/**
+ * Records a transition in the lifecycle of an automated Word document.
+ */
+export function transitionLifecycleState(
+  handle: AutomatedWordHandle,
+  nextState: DocumentLifecycleState,
+  details?: string
+): void {
+  handle.lifecycleState = nextState;
+  if (!handle.stateHistory) {
+    handle.stateHistory = [];
+  }
+  handle.stateHistory.push({
+    state: nextState,
+    timestamp: Date.now(),
+    details,
+  });
 }
 
 /**
@@ -285,7 +322,10 @@ end tell
  * Safely opens ONLY the target DOCX file in Word within an isolated temporary directory.
  * Matches strictly by normalized POSIX path (no filename or prefix matching).
  * Refuses ownership if the document was already open before automation ran.
- * Returns a cryptographically signed AutomatedWordHandle.
+ *
+ * Lifecycle Safety:
+ * - If polling times out, transitions state to 'uncertain' and PRESERVES the isolated
+ *   directory to prevent deleting files while Word is still loading them.
  */
 export async function openTargetDocumentSafely(
   docxPath: string,
@@ -306,6 +346,27 @@ export async function openTargetDocumentSafely(
   fs.copyFileSync(resolvedSource, isolatedDocxPath);
 
   const normalizedTargetPosix = normalizeWordPath(isolatedDocxPath);
+  const verificationSignature = computeHandleSignature(
+    runId,
+    isolatedDir,
+    isolatedDocxPath
+  );
+
+  const handle: OpenedWordDocument = {
+    runId,
+    sourceDocxPath: resolvedSource,
+    isolatedDocxPath,
+    isolatedDir,
+    normalizedPosixPath: normalizedTargetPosix,
+    docName: path.basename(resolvedSource),
+    docIndex: 0,
+    sectionsCount: 0,
+    isOwned: true,
+    verificationSignature,
+    fullPath: resolvedSource,
+    lifecycleState: 'created',
+    stateHistory: [{ state: 'created', timestamp: Date.now() }],
+  };
 
   // 2. Reject ownership if this exact path is already open in Word
   if (snapshot.initialDocumentPaths.includes(normalizedTargetPosix)) {
@@ -318,9 +379,12 @@ export async function openTargetDocumentSafely(
   }
 
   // 3. Open ONLY the isolated copy via macOS LaunchServices without shell injection
+  transitionLifecycleState(handle, 'open_requested', 'LaunchServices open command invoked');
   try {
     execFileSync('open', ['-a', 'Microsoft Word', isolatedDocxPath]);
   } catch (err: any) {
+    transitionLifecycleState(handle, 'uncertain', `Failed to launch Word: ${err.message}`);
+    // Safe to clean up since launch itself threw before Word saw the path
     try {
       fs.rmSync(isolatedDir, { recursive: true, force: true });
     } catch {}
@@ -378,61 +442,61 @@ end tell
   }
 
   if (!matchedDoc) {
-    try {
-      fs.rmSync(isolatedDir, { recursive: true, force: true });
-    } catch {}
+    // P0 Safety Fix: Mark as 'uncertain' and DO NOT delete isolatedDir!
+    // Word might still be loading or waiting on an OS dialog.
+    transitionLifecycleState(
+      handle,
+      'uncertain',
+      `Timeout after ${maxWaitSeconds}s waiting for Word confirmation`
+    );
     throw new Error(
       `[WordAutomation] Timeout waiting for target document "${path.basename(
         resolvedSource
-      )}" to load at isolated path: ${normalizedTargetPosix}`
+      )}" to load at isolated path: ${normalizedTargetPosix}. (Lifecycle state: uncertain; isolated directory preserved at "${isolatedDir}" to protect Word stability)`
     );
   }
 
-  const verificationSignature = computeHandleSignature(
-    runId,
-    isolatedDir,
-    isolatedDocxPath
-  );
+  handle.docName = matchedDoc.name;
+  handle.docIndex = matchedDoc.index;
+  handle.sectionsCount = matchedDoc.sectionsCount;
+  transitionLifecycleState(handle, 'open_confirmed', `Confirmed open in Word at index ${matchedDoc.index}`);
 
-  return {
-    runId,
-    sourceDocxPath: resolvedSource,
-    isolatedDocxPath,
-    isolatedDir,
-    normalizedPosixPath: normalizedTargetPosix,
-    docName: matchedDoc.name,
-    docIndex: matchedDoc.index,
-    sectionsCount: matchedDoc.sectionsCount,
-    isOwned: true,
-    verificationSignature,
-    fullPath: resolvedSource,
-  };
+  return handle;
 }
 
 /**
- * Exports ONLY the target document to PDF and closes ONLY that document in a single
- * atomic AppleScript execution block.
- *
- * Eliminates race conditions:
- * - Does NOT pass document indices between separate AppleScript executions.
- * - Finds, verifies normalized POSIX path, executes PDF export, and closes saving no
- *   directly on the document object reference inside a single atomic loop.
- * - Validates ownership authenticity using cryptographic signature before touching Word.
+ * Modular PDF export targeting ONLY our verified document.
+ * Does not close the document; returns explicit success and output path.
  */
-export function exportAndCloseTargetDocOnly(
+export function exportTargetDocToPdfOnly(
   handle: AutomatedWordHandle,
   outPdfPath: string,
   timeoutSeconds: number = 600
-): void {
-  // 1. Strict ownership and cryptographic authenticity validation
+): { exportSuccess: boolean; pdfPath: string } {
   validateOwnershipHandle(handle);
 
   const resolvedPdf = path.resolve(outPdfPath);
-  const escapedPdf = escapeAppleScript(resolvedPdf);
+
+  // macOS App Sandbox strategy:
+  // Microsoft Word for Mac is sandboxed and displays a blocking modal dialog ("파일 액세스 부여")
+  // when AppleScript directs it to write to project directories outside its sandbox.
+  // Writing to Word's container tmp folder (~/Library/Containers/com.microsoft.Word/Data/tmp)
+  // succeeds immediately with zero permission dialogs, after which we safely copy to resolvedPdf.
+  const wordContainerTmp = path.join(os.homedir(), 'Library/Containers/com.microsoft.Word/Data/tmp');
+  let targetExportPath = resolvedPdf;
+  let useContainerStaging = false;
+
+  if (fs.existsSync(path.dirname(wordContainerTmp))) {
+    fs.mkdirSync(wordContainerTmp, { recursive: true });
+    targetExportPath = path.join(wordContainerTmp, `vr_${handle.runId}_${Date.now()}.pdf`);
+    useContainerStaging = true;
+  }
+
+  const escapedPdf = escapeAppleScript(targetExportPath);
   const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
 
-  // 2. Single atomic AppleScript execution:
-  // Lookup -> Re-verify path -> Export PDF -> Close saving no on the SAME object reference 'd'
+  transitionLifecycleState(handle, 'export_requested', `Exporting PDF via Word (target: ${targetExportPath})`);
+
   const atomicExportScript = `
 with timeout of ${timeoutSeconds} seconds
   tell application "Microsoft Word"
@@ -448,9 +512,7 @@ with timeout of ${timeoutSeconds} seconds
       end try
 
       if matchConfirmed then
-        -- Atomically export and close ONLY this verified document object
         save as d file name "${escapedPdf}" file format format PDF
-        close d saving no
         set targetFound to true
         exit repeat
       end if
@@ -469,13 +531,121 @@ end timeout
   try {
     res = runAppleScript(atomicExportScript, (timeoutSeconds + 10) * 1000);
   } catch (err: any) {
+    transitionLifecycleState(handle, 'uncertain', `Export script failed: ${err.message}`);
+    throw new Error(`[WordAutomation] AppleScript error during PDF export: ${err.message}`);
+  }
+
+  const exportCreated = fs.existsSync(targetExportPath) && fs.statSync(targetExportPath).size > 0;
+  if (res !== 'OK' || !exportCreated) {
+    transitionLifecycleState(handle, 'uncertain', `Export failed with status "${res}", file created=${exportCreated}`);
     throw new Error(
-      `[WordAutomation] AppleScript error during PDF export: ${err.message}`
+      `[WordAutomation] Failed to export target document to PDF: result was "${res}".`
     );
   }
 
-  // 3. Avoid race condition on filesystem temp deletion:
-  // Allow Word a brief grace interval to release file locks before deleting the isolation folder
+  if (useContainerStaging) {
+    fs.mkdirSync(path.dirname(resolvedPdf), { recursive: true });
+    fs.copyFileSync(targetExportPath, resolvedPdf);
+    try {
+      fs.rmSync(targetExportPath, { force: true });
+    } catch {}
+  }
+
+  transitionLifecycleState(handle, 'exported', `PDF successfully exported (${fs.statSync(resolvedPdf).size} bytes)`);
+  return { exportSuccess: true, pdfPath: resolvedPdf };
+}
+
+/**
+ * Modular document close targeting ONLY our verified document.
+ * Re-queries Word after closing to confirm closure before transitioning to 'close_confirmed'.
+ */
+export function closeTargetDocOnly(
+  handle: AutomatedWordHandle,
+  timeoutSeconds: number = 30
+): { closeSuccess: boolean } {
+  validateOwnershipHandle(handle);
+
+  const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
+  transitionLifecycleState(handle, 'close_requested', 'Requesting document close in Word saving no');
+
+  const atomicCloseScript = `
+with timeout of ${timeoutSeconds} seconds
+  tell application "Microsoft Word"
+    set targetFound to false
+    repeat with i from 1 to (count of documents)
+      set d to document i
+      set matchConfirmed to false
+      try
+        set p to (posix full name of d as text)
+        if p is equal to "${escapedTarget}" then
+          set matchConfirmed to true
+        end if
+      end try
+
+      if matchConfirmed then
+        close d saving no
+        set targetFound to true
+        exit repeat
+      end if
+    end repeat
+
+    if targetFound then
+      return "OK"
+    else
+      return "TARGET_NOT_FOUND"
+    end if
+  end tell
+end timeout
+`;
+
+  try {
+    runAppleScript(atomicCloseScript, (timeoutSeconds + 5) * 1000);
+  } catch (err: any) {
+    transitionLifecycleState(handle, 'uncertain', `Close script error: ${err.message}`);
+    throw new Error(`[WordAutomation] AppleScript error during document close: ${err.message}`);
+  }
+
+  // Confirm document is truly no longer listed in Word
+  let stillOpen = false;
+  try {
+    const checkState = captureWordState();
+    stillOpen = checkState.initialDocumentPaths.includes(handle.normalizedPosixPath);
+  } catch {
+    // If state check fails, be conservative
+    stillOpen = false;
+  }
+
+  if (stillOpen) {
+    transitionLifecycleState(handle, 'uncertain', 'Document still reported open in Word after close command');
+    throw new Error(
+      `[WordAutomation] Document close requested but Word still reports document open. Preserving files at "${handle.isolatedDir}".`
+    );
+  }
+
+  transitionLifecycleState(handle, 'close_confirmed', 'Confirmed closed in Word');
+  return { closeSuccess: true };
+}
+
+/**
+ * Safely removes the isolation directory only if the document is confirmed closed.
+ */
+export function safeCleanupIsolatedDirectory(handle: AutomatedWordHandle): boolean {
+  validateOwnershipHandle(handle);
+
+  if (handle.lifecycleState !== 'close_confirmed') {
+    // Re-verify against Word before deleting
+    try {
+      const state = captureWordState();
+      if (state.wordWasRunning && state.initialDocumentPaths.includes(handle.normalizedPosixPath)) {
+        transitionLifecycleState(handle, 'uncertain', 'Refusing cleanup: document is still open in Word');
+        return false;
+      }
+    } catch {
+      transitionLifecycleState(handle, 'uncertain', 'Refusing cleanup: unable to query Word state');
+      return false;
+    }
+  }
+
   try {
     execFileSync('sleep', ['0.15']);
   } catch {}
@@ -483,14 +653,37 @@ end timeout
   if (handle.isolatedDir && fs.existsSync(handle.isolatedDir)) {
     try {
       fs.rmSync(handle.isolatedDir, { recursive: true, force: true });
-    } catch {}
+      transitionLifecycleState(handle, 'cleanup_completed', 'Isolated directory deleted');
+      return true;
+    } catch (err: any) {
+      transitionLifecycleState(handle, 'cleanup_pending', `Cleanup failed: ${err.message}`);
+      return false;
+    }
   }
 
-  if (res !== 'OK') {
-    throw new Error(
-      `[WordAutomation] Failed to export and close target document: result was "${res}". No user documents were modified.`
-    );
-  }
+  transitionLifecycleState(handle, 'cleanup_completed', 'Isolated directory already gone');
+  return true;
+}
+
+/**
+ * Exports ONLY the target document to PDF and closes ONLY that document in a single
+ * atomic AppleScript execution block. Backward compatible wrapper.
+ */
+export function exportAndCloseTargetDocOnly(
+  handle: AutomatedWordHandle,
+  outPdfPath: string,
+  timeoutSeconds: number = 600
+): void {
+  validateOwnershipHandle(handle);
+
+  // 1. Export PDF
+  exportTargetDocToPdfOnly(handle, outPdfPath, timeoutSeconds);
+
+  // 2. Close document
+  closeTargetDocOnly(handle, 30);
+
+  // 3. Clean up directory safely
+  safeCleanupIsolatedDirectory(handle);
 }
 
 /**
@@ -509,39 +702,75 @@ export function cleanupTargetDocOnly(handle: unknown): void {
     return;
   }
 
-  const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
-
   try {
-    const atomicCloseScript = `
-tell application "Microsoft Word"
-  repeat with i from 1 to (count of documents)
-    set d to document i
-    set matchConfirmed to false
-    try
-      set p to (posix full name of d as text)
-      if p is equal to "${escapedTarget}" then
-        set matchConfirmed to true
-      end if
-    end try
-
-    if matchConfirmed then
-      close d saving no
-      exit repeat
-    end if
-  end repeat
-end tell
-`;
-    runAppleScript(atomicCloseScript, 5000);
+    closeTargetDocOnly(handle, 10);
   } catch {}
 
-  // Safe isolated directory removal
-  try {
-    execFileSync('sleep', ['0.15']);
-  } catch {}
+  safeCleanupIsolatedDirectory(handle);
+}
 
-  if (handle.isolatedDir && fs.existsSync(handle.isolatedDir)) {
-    try {
-      fs.rmSync(handle.isolatedDir, { recursive: true, force: true });
-    } catch {}
+/**
+ * Prunes residual isolation folders from previous runs safely.
+ * Only deletes a directory if:
+ * 1. Word is running and we CAN verify the path is not open in any Word document window.
+ * 2. Or Word is completely not running.
+ * 3. The directory is older than maxAgeMs (default: 30 minutes).
+ */
+export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 1000): {
+  scanned: number;
+  pruned: number;
+  preserved: number;
+} {
+  const baseDir = path.resolve(os.tmpdir(), 'f2w_word_isolation');
+  if (!fs.existsSync(baseDir)) {
+    return { scanned: 0, pruned: 0, preserved: 0 };
   }
+
+  let wordOpenPaths: string[] = [];
+  try {
+    const state = captureWordState();
+    if (state.wordWasRunning) {
+      wordOpenPaths = state.initialDocumentPaths;
+    }
+  } catch {
+    // Fail-closed: if we cannot query Word, do not prune any directory
+    return { scanned: 0, pruned: 0, preserved: 0 };
+  }
+
+  const entries = fs.readdirSync(baseDir);
+  let scanned = 0;
+  let pruned = 0;
+  let preserved = 0;
+  const now = Date.now();
+
+  for (const entry of entries) {
+    if (!entry.startsWith('vr_')) continue;
+    scanned++;
+    const fullDir = path.join(baseDir, entry);
+    try {
+      const stats = fs.statSync(fullDir);
+      if (!stats.isDirectory()) continue;
+
+      const age = now - stats.mtimeMs;
+      if (age < maxAgeMs) {
+        preserved++;
+        continue;
+      }
+
+      // Check if any open document path in Word points to this directory
+      const normDir = normalizeWordPath(fullDir);
+      const isLockedByWord = wordOpenPaths.some((p) => p.startsWith(normDir));
+      if (isLockedByWord) {
+        preserved++;
+        continue;
+      }
+
+      fs.rmSync(fullDir, { recursive: true, force: true });
+      pruned++;
+    } catch {
+      preserved++;
+    }
+  }
+
+  return { scanned, pruned, preserved };
 }

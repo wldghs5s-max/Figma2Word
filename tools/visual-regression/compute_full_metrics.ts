@@ -241,7 +241,7 @@ export async function computeDynamicMetrics(options: MetricComputeOptions): Prom
   });
 
   return {
-    project: 'Figma2Word — Phase 29 Dynamic Metrics Engine',
+    project: 'Figma2Word — Phase 30 Dynamic Metrics Engine',
     evaluatedAt: new Date().toISOString(),
     sourceJsonPath: jsonPath,
     sourceJsonSha256,
