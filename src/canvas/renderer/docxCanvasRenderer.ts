@@ -454,16 +454,28 @@ export class DocxCanvasRenderer {
     // Subtle horizontal tolerance buffer for single-line text (wrapStyle === "mso-wrap-style:none"):
     // Word's DirectWrite / font substitution (e.g. Pretendard -> Malgun Gothic / Arial) can measure glyphs 1-3% wider than Figma.
     // Adding a minor 2.5-5pt buffer avoids accidental single-word wrapping without altering visible design layout.
+    // Optical center / right edge compensation: When widening the bounding box, adjust x so the optical
+    // anchor (center or right) remains completely invariant in Word's paragraph flow.
     let effectiveWidth = width;
+    let adjustedX = x;
+    let buffer = 0;
     if (elem.type === "text" && elem.textAutoResize === "WIDTH_AND_HEIGHT") {
-      const buffer = Math.max(3, effectiveWidth * 0.03);
+      buffer = Math.max(3, effectiveWidth * 0.03);
       effectiveWidth += buffer;
     } else if (hasText && wrapStyle === "mso-wrap-style:none") {
-      const buffer = Math.max(2, Math.min(8, effectiveWidth * 0.025));
+      buffer = Math.max(2, Math.min(8, effectiveWidth * 0.025));
       effectiveWidth += buffer;
     }
 
-    const baseStyle = `position:absolute;left:0;top:0;margin-left:${x.toFixed(
+    if (buffer > 0) {
+      if (elem.paragraphAlign === "center") {
+        adjustedX -= buffer / 2;
+      } else if (elem.paragraphAlign === "right") {
+        adjustedX -= buffer;
+      }
+    }
+
+    const baseStyle = `position:absolute;left:0;top:0;margin-left:${adjustedX.toFixed(
       3
     )}pt;margin-top:${y.toFixed(3)}pt;width:${effectiveWidth.toFixed(
       3
@@ -725,6 +737,29 @@ export class DocxCanvasRenderer {
       ? `strokeweight="${(style.strokeWidth || 1).toFixed(2)}pt"`
       : "";
 
+    // In VML, strokes are centered on the shape path. For INSIDE strokes (the Figma default),
+    // insetting the shape bounds by strokeWidth / 2 aligns the outer stroke edge precisely to [x, y, width, height].
+    let shapeX = adjustedX;
+    let shapeY = y;
+    let shapeW = effectiveWidth;
+    let shapeH = height;
+    if (!isText && (elem.type === "card" || elem.type === "oval") && hasStroke && style.strokeAlign === "INSIDE") {
+      const strokeW = style.strokeWidth || 1;
+      const halfStroke = strokeW / 2;
+      shapeX = x + halfStroke;
+      shapeY = y + halfStroke;
+      shapeW = Math.max(0.1, width - strokeW);
+      shapeH = Math.max(0.1, height - strokeW);
+    }
+
+    const shapeStyle = `position:absolute;left:0;top:0;margin-left:${shapeX.toFixed(
+      3
+    )}pt;margin-top:${shapeY.toFixed(3)}pt;width:${shapeW.toFixed(
+      3
+    )}pt;height:${shapeH.toFixed(
+      3
+    )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;${wrapStyle}${rotStyle}`;
+
     // Corner radius or Oval or Asymmetric
     const isOval = elem.type === "oval";
     const radii = style.cornerRadii;
@@ -737,11 +772,11 @@ export class DocxCanvasRenderer {
 
     let tag = isOval ? "v:oval" : "v:rect";
     let extraShapeAttrs = "";
-    const minDim = Math.max(1e-3, Math.min(width, height));
+    const minDim = Math.max(1e-3, Math.min(shapeW, shapeH));
 
     if (isAsymmetric && radii) {
       tag = "v:shape";
-      const built = this.buildRoundedRectPath(width, height, radii);
+      const built = this.buildRoundedRectPath(shapeW, shapeH, radii);
       extraShapeAttrs = `coordsize="${built.coordsize}" path="${built.path}" `;
     } else if (!isOval) {
       const scalarRadius =
@@ -824,14 +859,6 @@ export class DocxCanvasRenderer {
           ? "mso-fit-shape-to-text:t"
           : "mso-fit-shape-to-text:f";
 
-      const isTightLine = !!(firstLineHeight && firstLineHeight < maxFontSize * 1.25);
-      const lineRule = isTightLine ? "atLeast" : "exact";
-
-      const spacingXml = firstLineHeight
-        ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="${lineRule}"/>`
-        : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
-
-      const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
       const hasHardNewline = elem.textRuns.some((r) => r.text && /[\r\n]/.test(r.text));
       const isSingleLine =
         !hasHardNewline &&
@@ -842,6 +869,16 @@ export class DocxCanvasRenderer {
           (elem.bounds.height > 0 &&
             maxFontSize &&
             elem.bounds.height <= maxFontSize * 1.6));
+
+      const isTightLine = !!(firstLineHeight && firstLineHeight < maxFontSize * 1.25);
+      const isVerticallyCenteredSingleLine = elem.verticalAlign === "center" && isSingleLine;
+      const lineRule = isTightLine || isVerticallyCenteredSingleLine ? "atLeast" : "exact";
+
+      const spacingXml = firstLineHeight
+        ? `<w:spacing w:before="0" w:after="0" w:line="${Math.round(firstLineHeight * 20)}" w:lineRule="${lineRule}"/>`
+        : `<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>`;
+
+      const vAnchor = elem.verticalAlign === "center" ? "v-text-anchor:middle" : elem.verticalAlign === "bottom" ? "v-text-anchor:bottom" : "v-text-anchor:top";
       // In OpenXML ECMA-376 Part 1 §17.3.1.44, disabling word wrap in paragraph properties is <w:wordWrap w:val="0"/>
       // (Note: <w:noWrap/> is only valid in table cell properties w:tcPr per §17.4.38 and causes Word corruption dialogs)
       const wordWrapXml = isSingleLine ? '<w:wordWrap w:val="0"/>\n              ' : "";
@@ -885,7 +922,7 @@ export class DocxCanvasRenderer {
     <${tag} id="${shapeId}"
             ${altAttr}
             ${titleAttr}
-            style="${baseStyle}"
+            style="${shapeStyle}"
             ${extraShapeAttrs}${filledAttr}
             ${fillcolorAttr}
             ${strokedAttr}

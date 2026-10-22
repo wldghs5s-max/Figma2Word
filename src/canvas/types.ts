@@ -189,6 +189,7 @@ export interface CanvasStyle {
   strokeColor?: string; // hex '#RRGGBB'
   strokeWidth?: number; // pt
   strokeDashed?: boolean;
+  strokeAlign?: "INSIDE" | "OUTSIDE" | "CENTER";
   cornerRadius?: number; // pt
   cornerRadii?: [number, number, number, number]; // [tl, tr, br, bl] in pt
   borderSides?: CanvasBorderSides;

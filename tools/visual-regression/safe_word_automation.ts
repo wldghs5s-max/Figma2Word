@@ -778,6 +778,7 @@ export function cleanupTargetDocOnly(handle: unknown): void {
  * 1. Word is running and we CAN verify the path is not open in any Word document window.
  * 2. Or Word is completely not running.
  * 3. The directory is older than maxAgeMs (default: 30 minutes).
+ * 4. TOCTOU Defense (Phase 32): Re-verifies Word lock immediately prior to directory removal.
  */
 export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 1000): {
   scanned: number;
@@ -828,6 +829,22 @@ export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 10
         continue;
       }
 
+      // TOCTOU Defense (Phase 32): Re-query Word state immediately prior to unlinking
+      try {
+        const freshState = captureWordState();
+        if (freshState.wordWasRunning) {
+          const freshLocked = freshState.initialDocumentPaths.some((p) => p.startsWith(normDir));
+          if (freshLocked) {
+            preserved++;
+            continue;
+          }
+        }
+      } catch {
+        // Fail-closed if re-verification query throws
+        preserved++;
+        continue;
+      }
+
       fs.rmSync(fullDir, { recursive: true, force: true });
       pruned++;
     } catch {
@@ -842,10 +859,12 @@ export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 10
  * Safely prunes orphaned staging PDFs from Microsoft Word's container tmp directory
  * (~/Library/Containers/com.microsoft.Word/Data/tmp).
  *
- * Safety Invariants:
+ * Safety Invariants (Hardened in Phase 32):
  * 1. Only inspects and deletes files starting with 'f2w_stage_' and ending with '.pdf'.
  * 2. Never deletes user files, folders, or staging files younger than maxAgeMs.
- * 3. Fail-closed: handles missing directory or file access errors gracefully without throwing.
+ * 3. Never deletes staging PDFs belonging to active runs: verifies that the run's isolated
+ *    directory is already gone and no active Word document is open for that runId.
+ * 4. Fail-closed: handles missing directory or file access errors gracefully without throwing.
  */
 export function cleanResidualStagingPdfsSafely(maxAgeMs: number = 30 * 60 * 1000): {
   scanned: number;
@@ -857,6 +876,17 @@ export function cleanResidualStagingPdfsSafely(maxAgeMs: number = 30 * 60 * 1000
     return { scanned: 0, pruned: 0, preserved: 0 };
   }
 
+  let wordOpenPaths: string[] = [];
+  try {
+    const state = captureWordState();
+    if (state.wordWasRunning) {
+      wordOpenPaths = state.initialDocumentPaths;
+    }
+  } catch {
+    // Fail-closed: if we cannot query Word, do not prune any staging file
+    return { scanned: 0, pruned: 0, preserved: 0 };
+  }
+
   let entries: string[] = [];
   try {
     entries = fs.readdirSync(wordContainerTmp);
@@ -864,6 +894,7 @@ export function cleanResidualStagingPdfsSafely(maxAgeMs: number = 30 * 60 * 1000
     return { scanned: 0, pruned: 0, preserved: 0 };
   }
 
+  const baseIsoDir = path.resolve(os.tmpdir(), 'f2w_word_isolation');
   let scanned = 0;
   let pruned = 0;
   let preserved = 0;
@@ -881,6 +912,27 @@ export function cleanResidualStagingPdfsSafely(maxAgeMs: number = 30 * 60 * 1000
       if (age < maxAgeMs) {
         preserved++;
         continue;
+      }
+
+      // Extract runId: format is 'f2w_stage_${runId}_${timestamp}.pdf'
+      // Where runId starts with 'vr_'
+      const match = entry.match(/^f2w_stage_(vr_[^_]+_[^_]+)_\d+\.pdf$/);
+      if (match) {
+        const runId = match[1];
+        // 1. Check if corresponding isolated directory still exists on disk
+        const runIsoDir = path.join(baseIsoDir, runId);
+        if (fs.existsSync(runIsoDir)) {
+          // Active or uncertain run: strictly preserve staging PDF!
+          preserved++;
+          continue;
+        }
+
+        // 2. Check if any currently open Word document path references this runId
+        const isRunOpenInWord = wordOpenPaths.some((p) => p.includes(runId));
+        if (isRunOpenInWord) {
+          preserved++;
+          continue;
+        }
       }
 
       fs.rmSync(fullPath, { force: true });

@@ -1065,6 +1065,11 @@ export class FigmaCanvasParser {
         if (dashes && dashes.length > 0) {
           style.strokeDashed = true;
         }
+        if (node.strokeAlign === "INSIDE" || node.strokeAlign === "OUTSIDE" || node.strokeAlign === "CENTER") {
+          style.strokeAlign = node.strokeAlign;
+        } else {
+          style.strokeAlign = "INSIDE";
+        }
       }
     }
 
