@@ -527,16 +527,26 @@ with timeout of ${timeoutSeconds} seconds
 end timeout
 `;
 
+  const cleanupStagedFile = () => {
+    if (useContainerStaging && fs.existsSync(targetExportPath)) {
+      try {
+        fs.rmSync(targetExportPath, { force: true });
+      } catch {}
+    }
+  };
+
   let res = '';
   try {
     res = runAppleScript(atomicExportScript, (timeoutSeconds + 10) * 1000);
   } catch (err: any) {
+    cleanupStagedFile();
     transitionLifecycleState(handle, 'uncertain', `Export script failed: ${err.message}`);
     throw new Error(`[WordAutomation] AppleScript error during PDF export: ${err.message}`);
   }
 
   const exportCreated = fs.existsSync(targetExportPath) && fs.statSync(targetExportPath).size > 0;
   if (res !== 'OK' || !exportCreated) {
+    cleanupStagedFile();
     transitionLifecycleState(handle, 'uncertain', `Export failed with status "${res}", file created=${exportCreated}`);
     throw new Error(
       `[WordAutomation] Failed to export target document to PDF: result was "${res}".`
@@ -544,11 +554,12 @@ end timeout
   }
 
   if (useContainerStaging) {
-    fs.mkdirSync(path.dirname(resolvedPdf), { recursive: true });
-    fs.copyFileSync(targetExportPath, resolvedPdf);
     try {
-      fs.rmSync(targetExportPath, { force: true });
-    } catch {}
+      fs.mkdirSync(path.dirname(resolvedPdf), { recursive: true });
+      fs.copyFileSync(targetExportPath, resolvedPdf);
+    } finally {
+      cleanupStagedFile();
+    }
   }
 
   transitionLifecycleState(handle, 'exported', `PDF successfully exported (${fs.statSync(resolvedPdf).size} bytes)`);
@@ -609,10 +620,14 @@ end timeout
   let stillOpen = false;
   try {
     const checkState = captureWordState();
-    stillOpen = checkState.initialDocumentPaths.includes(handle.normalizedPosixPath);
-  } catch {
-    // If state check fails, be conservative
-    stillOpen = false;
+    stillOpen = checkState.wordWasRunning && checkState.initialDocumentPaths.includes(handle.normalizedPosixPath);
+  } catch (err: any) {
+    // P0 Fail-Closed: If we cannot query Word state, we CANNOT confirm document closure.
+    // Transition to 'uncertain' and throw error, strictly preserving files on disk!
+    transitionLifecycleState(handle, 'uncertain', `Unable to verify document closure in Word: ${err.message || String(err)}`);
+    throw new Error(
+      `[WordAutomation] Unable to verify closure with Word: ${err.message || String(err)}. Preserving files at "${handle.isolatedDir}".`
+    );
   }
 
   if (stillOpen) {
@@ -633,11 +648,13 @@ export function safeCleanupIsolatedDirectory(handle: AutomatedWordHandle): boole
   validateOwnershipHandle(handle);
 
   if (handle.lifecycleState !== 'close_confirmed') {
-    // Re-verify against Word before deleting
+    // If not close_confirmed, strictly preserve directory unless Word is completely stopped
     try {
       const state = captureWordState();
-      if (state.wordWasRunning && state.initialDocumentPaths.includes(handle.normalizedPosixPath)) {
-        transitionLifecycleState(handle, 'uncertain', 'Refusing cleanup: document is still open in Word');
+      if (!state.wordWasRunning) {
+        // Word is not running, safe to clean up isolated folder
+      } else {
+        transitionLifecycleState(handle, 'uncertain', `Refusing cleanup: state is '${handle.lifecycleState}' and Word is running`);
         return false;
       }
     } catch {

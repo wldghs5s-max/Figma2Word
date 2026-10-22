@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<hs:sec xmlns:hs="http://www.hancom.co.kr/hwpml/2011/section"
+        xmlns:hp="http://www.hancom.co.kr/hwpml/2011/paragraph"
+        xmlns:hc="http://www.hancom.co.kr/hwpml/2011/core">
+  <hp:p id="0" paraPrIDRef="0" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">
+  <hp:run charPrIDRef="0">
+      <hp:secPr id="" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" tabStopVal="4000" tabStopUnit="HWPUNIT" outlineShapeIDRef="1" memoShapeIDRef="0" textVerticalWidthHead="0" masterPageCnt="0">
+        <hp:grid lineGrid="0" charGrid="0" wonggojiFormat="0"/>
+        <hp:startNum pageStartsOn="BOTH" page="1" pic="1" tbl="1" equation="1"/>
+        <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="NONE" fill="NONE" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
+        <hp:lineNumberShape restartType="0" countBy="0" distance="0" startNumber="0"/>
+        <hp:pagePr landscape="NARROWLY" width="67500" height="108000" gutterType="LEFT_ONLY">
+          <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
+        </hp:pagePr>
+        <hp:footNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="283" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="EACH_COLUMN" beneathText="0"/>
+        </hp:footNotePr>
+        <hp:endNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="0" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="END_OF_DOCUMENT" beneathText="0"/>
+        </hp:endNotePr>
+        <hp:pageBorderFill type="BOTH" borderFillIDRef="1" textBorder="PAPER" headerInside="0" footerInside="0" fillArea="PAPER">
+          <hp:offset left="0" right="0" top="0" bottom="0"/>
+        </hp:pageBorderFill>
+      </hp:secPr>
+      <hp:ctrl>
+        <hp:colPr id="" type="NEWSPAPER" layout="LEFT" colCnt="1" sameSz="1" sameGap="0"/>
+      </hp:ctrl>
+    </hp:run>
+  <hp:run><hp:rect id="1" zOrder="0" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="1" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="108000" height="67500"/>
+  <hp:curSz width="108000" height="67500"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="54000" centerY="33750" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#F5F7FA" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="108000" y="0"/>
+  <hc:pt2 x="108000" y="67500"/>
+  <hc:pt3 x="0" y="67500"/>
+  <hp:sz width="108000" height="67500" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="0" horzOffset="0"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="2" zOrder="1" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="2" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="108000" height="6000"/>
+  <hp:curSz width="108000" height="6000"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="54000" centerY="3000" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#E0E8F0" width="8" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#FFFFFF" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="DROP" color="#000000" offsetX="0" offsetY="150" alpha="242"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="108000" y="0"/>
+  <hc:pt2 x="108000" y="6000"/>
+  <hc:pt3 x="0" y="6000"/>
+  <hp:sz width="108000" height="6000" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="0" horzOffset="0"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="3" zOrder="2" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="3" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="31500" height="2100"/>
+  <hp:curSz width="31500" height="2100"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="15750" centerY="1050" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="31500" name="System Title" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="CENTER" linkListIDRef="0" linkListNextIDRef="0" textWidth="31500" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="4" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="0"><hp:t>클라우드 인프라 통합 관제 센터 2026</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="31500" y="0"/>
+  <hc:pt2 x="31500" y="2100"/>
+  <hc:pt3 x="0" y="2100"/>
+  <hp:sz width="31500" height="2100" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="1950" horzOffset="3000"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="4" zOrder="3" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="4" ratio="50">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="12000" height="3300"/>
+  <hp:curSz width="12000" height="3300"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="6000" centerY="1650" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#2666F2" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="DROP" color="#2666F2" offsetX="0" offsetY="300" alpha="166"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="12000" y="0"/>
+  <hc:pt2 x="12000" y="3300"/>
+  <hc:pt3 x="0" y="3300"/>
+  <hp:sz width="12000" height="3300" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="1350" horzOffset="93000"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="5" zOrder="4" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="5" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="9000" height="3300"/>
+  <hp:curSz width="9000" height="3300"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="4500" centerY="1650" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="9000" name="Button Label" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="CENTER" linkListIDRef="0" linkListNextIDRef="0" textWidth="9000" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="5" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="1"><hp:t>보고서 내보내기</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="9000" y="0"/>
+  <hc:pt2 x="9000" y="3300"/>
+  <hc:pt3 x="0" y="3300"/>
+  <hp:sz width="9000" height="3300" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="1350" horzOffset="94500"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="6" zOrder="5" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="6" ratio="7">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="31500" height="13500"/>
+  <hp:curSz width="31500" height="13500"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="15750" centerY="6750" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#D9E0EB" width="8" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#FFFFFF" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="DROP" color="#000000" offsetX="0" offsetY="450" alpha="235"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="31500" y="0"/>
+  <hc:pt2 x="31500" y="13500"/>
+  <hc:pt3 x="0" y="13500"/>
+  <hp:sz width="31500" height="13500" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="9000" horzOffset="3000"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="7" zOrder="6" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="7" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="22500" height="3000"/>
+  <hp:curSz width="22500" height="3000"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="11250" centerY="1500" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="22500" name="KPI Value" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="22500" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="6" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="2"><hp:t>99.98% 가동률 (SLA 정합)</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="22500" y="0"/>
+  <hc:pt2 x="22500" y="3000"/>
+  <hc:pt3 x="0" y="3000"/>
+  <hp:sz width="22500" height="3000" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="11250" horzOffset="5100"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="8" zOrder="7" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="8" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="27000" height="3750"/>
+  <hp:curSz width="27000" height="3750"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="13500" centerY="1875" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="27000" name="KPI Description" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="27000" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="7" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="3"><hp:t>전체 128개 마이크로서비스 노드가 장애 없이 정상 운영 중입니다. (평균 레이턴시: 24.5ms)</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="27000" y="0"/>
+  <hc:pt2 x="27000" y="3750"/>
+  <hc:pt3 x="0" y="3750"/>
+  <hp:sz width="27000" height="3750" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="15000" horzOffset="5100"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:pic id="9" zOrder="8" numberingType="PICTURE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="9" reverse="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="31500" height="13500"/>
+  <hp:curSz width="31500" height="13500"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="15750" centerY="6750" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#BFD9FA" width="150" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hp:imgRect>
+    <hc:pt0 x="0" y="0"/>
+    <hc:pt1 x="31500" y="0"/>
+    <hc:pt2 x="31500" y="13500"/>
+    <hc:pt3 x="0" y="13500"/>
+  </hp:imgRect>
+  <hp:imgClip left="0" right="150" top="43" bottom="107"/>
+  <hp:inMargin left="0" right="0" top="0" bottom="0"/>
+  <hp:imgDim dimwidth="150" dimheight="150"/>
+  <hc:img binaryItemIDRef="BIN0001" bright="0" contrast="0" effect="REAL_PIC" alpha="0"/>
+  <hp:effects/>
+  <hp:shadow type="DROP" color="#1A3366" offsetX="0" offsetY="600" alpha="224"/>
+  <hp:sz width="31500" height="13500" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="9000" horzOffset="37500"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:pic></hp:run>
+  <hp:run><hp:rect id="10" zOrder="9" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="10" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="21000" height="1800"/>
+  <hp:curSz width="21000" height="1800"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="10500" centerY="900" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="21000" name="Cluster Region Badge" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="21000" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="8" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="4"><hp:t>서울 리전 (ap-northeast-2) 이중화 완료</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="21000" y="0"/>
+  <hc:pt2 x="21000" y="1800"/>
+  <hc:pt3 x="0" y="1800"/>
+  <hp:sz width="21000" height="1800" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="18750" horzOffset="39000"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="11" zOrder="10" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="11" ratio="7">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="33000" height="13500"/>
+  <hp:curSz width="33000" height="13500"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="16500" centerY="6750" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#99A6B8" width="11" style="DASH" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#FFFFFF" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="33000" y="0"/>
+  <hc:pt2 x="33000" y="13500"/>
+  <hc:pt3 x="0" y="13500"/>
+  <hp:sz width="33000" height="13500" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="9000" horzOffset="72000"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="12" zOrder="11" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="12" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="28500" height="1800"/>
+  <hp:curSz width="28500" height="1800"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="14250" centerY="900" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="28500" name="Card Title" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="28500" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="9" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="5"><hp:t>보안 취약점 자동 점검 (진행중: 3건)</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="28500" y="0"/>
+  <hc:pt2 x="28500" y="1800"/>
+  <hc:pt3 x="0" y="1800"/>
+  <hp:sz width="28500" height="1800" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="11250" horzOffset="74250"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+</hp:p>
+  <hp:p id="1" paraPrIDRef="0" styleIDRef="0" pageBreak="1" columnBreak="0" merged="0">
+  <hp:run charPrIDRef="0">
+      <hp:secPr id="" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" tabStopVal="4000" tabStopUnit="HWPUNIT" outlineShapeIDRef="1" memoShapeIDRef="0" textVerticalWidthHead="0" masterPageCnt="0">
+        <hp:grid lineGrid="0" charGrid="0" wonggojiFormat="0"/>
+        <hp:startNum pageStartsOn="BOTH" page="2" pic="1" tbl="1" equation="1"/>
+        <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="NONE" fill="NONE" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
+        <hp:lineNumberShape restartType="0" countBy="0" distance="0" startNumber="0"/>
+        <hp:pagePr landscape="NARROWLY" width="118800" height="158400" gutterType="LEFT_ONLY">
+          <hp:margin header="0" footer="0" gutter="0" left="0" right="0" top="0" bottom="0"/>
+        </hp:pagePr>
+        <hp:footNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="283" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="EACH_COLUMN" beneathText="0"/>
+        </hp:footNotePr>
+        <hp:endNotePr>
+          <hp:autoNumFormat type="DIGIT" userChar="" prefixChar="" suffixChar=")" supscript="0"/>
+          <hp:noteLine length="-1" type="SOLID" width="0.12 mm" color="#000000"/>
+          <hp:noteSpacing betweenNotes="0" belowLine="567" aboveLine="850"/>
+          <hp:numbering type="CONTINUOUS" newNum="1"/>
+          <hp:placement place="END_OF_DOCUMENT" beneathText="0"/>
+        </hp:endNotePr>
+        <hp:pageBorderFill type="BOTH" borderFillIDRef="1" textBorder="PAPER" headerInside="0" footerInside="0" fillArea="PAPER">
+          <hp:offset left="0" right="0" top="0" bottom="0"/>
+        </hp:pageBorderFill>
+      </hp:secPr>
+      <hp:ctrl>
+        <hp:colPr id="" type="NEWSPAPER" layout="LEFT" colCnt="1" sameSz="1" sameGap="0"/>
+      </hp:ctrl>
+    </hp:run>
+  <hp:run><hp:rect id="13" zOrder="0" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="13" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="158400" height="118800"/>
+  <hp:curSz width="158400" height="118800"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="79200" centerY="59400" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#FAFAFC" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="158400" y="0"/>
+  <hc:pt2 x="158400" y="118800"/>
+  <hc:pt3 x="0" y="118800"/>
+  <hp:sz width="158400" height="118800" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="0" horzOffset="0"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="14" zOrder="1" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="14" ratio="0">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="59400" height="3960"/>
+  <hp:curSz width="59400" height="3960"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="29700" centerY="1980" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#000000" width="0" style="NONE" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush/>
+  <hp:drawText lastWidth="59400" name="Topology Title" editable="1">
+    <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="TOP" linkListIDRef="0" linkListNextIDRef="0" textWidth="59400" textHeight="0" hasTextRef="0" hasNumRef="0">
+      <hp:p id="0" paraPrIDRef="10" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="6"><hp:t>글로벌 멀티 클라우드 망 연계 아키텍처 다이어그램</hp:t></hp:run></hp:p>
+    </hp:subList>
+    <hp:textMargin left="0" right="0" top="0" bottom="0"/>
+  </hp:drawText>
+  <hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="59400" y="0"/>
+  <hc:pt2 x="59400" y="3960"/>
+  <hc:pt3 x="0" y="3960"/>
+  <hp:sz width="59400" height="3960" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="4950" horzOffset="4950"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+  <hp:run><hp:rect id="15" zOrder="2" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="15" ratio="6">
+  <hp:offset x="0" y="0"/>
+  <hp:orgSz width="39600" height="24750"/>
+  <hp:curSz width="39600" height="24750"/>
+  <hp:flip horizontal="0" vertical="0"/>
+  <hp:rotationInfo angle="0" centerX="19800" centerY="12375" rotateimage="1"/>
+  <hp:renderingInfo>
+    <hc:transMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:scaMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+    <hc:rotMatrix e1="1" e2="0" e3="0" e4="0" e5="1" e6="0"/>
+  </hp:renderingInfo>
+  <hp:lineShape color="#3366CC" width="20" style="SOLID" endCap="FLAT" headStyle="NORMAL" tailStyle="NORMAL" headfill="0" tailfill="0" headSz="SMALL_SMALL" tailSz="SMALL_SMALL" outlineStyle="NORMAL" alpha="0"/>
+  <hc:fillBrush><hc:winBrush faceColor="#FFFFFF" hatchColor="#999999" alpha="0"/></hc:fillBrush>
+  <hp:shadow type="DROP" color="#000000" offsetX="0" offsetY="594" alpha="217"/>
+  <hc:pt0 x="0" y="0"/>
+  <hc:pt1 x="39600" y="0"/>
+  <hc:pt2 x="39600" y="24750"/>
+  <hc:pt3 x="0" y="24750"/>
+  <hp:sz width="39600" height="24750" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="14850" horzOffset="4950"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+</hp:rect></hp:run>
+</hp:p>
+</hs:sec>

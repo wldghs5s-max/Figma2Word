@@ -659,12 +659,16 @@ export class DocxCanvasRenderer {
       const imgRadius = (imgRadii && imgRadii[0] > 0 ? imgRadii[0] : imgStyleObj.cornerRadius) || 0;
       const minImgDim = Math.max(1e-3, Math.min(imgBoxW, imgBoxH));
 
-      let imgTag = "v:shape";
+      let imgTag = "v:rect";
       let imgShapeExtraAttrs = "";
       if (imgRadius > 0) {
         imgTag = "v:roundrect";
         imgShapeExtraAttrs = `arcsize="${Math.min(0.5, (2 * imgRadius) / minImgDim).toFixed(3)}" `;
       }
+
+      const imgHasFill = !!imgStyleObj.fillColor && imgStyleObj.fillColor !== "none";
+      const imgFilledAttr = imgHasFill ? 'filled="t"' : 'filled="f"';
+      const imgFillcolorAttr = imgHasFill ? ` fillcolor="#${cleanHex(imgStyleObj.fillColor)}"` : "";
 
       const imgHasStroke = !!imgStyleObj.strokeColor && (imgStyleObj.strokeWidth || 0) > 0;
       const imgStrokedAttr = imgHasStroke ? 'stroked="t"' : 'stroked="f"';
@@ -694,7 +698,7 @@ export class DocxCanvasRenderer {
              ${altAttr}
              ${titleAttr}
              style="${imgStyle}"
-             ${imgShapeExtraAttrs}filled="f"
+             ${imgShapeExtraAttrs}${imgFilledAttr}${imgFillcolorAttr}
              ${imgStrokedAttr}
              ${imgStrokecolorAttr}
              ${imgStrokeweightAttr}>${imgDashChild}${imgShadowChild}

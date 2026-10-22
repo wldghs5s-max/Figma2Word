@@ -961,7 +961,7 @@ ${paraPrEntries}
     const drawText = p.drawTextXml || "";
 
     const shadowXml = p.shadow
-      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX ?? 2)}" offsetY="${ptToHwpu(p.shadow.offsetY ?? 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
       : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
 
     return `<hp:rect id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" ratio="${p.ratio}">
@@ -1015,7 +1015,7 @@ ${paraPrEntries}
       : "NONE";
 
     const shadowXml = p.shadow
-      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX ?? 2)}" offsetY="${ptToHwpu(p.shadow.offsetY ?? 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
       : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
 
     return `<hp:ellipse intervalDirty="0" hasArcPr="0" arcType="NORMAL" id="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}">
@@ -1180,7 +1180,7 @@ ${paraPrEntries}
       : "NONE";
 
     const shadowXml = p.shadow
-      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX || 2)}" offsetY="${ptToHwpu(p.shadow.offsetY || 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
+      ? `<hp:shadow type="DROP" color="#${cleanHex(p.shadow.color || "000000")}" offsetX="${ptToHwpu(p.shadow.offsetX ?? 2)}" offsetY="${ptToHwpu(p.shadow.offsetY ?? 2)}" alpha="${Math.round((1 - (p.shadow.opacity ?? 0.2)) * 255)}"/>`
       : `<hp:shadow type="NONE" color="#B2B2B2" offsetX="0" offsetY="0" alpha="0"/>`;
 
     return `<hp:pic id="${p.id}" zOrder="${p.zOrder}" numberingType="PICTURE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" href="" groupLevel="0" instid="${p.id}" reverse="0">

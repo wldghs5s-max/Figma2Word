@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<opf:package xmlns:opf="http://www.idpf.org/2007/opf/" version="1.2" unique-identifier="bookid">
+  <opf:metadata>
+    <opf:title>Phase 30 Comprehensive Production Benchmark Suite</opf:title>
+    <opf:language>ko</opf:language>
+  </opf:metadata>
+  <opf:manifest>
+    <opf:item id="header" href="Contents/header.xml" media-type="application/xml"/>
+    <opf:item id="section0" href="Contents/section0.xml" media-type="application/xml"/>
+    <opf:item id="BIN0001" href="BinData/BIN0001.png" media-type="image/png" isEmbeded="1"/>
+  </opf:manifest>
+  <opf:spine>
+    <opf:itemref idref="header"/>
+    <opf:itemref idref="section0"/>
+  </opf:spine>
+</opf:package>

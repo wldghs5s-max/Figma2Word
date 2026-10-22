@@ -3,8 +3,8 @@ import * as path from 'path';
 
 // Valid 1x1 transparent PNG base64
 const TINY_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-// Valid 2x2 solid blue PNG base64
-const BLUE_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mNk+M/AwMDEwMDAwAAAAAUAAXeN9fQAAAAASUVORK5CYII=';
+// Valid 2x2 solid blue PNG base64 (RGBA 37, 99, 235, 255 #2563EB, fully opaque, valid zlib/CRC)
+const BLUE_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGNQTX79H4QZYAwAUe4JyX4GS0cAAAAASUVORK5CYII=';
 
 export function buildPhase30SyntheticFixture() {
   const rootDir = fs.existsSync(path.join(process.cwd(), 'src'))
