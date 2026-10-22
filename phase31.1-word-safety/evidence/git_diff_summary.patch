@@ -1,0 +1,369 @@
+diff --git a/src/canvas/parser/docxCanvasParser.ts b/src/canvas/parser/docxCanvasParser.ts
+index 99de3a9..0f05314 100644
+--- a/src/canvas/parser/docxCanvasParser.ts
++++ b/src/canvas/parser/docxCanvasParser.ts
+@@ -420,8 +420,9 @@ export class DocxCanvasParser {
+       const arc = parseFloat(attrs["arcsize"]);
+       if (!isNaN(arc) && arc > 0) {
+         const minSide = Math.max(1, Math.min(width, height));
+-        // Per W3C VML specification: radius = arcsize * (minSide / 2)
+-        cornerRadius = Math.round(arc * (minSide / 2) * 100) / 100;
++        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
++        // corner radius R = arcsize * minSide
++        cornerRadius = Math.round(arc * minSide * 100) / 100;
+       }
+     }
+ 
+diff --git a/src/canvas/renderer/docxCanvasRenderer.ts b/src/canvas/renderer/docxCanvasRenderer.ts
+index 18ebcc8..06ff347 100644
+--- a/src/canvas/renderer/docxCanvasRenderer.ts
++++ b/src/canvas/renderer/docxCanvasRenderer.ts
+@@ -663,7 +663,9 @@ export class DocxCanvasRenderer {
+       let imgShapeExtraAttrs = "";
+       if (imgRadius > 0) {
+         imgTag = "v:roundrect";
+-        imgShapeExtraAttrs = `arcsize="${Math.min(0.5, (2 * imgRadius) / minImgDim).toFixed(3)}" `;
++        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
++        // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
++        imgShapeExtraAttrs = `arcsize="${Math.min(0.5, imgRadius / minImgDim).toFixed(3)}" `;
+       }
+ 
+       const imgHasFill = !!imgStyleObj.fillColor && imgStyleObj.fillColor !== "none";
+@@ -747,9 +749,11 @@ export class DocxCanvasRenderer {
+       const isRound = scalarRadius > 0;
+       tag = isRound ? "v:roundrect" : "v:rect";
+       if (isRound) {
++        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
++        // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
+         extraShapeAttrs = `arcsize="${Math.min(
+           0.5,
+-          (2 * scalarRadius) / minDim
++          scalarRadius / minDim
+         ).toFixed(3)}" `;
+       }
+     }
+diff --git a/tests/phase26-universal-rendering.test.ts b/tests/phase26-universal-rendering.test.ts
+index 60d7b65..d8f5409 100644
+--- a/tests/phase26-universal-rendering.test.ts
++++ b/tests/phase26-universal-rendering.test.ts
+@@ -8,8 +8,8 @@ import { FigmaNode } from "../src/parser/types.js";
+ describe("Phase 26: Universal Rendering & Fidelity Improvements", () => {
+   it("1. Accurately calculates VML arcsize using half-dimension radius formula", async () => {
+     // Button with height: 40pt, width: 200pt, cornerRadius: 8pt
+-    // Correct VML arcsize = min(0.5, (2 * 8) / min(200, 40)) = 16 / 40 = 0.400
+-    // (Legacy buggy formula gave 8 / 40 = 0.200, cutting the curve in half!)
++    // Phase 31.1 Empirical Word Measurement: Word for Mac renders R = arcsize * minDim.
++    // Therefore, arcsize = min(0.5, 8 / min(200, 40)) = 8 / 40 = 0.200.
+     const syntheticDoc: CanvasDocument = {
+       title: "VML ArcSize Fidelity",
+       pageSize: { name: "A4", widthPt: 841.89, heightPt: 595.28, orientation: "landscape", unit: "pt" },
+@@ -40,8 +40,8 @@ describe("Phase 26: Universal Rendering & Fidelity Improvements", () => {
+     const zip = await JSZip.loadAsync(buffer);
+     const docXml = await zip.file("word/document.xml")!.async("text");
+ 
+-    // Must match arcsize="0.400"
+-    expect(docXml).toContain('arcsize="0.400"');
++    // Must match arcsize="0.200"
++    expect(docXml).toContain('arcsize="0.200"');
+   });
+ 
+   it("2. Protects normal 'Container' UI groups from accidental false-positive deletion", () => {
+diff --git a/tests/phase30-production-fidelity.test.ts b/tests/phase30-production-fidelity.test.ts
+index ae18b42..53cc058 100644
+--- a/tests/phase30-production-fidelity.test.ts
++++ b/tests/phase30-production-fidelity.test.ts
+@@ -179,8 +179,8 @@ describe("Phase 30: Production Visual Fidelity & Automation Lifecycle Suite", ()
+ 
+       // Verify rounded rect tag used for image
+       expect(docXml).toContain("<v:roundrect");
+-      // Verify arcsize = min(0.5, (2 * 16) / 80) = 32 / 80 = 0.400
+-      expect(docXml).toContain('arcsize="0.400"');
++      // Verify arcsize = min(0.5, 16 / 80) = 0.200 (Empirically measured against Word for Mac)
++      expect(docXml).toContain('arcsize="0.200"');
+       // Verify stroke applied to image
+       expect(docXml).toContain('stroked="t"');
+       expect(docXml).toContain('strokecolor="#3B82F6"');
+diff --git a/tests/phase31-audit-verification.test.ts b/tests/phase31-audit-verification.test.ts
+index 2ae6e51..b37ee25 100644
+--- a/tests/phase31-audit-verification.test.ts
++++ b/tests/phase31-audit-verification.test.ts
+@@ -179,7 +179,8 @@ describe("Phase 31: External Audit Verification & Quality Stabilization", () =>
+       const docXml = await zip.file("word/document.xml")!.async("text");
+ 
+       expect(docXml).toContain('<v:roundrect id="s_0_0"');
+-      expect(docXml).toContain('arcsize="0.400"');
++      // Phase 31.1: 16 / min(100, 80) = 0.200 (Empirically verified against Word for Mac)
++      expect(docXml).toContain('arcsize="0.200"');
+       expect(docXml).toContain('<v:imagedata r:id="rId2"');
+     });
+   });
+diff --git a/tools/visual-regression/safe_word_automation.ts b/tools/visual-regression/safe_word_automation.ts
+index 833cd2e..ad95022 100644
+--- a/tools/visual-regression/safe_word_automation.ts
++++ b/tools/visual-regression/safe_word_automation.ts
+@@ -39,6 +39,7 @@ export interface AutomatedWordHandle {
+   isOwned: boolean;
+   verificationSignature: string;
+   lifecycleState?: DocumentLifecycleState;
++  stagedPdfPath?: string;
+   stateHistory?: Array<{
+     state: DocumentLifecycleState;
+     timestamp: number;
+@@ -318,6 +319,11 @@ end tell
+   };
+ }
+ 
++export interface WordAutomationOpenDeps {
++  execOpen?: (cmd: string, args: string[]) => void;
++  queryDocsScript?: (script: string, timeoutMs: number) => string;
++}
++
+ /**
+  * Safely opens ONLY the target DOCX file in Word within an isolated temporary directory.
+  * Matches strictly by normalized POSIX path (no filename or prefix matching).
+@@ -326,11 +332,14 @@ end tell
+  * Lifecycle Safety:
+  * - If polling times out, transitions state to 'uncertain' and PRESERVES the isolated
+  *   directory to prevent deleting files while Word is still loading them.
++ * - If LaunchServices open command fails, transitions to 'uncertain' and strictly PRESERVES
++ *   the isolated directory to prevent deleting files if Word was partially or asynchronously notified.
+  */
+ export async function openTargetDocumentSafely(
+   docxPath: string,
+   snapshot: WordEnvironmentSnapshot,
+-  maxWaitSeconds: number = 25
++  maxWaitSeconds: number = 25,
++  deps?: WordAutomationOpenDeps
+ ): Promise<OpenedWordDocument> {
+   const resolvedSource = path.resolve(docxPath);
+   if (!fs.existsSync(resolvedSource)) {
+@@ -369,6 +378,7 @@ export async function openTargetDocumentSafely(
+   };
+ 
+   // 2. Reject ownership if this exact path is already open in Word
++  // Safe to clean up since launch was never requested
+   if (snapshot.initialDocumentPaths.includes(normalizedTargetPosix)) {
+     try {
+       fs.rmSync(isolatedDir, { recursive: true, force: true });
+@@ -381,20 +391,24 @@ export async function openTargetDocumentSafely(
+   // 3. Open ONLY the isolated copy via macOS LaunchServices without shell injection
+   transitionLifecycleState(handle, 'open_requested', 'LaunchServices open command invoked');
+   try {
+-    execFileSync('open', ['-a', 'Microsoft Word', isolatedDocxPath]);
++    if (deps?.execOpen) {
++      deps.execOpen('open', ['-a', 'Microsoft Word', isolatedDocxPath]);
++    } else {
++      execFileSync('open', ['-a', 'Microsoft Word', isolatedDocxPath]);
++    }
+   } catch (err: any) {
++    // P0 Fail-Closed (Audit Phase 31.1):
++    // Word open request was initiated or in-flight. We CANNOT guarantee Word did not receive
++    // or will not asynchronously open the file. We MUST strictly preserve the isolated directory!
+     transitionLifecycleState(handle, 'uncertain', `Failed to launch Word: ${err.message}`);
+-    // Safe to clean up since launch itself threw before Word saw the path
+-    try {
+-      fs.rmSync(isolatedDir, { recursive: true, force: true });
+-    } catch {}
+     throw new Error(
+-      `[WordAutomation] Failed to launch Word for isolated document: ${err.message}`
++      `[WordAutomation] Failed to launch Word for isolated document: ${err.message}. Preserving files at "${handle.isolatedDir}".`
+     );
+   }
+ 
+   // 4. Poll for the document matching normalizedTargetPosix strictly
+   let matchedDoc: { index: number; name: string; sectionsCount: number } | null = null;
++  const runQuery = deps?.queryDocsScript ?? runAppleScript;
+ 
+   for (let i = 0; i < maxWaitSeconds; i++) {
+     await new Promise((r) => setTimeout(r, 1000));
+@@ -417,7 +431,7 @@ tell application "Microsoft Word"
+   return out as text
+ end tell
+ `;
+-      const raw = runAppleScript(queryScript, 5000);
++      const raw = runQuery(queryScript, 5000);
+       if (raw) {
+         const rows = raw.split('<#ROW#>');
+         for (const row of rows) {
+@@ -464,6 +478,10 @@ end tell
+   return handle;
+ }
+ 
++export interface WordAutomationExportDeps {
++  runAppleScript?: (script: string, timeoutMs?: number) => string;
++}
++
+ /**
+  * Modular PDF export targeting ONLY our verified document.
+  * Does not close the document; returns explicit success and output path.
+@@ -471,10 +489,12 @@ end tell
+ export function exportTargetDocToPdfOnly(
+   handle: AutomatedWordHandle,
+   outPdfPath: string,
+-  timeoutSeconds: number = 600
++  timeoutSeconds: number = 600,
++  deps?: WordAutomationExportDeps
+ ): { exportSuccess: boolean; pdfPath: string } {
+   validateOwnershipHandle(handle);
+ 
++  const runScript = deps?.runAppleScript ?? runAppleScript;
+   const resolvedPdf = path.resolve(outPdfPath);
+ 
+   // macOS App Sandbox strategy:
+@@ -488,8 +508,10 @@ export function exportTargetDocToPdfOnly(
+ 
+   if (fs.existsSync(path.dirname(wordContainerTmp))) {
+     fs.mkdirSync(wordContainerTmp, { recursive: true });
+-    targetExportPath = path.join(wordContainerTmp, `vr_${handle.runId}_${Date.now()}.pdf`);
++    // Unique naming with strict prefix, runId, and timestamp to eliminate collisions
++    targetExportPath = path.join(wordContainerTmp, `f2w_stage_${handle.runId}_${Date.now()}.pdf`);
+     useContainerStaging = true;
++    handle.stagedPdfPath = targetExportPath;
+   }
+ 
+   const escapedPdf = escapeAppleScript(targetExportPath);
+@@ -537,7 +559,7 @@ end timeout
+ 
+   let res = '';
+   try {
+-    res = runAppleScript(atomicExportScript, (timeoutSeconds + 10) * 1000);
++    res = runScript(atomicExportScript, (timeoutSeconds + 10) * 1000);
+   } catch (err: any) {
+     cleanupStagedFile();
+     transitionLifecycleState(handle, 'uncertain', `Export script failed: ${err.message}`);
+@@ -566,16 +588,25 @@ end timeout
+   return { exportSuccess: true, pdfPath: resolvedPdf };
+ }
+ 
++export interface WordAutomationCloseDeps {
++  runAppleScript?: (script: string, timeoutMs?: number) => string;
++  captureWordState?: () => WordEnvironmentSnapshot;
++}
++
+ /**
+  * Modular document close targeting ONLY our verified document.
+  * Re-queries Word after closing to confirm closure before transitioning to 'close_confirmed'.
+  */
+ export function closeTargetDocOnly(
+   handle: AutomatedWordHandle,
+-  timeoutSeconds: number = 30
++  timeoutSeconds: number = 30,
++  deps?: WordAutomationCloseDeps
+ ): { closeSuccess: boolean } {
+   validateOwnershipHandle(handle);
+ 
++  const runScript = deps?.runAppleScript ?? runAppleScript;
++  const getState = deps?.captureWordState ?? captureWordState;
++
+   const escapedTarget = escapeAppleScript(handle.normalizedPosixPath);
+   transitionLifecycleState(handle, 'close_requested', 'Requesting document close in Word saving no');
+ 
+@@ -609,8 +640,9 @@ with timeout of ${timeoutSeconds} seconds
+ end timeout
+ `;
+ 
++  let closeResult = '';
+   try {
+-    runAppleScript(atomicCloseScript, (timeoutSeconds + 5) * 1000);
++    closeResult = runScript(atomicCloseScript, (timeoutSeconds + 5) * 1000);
+   } catch (err: any) {
+     transitionLifecycleState(handle, 'uncertain', `Close script error: ${err.message}`);
+     throw new Error(`[WordAutomation] AppleScript error during document close: ${err.message}`);
+@@ -619,7 +651,7 @@ end timeout
+   // Confirm document is truly no longer listed in Word
+   let stillOpen = false;
+   try {
+-    const checkState = captureWordState();
++    const checkState = getState();
+     stillOpen = checkState.wordWasRunning && checkState.initialDocumentPaths.includes(handle.normalizedPosixPath);
+   } catch (err: any) {
+     // P0 Fail-Closed: If we cannot query Word state, we CANNOT confirm document closure.
+@@ -637,7 +669,13 @@ end timeout
+     );
+   }
+ 
+-  transitionLifecycleState(handle, 'close_confirmed', 'Confirmed closed in Word');
++  // TARGET_NOT_FOUND handling:
++  // If closeResult was TARGET_NOT_FOUND and document is NOT in Word's open paths,
++  // it was already closed before our close command was issued.
++  const note = closeResult === 'TARGET_NOT_FOUND'
++    ? 'Document already closed (TARGET_NOT_FOUND) and verified absent from Word'
++    : 'Confirmed closed in Word';
++  transitionLifecycleState(handle, 'close_confirmed', note);
+   return { closeSuccess: true };
+ }
+ 
+@@ -667,6 +705,14 @@ export function safeCleanupIsolatedDirectory(handle: AutomatedWordHandle): boole
+     execFileSync('sleep', ['0.15']);
+   } catch {}
+ 
++  // P0 Staging Cleanup (Audit Phase 31.1):
++  // Clean up staged PDF in Word container tmp if one was created during this handle's lifecycle
++  if (handle.stagedPdfPath && fs.existsSync(handle.stagedPdfPath)) {
++    try {
++      fs.rmSync(handle.stagedPdfPath, { force: true });
++    } catch {}
++  }
++
+   if (handle.isolatedDir && fs.existsSync(handle.isolatedDir)) {
+     try {
+       fs.rmSync(handle.isolatedDir, { recursive: true, force: true });
+@@ -791,3 +837,58 @@ export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 10
+ 
+   return { scanned, pruned, preserved };
+ }
++
++/**
++ * Safely prunes orphaned staging PDFs from Microsoft Word's container tmp directory
++ * (~/Library/Containers/com.microsoft.Word/Data/tmp).
++ *
++ * Safety Invariants:
++ * 1. Only inspects and deletes files starting with 'f2w_stage_' and ending with '.pdf'.
++ * 2. Never deletes user files, folders, or staging files younger than maxAgeMs.
++ * 3. Fail-closed: handles missing directory or file access errors gracefully without throwing.
++ */
++export function cleanResidualStagingPdfsSafely(maxAgeMs: number = 30 * 60 * 1000): {
++  scanned: number;
++  pruned: number;
++  preserved: number;
++} {
++  const wordContainerTmp = path.join(os.homedir(), 'Library/Containers/com.microsoft.Word/Data/tmp');
++  if (!fs.existsSync(wordContainerTmp)) {
++    return { scanned: 0, pruned: 0, preserved: 0 };
++  }
++
++  let entries: string[] = [];
++  try {
++    entries = fs.readdirSync(wordContainerTmp);
++  } catch {
++    return { scanned: 0, pruned: 0, preserved: 0 };
++  }
++
++  let scanned = 0;
++  let pruned = 0;
++  let preserved = 0;
++  const now = Date.now();
++
++  for (const entry of entries) {
++    if (!entry.startsWith('f2w_stage_') || !entry.endsWith('.pdf')) continue;
++    scanned++;
++    const fullPath = path.join(wordContainerTmp, entry);
++    try {
++      const stats = fs.statSync(fullPath);
++      if (!stats.isFile()) continue;
++
++      const age = now - stats.mtimeMs;
++      if (age < maxAgeMs) {
++        preserved++;
++        continue;
++      }
++
++      fs.rmSync(fullPath, { force: true });
++      pruned++;
++    } catch {
++      preserved++;
++    }
++  }
++
++  return { scanned, pruned, preserved };
++}

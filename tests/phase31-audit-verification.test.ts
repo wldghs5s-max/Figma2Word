@@ -179,7 +179,8 @@ describe("Phase 31: External Audit Verification & Quality Stabilization", () => 
       const docXml = await zip.file("word/document.xml")!.async("text");
 
       expect(docXml).toContain('<v:roundrect id="s_0_0"');
-      expect(docXml).toContain('arcsize="0.400"');
+      // Phase 31.1: 16 / min(100, 80) = 0.200 (Empirically verified against Word for Mac)
+      expect(docXml).toContain('arcsize="0.200"');
       expect(docXml).toContain('<v:imagedata r:id="rId2"');
     });
   });

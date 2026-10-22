@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:v="urn:schemas-microsoft-com:vml"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+            xmlns:w10="urn:schemas-microsoft-com:office:word"
+            xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+  <w:body>
+    <w:p>
+  <w:pPr>
+  <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
+  <w:autoSpaceDE w:val="0"/>
+  <w:autoSpaceDN w:val="0"/>
+  <w:sectPr>
+    <w:type w:val="nextPage"/>
+    <w:pgSz w:w="21600" w:h="13500" w:orient="landscape"/>
+    <w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/>
+  </w:sectPr>
+</w:pPr>
+  <w:r>
+  <w:pict>
+    <v:rect id="bg_0"
+            style="position:absolute;left:0;top:0;margin-left:0pt;margin-top:0pt;width:1080.000pt;height:675.000pt;z-index:0;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="t"
+            stroked="f"
+            fillcolor="#F5F7FA"/>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_0"
+            alt="header-bg"
+            o:title="Header Navigation Bar"
+            style="position:absolute;left:0;top:0;margin-left:0.000pt;margin-top:0.000pt;width:1080.000pt;height:60.000pt;z-index:1;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="t"
+            fillcolor="#FFFFFF"
+            stroked="t"
+            strokecolor="#E0E8F0"
+            strokeweight="0.75pt"><v:shadow on="t" type="single" color="#000000" offset="0.00pt,1.50pt" opacity="0.05"/>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_1"
+            alt="header-title"
+            o:title="System Title"
+            style="position:absolute;left:0;top:0;margin-left:30.000pt;margin-top:19.500pt;width:324.450pt;height:21.000pt;z-index:2;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;v-text-anchor:middle" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="420" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="33"/>
+    <w:szCs w:val="33"/>
+    <w:color w:val="141F2E"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">클라우드 인프라 통합 관제 센터 2026</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:roundrect id="s_0_2"
+            alt="btn-pill-action"
+            o:title="Primary Pill Button"
+            style="position:absolute;left:0;top:0;margin-left:930.000pt;margin-top:13.500pt;width:120.000pt;height:33.000pt;z-index:3;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            arcsize="0.500" filled="t"
+            fillcolor="#2666F2"
+            stroked="f"
+            
+            ><v:shadow on="t" type="single" color="#2666F2" offset="0.00pt,3.00pt" opacity="0.35"/>
+    </v:roundrect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_3"
+            alt="btn-pill-label"
+            o:title="Button Label"
+            style="position:absolute;left:0;top:0;margin-left:945.000pt;margin-top:13.500pt;width:93.000pt;height:33.000pt;z-index:4;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:f;mso-next-textbox:none;v-text-anchor:middle" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="center"/>
+              <w:spacing w:before="0" w:after="0" w:line="300" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="21"/>
+    <w:szCs w:val="21"/>
+    <w:color w:val="FFFFFF"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">보고서 내보내기</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:shape id="s_0_4"
+            alt="card-asym-01"
+            o:title="KPI Card - Server Health"
+            style="position:absolute;left:0;top:0;margin-left:30.000pt;margin-top:90.000pt;width:315.000pt;height:135.000pt;z-index:5;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            coordsize="3150,1350" path="m 150,0 l 3120,0 c 3137,0,3150,13,3150,30 l 3150,1200 c 3150,1283,3083,1350,3000,1350 l 30,1350 c 13,1350,0,1337,0,1320 l 0,150 c 0,67,67,0,150,0 x e" filled="t"
+            fillcolor="#FFFFFF"
+            stroked="t"
+            strokecolor="#D9E0EB"
+            strokeweight="0.75pt"><v:shadow on="t" type="single" color="#000000" offset="0.00pt,4.50pt" opacity="0.08"/>
+    </v:shape>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_5"
+            alt="kpi-metric-val"
+            o:title="KPI Value"
+            style="position:absolute;left:0;top:0;margin-left:51.000pt;margin-top:112.500pt;width:231.750pt;height:30.000pt;z-index:6;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:t;mso-next-textbox:none;v-text-anchor:top" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="510" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="39"/>
+    <w:szCs w:val="39"/>
+    <w:color w:val="0DA659"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">99.98% 가동률 (SLA 정합)</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_6"
+            alt="kpi-metric-desc"
+            o:title="KPI Description"
+            style="position:absolute;left:0;top:0;margin-left:51.000pt;margin-top:150.000pt;width:270.000pt;height:37.500pt;z-index:7;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:square"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:t;mso-next-textbox:none;v-text-anchor:top" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="300" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="20"/>
+    <w:szCs w:val="20"/>
+    <w:color w:val="667385"/>
+    
+    
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">전체 128개 마이크로서비스 노드가 장애 없이 정상 운영 중입니다. (평균 레이턴시: 24.5ms)</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:roundrect id="s_0_7"
+             alt="card-img-avatar"
+             o:title="Infra Cluster Snapshot"
+             style="position:absolute;left:0;top:0;margin-left:375.000pt;margin-top:90.000pt;width:315.000pt;height:135.000pt;z-index:8;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+             arcsize="0.067" filled="f"
+             stroked="t"
+             strokecolor="#BFD9FA"
+             strokeweight="1.50pt"><v:shadow on="t" type="single" color="#1A3366" offset="0.00pt,6.00pt" opacity="0.12"/>
+      <v:imagedata r:id="rId2" croptop="18725f" cropbottom="18725f" o:title="Infra Cluster Snapshot"/>
+    </v:roundrect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_8"
+            alt="img-overlay-text"
+            o:title="Cluster Region Badge"
+            style="position:absolute;left:0;top:0;margin-left:390.000pt;margin-top:187.500pt;width:216.300pt;height:18.000pt;z-index:9;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:t;mso-next-textbox:none;v-text-anchor:top" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="18"/>
+    <w:szCs w:val="18"/>
+    <w:color w:val="FFFFFF"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">서울 리전 (ap-northeast-2) 이중화 완료</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:roundrect id="s_0_9"
+            alt="card-dashed-03"
+            o:title="Pending Tasks Card"
+            style="position:absolute;left:0;top:0;margin-left:720.000pt;margin-top:90.000pt;width:330.000pt;height:135.000pt;z-index:10;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            arcsize="0.067" filled="t"
+            fillcolor="#FFFFFF"
+            stroked="t"
+            strokecolor="#99A6B8"
+            strokeweight="1.13pt"><v:stroke dashstyle="dash"/><v:fill opacity="0.70"/>
+    </v:roundrect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_0_10"
+            alt="dashed-card-title"
+            o:title="Card Title"
+            style="position:absolute;left:0;top:0;margin-left:742.500pt;margin-top:112.500pt;width:293.550pt;height:18.000pt;z-index:11;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:t;mso-next-textbox:none;v-text-anchor:top" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="330" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="26"/>
+    <w:szCs w:val="26"/>
+    <w:color w:val="334052"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">보안 취약점 자동 점검 (진행중: 3건)</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+</w:p>
+<w:p>
+  <w:pPr>
+  <w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>
+  <w:autoSpaceDE w:val="0"/>
+  <w:autoSpaceDN w:val="0"/>
+</w:pPr>
+  <w:r>
+  <w:pict>
+    <v:rect id="bg_1"
+            style="position:absolute;left:0;top:0;margin-left:0pt;margin-top:0pt;width:1584.000pt;height:1188.000pt;z-index:0;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="t"
+            stroked="f"
+            fillcolor="#FAFAFC"/>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:rect id="s_1_0"
+            alt="topo-title"
+            o:title="Topology Title"
+            style="position:absolute;left:0;top:0;margin-left:49.500pt;margin-top:49.500pt;width:611.820pt;height:39.600pt;z-index:1;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            filled="f"
+            
+            stroked="f"
+            
+            >
+      <v:textbox style="mso-fit-shape-to-text:t;mso-next-textbox:none;v-text-anchor:top" inset="0.00pt,0.00pt,0.00pt,0.00pt">
+        <w:txbxContent>
+          <w:p>
+            <w:pPr>
+              <w:wordWrap w:val="0"/>
+              <w:jc w:val="left"/>
+              <w:spacing w:before="0" w:after="0" w:line="693" w:lineRule="exact"/>
+              <w:contextualSpacing w:val="0"/>
+              <w:autoSpaceDE w:val="0"/>
+              <w:autoSpaceDN w:val="0"/>
+            </w:pPr>
+            <w:r>
+  <w:rPr>
+    <w:rFonts w:ascii="Pretendard" w:hAnsi="Pretendard" w:eastAsia="Pretendard" w:cs="Pretendard"/>
+    <w:sz w:val="53"/>
+    <w:szCs w:val="53"/>
+    <w:color w:val="1A1A33"/>
+    
+    <w:b/>
+    
+    
+    
+  </w:rPr>
+  <w:t xml:space="preserve">글로벌 멀티 클라우드 망 연계 아키텍처 다이어그램</w:t>
+</w:r>
+          </w:p>
+        </w:txbxContent>
+      </v:textbox>
+    </v:rect>
+  </w:pict>
+</w:r>
+  <w:r>
+  <w:pict>
+    <v:roundrect id="s_1_1"
+            alt="topo-card-node-1"
+            o:title="K8s Node"
+            style="position:absolute;left:0;top:0;margin-left:49.500pt;margin-top:148.500pt;width:396.000pt;height:247.500pt;z-index:2;mso-position-horizontal-relative:page;mso-position-vertical-relative:page;mso-wrap-style:none"
+            arcsize="0.064" filled="t"
+            fillcolor="#FFFFFF"
+            stroked="t"
+            strokecolor="#3366CC"
+            strokeweight="1.98pt"><v:shadow on="t" type="single" color="#000000" offset="0.00pt,5.94pt" opacity="0.15"/>
+    </v:roundrect>
+  </w:pict>
+</w:r>
+</w:p>
+    <w:sectPr>
+  <w:pgSz w:w="31680" w:h="23760" w:orient="landscape"/>
+  <w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/>
+</w:sectPr>
+  </w:body>
+</w:document>

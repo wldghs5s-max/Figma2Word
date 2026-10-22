@@ -8,8 +8,8 @@ import { FigmaNode } from "../src/parser/types.js";
 describe("Phase 26: Universal Rendering & Fidelity Improvements", () => {
   it("1. Accurately calculates VML arcsize using half-dimension radius formula", async () => {
     // Button with height: 40pt, width: 200pt, cornerRadius: 8pt
-    // Correct VML arcsize = min(0.5, (2 * 8) / min(200, 40)) = 16 / 40 = 0.400
-    // (Legacy buggy formula gave 8 / 40 = 0.200, cutting the curve in half!)
+    // Phase 31.1 Empirical Word Measurement: Word for Mac renders R = arcsize * minDim.
+    // Therefore, arcsize = min(0.5, 8 / min(200, 40)) = 8 / 40 = 0.200.
     const syntheticDoc: CanvasDocument = {
       title: "VML ArcSize Fidelity",
       pageSize: { name: "A4", widthPt: 841.89, heightPt: 595.28, orientation: "landscape", unit: "pt" },
@@ -40,8 +40,8 @@ describe("Phase 26: Universal Rendering & Fidelity Improvements", () => {
     const zip = await JSZip.loadAsync(buffer);
     const docXml = await zip.file("word/document.xml")!.async("text");
 
-    // Must match arcsize="0.400"
-    expect(docXml).toContain('arcsize="0.400"');
+    // Must match arcsize="0.200"
+    expect(docXml).toContain('arcsize="0.200"');
   });
 
   it("2. Protects normal 'Container' UI groups from accidental false-positive deletion", () => {

@@ -663,7 +663,9 @@ export class DocxCanvasRenderer {
       let imgShapeExtraAttrs = "";
       if (imgRadius > 0) {
         imgTag = "v:roundrect";
-        imgShapeExtraAttrs = `arcsize="${Math.min(0.5, (2 * imgRadius) / minImgDim).toFixed(3)}" `;
+        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
+        // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
+        imgShapeExtraAttrs = `arcsize="${Math.min(0.5, imgRadius / minImgDim).toFixed(3)}" `;
       }
 
       const imgHasFill = !!imgStyleObj.fillColor && imgStyleObj.fillColor !== "none";
@@ -747,9 +749,11 @@ export class DocxCanvasRenderer {
       const isRound = scalarRadius > 0;
       tag = isRound ? "v:roundrect" : "v:rect";
       if (isRound) {
+        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
+        // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
         extraShapeAttrs = `arcsize="${Math.min(
           0.5,
-          (2 * scalarRadius) / minDim
+          scalarRadius / minDim
         ).toFixed(3)}" `;
       }
     }

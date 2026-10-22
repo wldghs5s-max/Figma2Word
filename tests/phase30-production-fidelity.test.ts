@@ -179,8 +179,8 @@ describe("Phase 30: Production Visual Fidelity & Automation Lifecycle Suite", ()
 
       // Verify rounded rect tag used for image
       expect(docXml).toContain("<v:roundrect");
-      // Verify arcsize = min(0.5, (2 * 16) / 80) = 32 / 80 = 0.400
-      expect(docXml).toContain('arcsize="0.400"');
+      // Verify arcsize = min(0.5, 16 / 80) = 0.200 (Empirically measured against Word for Mac)
+      expect(docXml).toContain('arcsize="0.200"');
       // Verify stroke applied to image
       expect(docXml).toContain('stroked="t"');
       expect(docXml).toContain('strokecolor="#3B82F6"');
