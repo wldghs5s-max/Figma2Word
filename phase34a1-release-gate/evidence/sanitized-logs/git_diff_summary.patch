@@ -1,0 +1,1514 @@
+diff --git a/src/api/networkMode.ts b/src/api/networkMode.ts
+index bde97fa..7325839 100644
+--- a/src/api/networkMode.ts
++++ b/src/api/networkMode.ts
+@@ -81,13 +81,13 @@ export function assertFigmaNetworkAllowed(params: NetworkPermissionParams): void
+ }
+ 
+ /**
+- * Masks secret access tokens for logs and diagnostics (Backward-compatible).
++ * Masks secret access tokens for logs and diagnostics.
++ * Hardened for Phase 34A.1 (GATE-04): Strictly redacts token without leaking ANY identifying substrings.
++ * Unifies maskToken() with sanitizeSecret() to guarantee zero leakage.
+  */
+ export function maskToken(token?: string): string {
+-  if (!token) return "<none>";
+-  const trimmed = token.trim();
+-  if (trimmed.length <= 8) return "********";
+-  return `${trimmed.substring(0, 4)}...${trimmed.substring(trimmed.length - 4)}`;
++  if (!token || token.trim().length === 0) return "<none>";
++  return "***MASKED_SECRET***";
+ }
+ 
+ /**
+@@ -97,3 +97,17 @@ export function sanitizeSecret(secret?: string): string {
+   if (!secret || secret.trim().length === 0) return "<none>";
+   return "***MASKED_SECRET***";
+ }
++
++/**
++ * Scans a text message, error message, or log string and redacts all instances of the secret token
++ * as well as common credential header patterns (Phase 34A.1 / GATE-04).
++ */
++export function redactSecretFromText(text: string, secret?: string): string {
++  if (!text || typeof text !== "string") return String(text ?? "");
++  let result = text;
++  if (secret && secret.trim().length > 0) {
++    result = result.replaceAll(secret.trim(), "***MASKED_SECRET***");
++  }
++  result = result.replace(/(?:X-Figma-Token|Bearer)\s*[:=]\s*[^\s,;"]+/gi, "X-Figma-Token: ***MASKED_SECRET***");
++  return result;
++}
+diff --git a/src/api/oneShotCapture.ts b/src/api/oneShotCapture.ts
+index 7b1b25e..1d01939 100644
+--- a/src/api/oneShotCapture.ts
++++ b/src/api/oneShotCapture.ts
+@@ -8,6 +8,7 @@ import {
+   getFigmaNetworkMode,
+   assertFigmaNetworkAllowed,
+   maskToken,
++  redactSecretFromText,
+ } from "./networkMode.js";
+ import {
+   CacheManifest,
+@@ -17,6 +18,11 @@ import {
+   registerCacheEntry,
+   computeFileSha256,
+   getFigmaReferenceDetailed,
++  writeJournalEntry,
++  removeJournalEntry,
++  cleanupStaleTempFiles,
++  recoverPendingJournals,
++  isPathInsideDirectory,
+ } from "../cache/cacheManifest.js";
+ import { validateSecureCdnUrl } from "./urlSecurity.js";
+ import { validatePngBuffer } from "../cache/pngValidator.js";
+@@ -90,9 +96,257 @@ export interface OneShotCaptureResult {
+ 
+ export { maskToken };
+ 
++export interface SecureCdnFetchResult {
++  ok: boolean;
++  status: number;
++  buffer?: Buffer;
++  error?: string;
++  isRateLimit?: boolean;
++  isAuthError?: boolean;
++  redirectCount: number;
++  redirectChain: string[];
++  finalUrl: string;
++}
++
++/**
++ * Downloads CDN image with explicit, manual redirect tracking and SSRF defense (Phase 34A.1 / GATE-02).
++ * - redirect: "manual" prevents standard fetch from following redirects invisibly.
++ * - Every redirect hop (301, 302, 303, 307, 308) is re-validated via validateSecureCdnUrl().
++ * - HTTPS -> HTTP protocol downgrade is strictly blocked.
++ * - Target loopback, localhost, and cloud metadata addresses are blocked.
++ * - Redirect loops and excess redirect hops (> maxRedirects) are rejected.
++ * - Never sends Authorization or X-Figma-Token to CDN endpoints.
++ */
++export async function fetchCdnImageWithSecureRedirects(
++  initialUrl: string,
++  fetchImpl: typeof fetch,
++  options?: {
++    maxRedirects?: number;
++    timeoutMs?: number;
++    maxBytes?: number;
++  }
++): Promise<SecureCdnFetchResult> {
++  const maxRedirects = options?.maxRedirects ?? 3;
++  const timeoutMs = options?.timeoutMs ?? 30000;
++  const maxBytes = options?.maxBytes ?? 50 * 1024 * 1024;
++
++  let currentUrl = initialUrl;
++  const redirectChain: string[] = [];
++  const visitedUrls = new Set<string>([initialUrl]);
++
++  while (true) {
++    // 1. SSRF and Domain Security validation for current hop
++    const check = validateSecureCdnUrl(currentUrl);
++    if (!check.valid) {
++      return {
++        ok: false,
++        status: 0,
++        error: `SSRF validation failed for URL '${currentUrl}': ${check.reason}`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    const controller = new AbortController();
++    const timer = setTimeout(() => controller.abort(), timeoutMs);
++
++    let res: Response;
++    try {
++      res = await fetchImpl(currentUrl, {
++        method: "GET",
++        headers: {
++          Accept: "image/png,*/*",
++        },
++        redirect: "manual", // Strictly disable auto-follow
++        signal: controller.signal,
++      });
++    } catch (err: any) {
++      clearTimeout(timer);
++      if (err.name === "AbortError") {
++        return {
++          ok: false,
++          status: 408,
++          error: `Download timed out after ${timeoutMs}ms for '${currentUrl}'`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++      return {
++        ok: false,
++        status: 0,
++        error: `Network error downloading from '${currentUrl}': ${err.message}`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    } finally {
++      clearTimeout(timer);
++    }
++
++    const status = res.status ?? (res.ok ? 200 : 500);
++
++    // 2. Check for redirect responses
++    if ([301, 302, 303, 307, 308].includes(status)) {
++      if (redirectChain.length >= maxRedirects) {
++        return {
++          ok: false,
++          status,
++          error: `Exceeded maximum redirect limit (${maxRedirects}) while downloading CDN image`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      const location = res.headers?.get ? res.headers.get("location") : (res.headers as any)?.location;
++      if (!location) {
++        return {
++          ok: false,
++          status,
++          error: `Redirect response (HTTP ${status}) missing 'Location' header`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      let destUrl: string;
++      try {
++        destUrl = new URL(location, currentUrl).href;
++      } catch {
++        return {
++          ok: false,
++          status,
++          error: `Malformed redirect Location header '${location}'`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      // Check protocol downgrade
++      const destParsed = new URL(destUrl);
++      if (destParsed.protocol !== "https:") {
++        return {
++          ok: false,
++          status,
++          error: `Insecure protocol downgrade forbidden: redirect target '${destUrl}' is not HTTPS`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      // Detect redirect loops
++      if (visitedUrls.has(destUrl)) {
++        return {
++          ok: false,
++          status,
++          error: `Redirect loop detected at '${destUrl}'`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      // Immediate re-validation against SSRF
++      const destValidation = validateSecureCdnUrl(destUrl);
++      if (!destValidation.valid) {
++        return {
++          ok: false,
++          status,
++          error: `Insecure redirect destination blocked: ${destValidation.reason}`,
++          redirectCount: redirectChain.length,
++          redirectChain,
++          finalUrl: currentUrl,
++        };
++      }
++
++      redirectChain.push(currentUrl);
++      visitedUrls.add(destUrl);
++      currentUrl = destUrl;
++      continue; // Follow next hop safely
++    }
++
++    // 3. Fail-Fast on Rate Limiting (429) or Access Denied (401/403)
++    if (status === 429) {
++      return {
++        ok: false,
++        status: 429,
++        isRateLimit: true,
++        error: "CDN Rate Limit (429) encountered. Immediately halting capture with Fail-Fast.",
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    if (status === 401 || status === 403) {
++      return {
++        ok: false,
++        status,
++        isAuthError: true,
++        error: `CDN access denied with HTTP ${status}. Halting capture with Fail-Fast.`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    if (!res.ok) {
++      return {
++        ok: false,
++        status,
++        error: `CDN server returned HTTP ${status}`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    // 4. Read body buffer and check size limit
++    const cl = res.headers?.get ? res.headers.get("content-length") : (res.headers as any)?.["content-length"];
++    if (cl && parseInt(cl, 10) > maxBytes) {
++      return {
++        ok: false,
++        status: 200,
++        error: `CDN image Content-Length (${cl} bytes) exceeds maximum limit (${maxBytes} bytes)`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    const arrayBuffer = await res.arrayBuffer();
++    const buffer = Buffer.from(arrayBuffer);
++
++    if (buffer.length > maxBytes) {
++      return {
++        ok: false,
++        status: 200,
++        error: `CDN image buffer size (${buffer.length} bytes) exceeds maximum limit (${maxBytes} bytes)`,
++        redirectCount: redirectChain.length,
++        redirectChain,
++        finalUrl: currentUrl,
++      };
++    }
++
++    return {
++      ok: true,
++      status: 200,
++      buffer,
++      redirectCount: redirectChain.length,
++      redirectChain,
++      finalUrl: currentUrl,
++    };
++  }
++}
++
+ /**
+- * Plans a one-shot capture operation without initiating any network activity (Phase 34A).
+- * Integrates deep cache validation to prevent false hits on corrupted or missing files.
++ * Plans a one-shot capture operation without initiating any network activity.
++ * Hardened for Phase 34A.1 (GATE-03): Always supplies allowedCacheDir to enforce path isolation.
+  */
+ export function planOneShotCapture(
+   options: OneShotCaptureOptions,
+@@ -107,9 +361,15 @@ export function planOneShotCapture(
+   const targetFrames: TargetFrameItem[] = [];
+   const toFetchNodeIds: string[] = [];
+ 
++  const allowedCacheDir =
++    options.outputDir ||
++    (options.manifestPath ? path.dirname(path.resolve(options.manifestPath)) : undefined);
++
+   for (const node of targetNodes) {
+-    // Deep verification: only treat as cached if status is strictly 'VALID'
+-    const lookup = getFigmaReferenceDetailed(manifest, fileKey, node.nodeId);
++    // Deep verification with enforced cache root
++    const lookup = getFigmaReferenceDetailed(manifest, fileKey, node.nodeId, {
++      allowedCacheDir,
++    });
+     const isCached = lookup.status === "VALID";
+ 
+     targetFrames.push({
+@@ -149,18 +409,7 @@ export function planOneShotCapture(
+ }
+ 
+ /**
+- * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A Hardening.
+- *
+- * Safety Invariants:
+- * 1. ZERO network calls by default (dryRun: true or confirmExecution !== true).
+- * 2. Unified assertFigmaNetworkAllowed() check enforced on BOTH API calls and CDN downloads.
+- * 3. Strict SSRF & CDN URL validation (HTTPS only, no private/loopback/cloud metadata IP).
+- * 4. Never sends authorization headers to third-party or CDN domains.
+- * 5. Validates PNG signature, IHDR structure, dimension limits, and HTML/JSON error rejection.
+- * 6. Atomic temporary file download and replacement.
+- * 7. Enforces strict request budgets for API, CDN, and Total HTTP requests.
+- * 8. Immediate Fail-Fast abort on HTTP 429, 401, or 403.
+- * 9. Safe token masking in all diagnostic logging.
++ * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A.1 Hardening & Failure Recovery.
+  */
+ export async function executeOneShotCapture(
+   options: OneShotCaptureOptions
+@@ -260,11 +509,16 @@ export async function executeOneShotCapture(
+     fs.mkdirSync(outputDir, { recursive: true });
+   }
+ 
++  // Clean up any stale temp files and recover pending journals from previous crash
++  cleanupStaleTempFiles(outputDir);
++  recoverPendingJournals(outputDir, manifest, manifestPath);
++
+   let apiCallsCount = 0;
+   let cdnDownloadsCount = 0;
+   const capturedEntries: CacheEntry[] = [];
+   const errors: string[] = [];
+   let abortedDueToRateLimit = false;
++  let abortedDueToAuth = false;
+   let budgetExceeded = false;
+ 
+   // Split toFetchNodeIds into batches
+@@ -312,7 +566,7 @@ export async function executeOneShotCapture(
+       break;
+     }
+ 
+-    // Fail-fast error handlers
++    // Fail-fast error handlers on API response
+     if (apiRes.status === 429) {
+       abortedDueToRateLimit = true;
+       errors.push("Figma API Rate Limit (429) encountered. Immediately halting capture with Fail-Fast.");
+@@ -320,6 +574,7 @@ export async function executeOneShotCapture(
+     }
+ 
+     if (apiRes.status === 401 || apiRes.status === 403) {
++      abortedDueToAuth = true;
+       errors.push(`Figma images API authentication failed with HTTP ${apiRes.status}`);
+       break;
+     }
+@@ -346,7 +601,7 @@ export async function executeOneShotCapture(
+         continue;
+       }
+ 
+-      // 1. Validate URL security (SSRF & Protocol protection)
++      // 1. Initial URL security check (SSRF & Protocol protection)
+       const urlValidation = validateSecureCdnUrl(imgUrl);
+       if (!urlValidation.valid) {
+         errors.push(`Blocked insecure CDN download URL for node '${nodeId}': ${urlValidation.reason}`);
+@@ -371,45 +626,74 @@ export async function executeOneShotCapture(
+       cdnDownloadsCount++;
+ 
+       let tempFilePath: string | null = null;
++      let journalFilePath: string | null = null;
+       try {
+-        // Critical Security: Do NOT pass X-Figma-Token to CDN endpoints!
+-        const dlRes = await fetchImpl(imgUrl, {
+-          method: "GET",
+-          headers: {
+-            Accept: "image/png,*/*",
+-          },
+-        });
++        // Download via secure redirect fetcher (manual redirect, no auth headers, SSRF re-validated on hops)
++        const dlResult = await fetchCdnImageWithSecureRedirects(imgUrl, fetchImpl);
++
++        // Fail-Fast check on CDN response (GATE-05)
++        if (dlResult.isRateLimit) {
++          abortedDueToRateLimit = true;
++          errors.push(dlResult.error || `CDN rate limit (429) encountered on node '${nodeId}'`);
++          break; // Halt entire capture immediately
++        }
++
++        if (dlResult.isAuthError) {
++          abortedDueToAuth = true;
++          errors.push(dlResult.error || `CDN access denied (HTTP ${dlResult.status}) on node '${nodeId}'`);
++          break; // Halt entire capture immediately
++        }
+ 
+-        if (!dlRes.ok) {
+-          errors.push(`Failed to download image for node '${nodeId}': HTTP ${dlRes.status}`);
++        if (!dlResult.ok || !dlResult.buffer) {
++          errors.push(dlResult.error || `Failed to download image for node '${nodeId}': HTTP ${dlResult.status}`);
+           continue;
+         }
+ 
+-        const arrayBuffer = await dlRes.arrayBuffer();
+-        const buffer = Buffer.from(arrayBuffer);
++        const buffer = dlResult.buffer;
+ 
+-        // 4. Validate PNG binary integrity BEFORE moving to cache
++        // 4. Validate PNG binary integrity (GATE-01 deep validation: IHDR, CRC, IDAT decompression, IEND)
+         const pngResult = validatePngBuffer(buffer);
+         if (!pngResult.valid) {
+           errors.push(`Downloaded data for node '${nodeId}' is not a valid PNG: ${pngResult.reason}`);
+           continue;
+         }
+ 
+-        // 5. Atomic write: write to unique temp file, then atomic rename
++        // 5. Pre-write path verification: ensure files stay strictly inside outputDir
+         const safeNodeId = nodeId.replace(/[:\/]/g, "_");
+         tempFilePath = path.join(outputDir, `.tmp_${safeNodeId}_${Date.now()}.png`);
+         const outFileName = `frame_${safeNodeId}.png`;
+         const finalFilePath = path.join(outputDir, outFileName);
+ 
++        if (!isPathInsideDirectory(tempFilePath, outputDir) || !isPathInsideDirectory(finalFilePath, outputDir)) {
++          errors.push(`Path traversal blocked during cache write for node '${nodeId}'`);
++          continue;
++        }
++
++        // 6. Write temporary file and compute SHA-256
+         fs.writeFileSync(tempFilePath, buffer);
++        const sha256 = computeFileSha256(tempFilePath);
++        const meta = targetNodeLookup.get(nodeId);
++
++        // 7. Write transaction journal before moving to final path (Method B/C recovery protection)
++        journalFilePath = path.join(outputDir, `.journal_${safeNodeId}.json`);
++        writeJournalEntry(journalFilePath, {
++          fileKey: plan.fileKey,
++          nodeId,
++          frameName: meta?.frameName || `Frame ${nodeId}`,
++          width: pngResult.width ?? meta?.width ?? 0,
++          height: pngResult.height ?? meta?.height ?? 0,
++          imagePath: finalFilePath,
++          expectedSha256: sha256,
++          fileSizeBytes: buffer.length,
++          capturedAt: new Date().toISOString(),
++          captureMethod: "figma_rest_api_v1_images_one_shot",
++          status: "PENDING_COMMIT",
++        });
+ 
+-        // Atomic move
++        // 8. Atomic move to final cache location
+         fs.renameSync(tempFilePath, finalFilePath);
+         tempFilePath = null; // Successfully transferred
+ 
+-        const sha256 = computeFileSha256(finalFilePath);
+-        const meta = targetNodeLookup.get(nodeId);
+-
+         const entry: CacheEntry = {
+           sourceType: "FIGMA_REFERENCE",
+           fileKey: plan.fileKey,
+@@ -430,8 +714,14 @@ export async function executeOneShotCapture(
+           },
+         };
+ 
++        // 9. Frame-by-frame commit (Method A): Register entry and save manifest immediately!
+         registerCacheEntry(manifest, entry);
++        saveCacheManifest(manifest, manifestPath);
+         capturedEntries.push(entry);
++
++        // 10. Clean up journal after successful manifest commit
++        removeJournalEntry(journalFilePath);
++        journalFilePath = null;
+       } catch (dlErr: any) {
+         errors.push(`Error downloading image for node '${nodeId}': ${dlErr.message}`);
+       } finally {
+@@ -444,16 +734,11 @@ export async function executeOneShotCapture(
+       }
+     }
+ 
+-    if (abortedDueToRateLimit || budgetExceeded) {
++    if (abortedDueToRateLimit || abortedDueToAuth || budgetExceeded) {
+       break;
+     }
+   }
+ 
+-  // Atomically persist manifest if any new entries were successfully captured
+-  if (capturedEntries.length > 0) {
+-    saveCacheManifest(manifest, manifestPath);
+-  }
+-
+   let finalStatus: CaptureExecutionStatus = "COMPLETED";
+   if (abortedDueToRateLimit) {
+     finalStatus = "RATE_LIMITED";
+@@ -463,14 +748,14 @@ export async function executeOneShotCapture(
+ 
+   return {
+     status: finalStatus,
+-    success: errors.length === 0 && !abortedDueToRateLimit && !budgetExceeded,
++    success: errors.length === 0 && !abortedDueToRateLimit && !abortedDueToAuth && !budgetExceeded,
+     dryRun: false,
+     plan,
+     actualFigmaApiCalls: apiCallsCount,
+     actualCdnDownloads: cdnDownloadsCount,
+     totalHttpRequests: apiCallsCount + cdnDownloadsCount,
+     capturedEntries,
+-    errors,
++    errors: errors.map((e) => redactSecretFromText(e, options.accessToken)),
+     abortedDueToRateLimit,
+     budgetExceeded,
+   };
+diff --git a/src/api/urlSecurity.ts b/src/api/urlSecurity.ts
+index 9209b38..57f9e31 100644
+--- a/src/api/urlSecurity.ts
++++ b/src/api/urlSecurity.ts
+@@ -1,32 +1,38 @@
+ /**
+  * Validates external download URLs against SSRF, internal network traversal,
+- * protocol smuggling, and cloud metadata access (Phase 34A).
++ * protocol smuggling, and cloud metadata access.
++ * Hardened for Phase 34A.1 (GATE-02).
+  */
+ 
+-const TRUSTED_CDN_SUFFIXES = [
++export const TRUSTED_CDN_SUFFIXES = [
+   "figma.com",
+   "amazonaws.com",
+   "cloudfront.net",
+   "figma-alpha.s3.amazonaws.com",
+ ];
+ 
++export interface UrlSecurityOptions {
++  allowedDomains?: string[];
++  allowStandardPortsOnly?: boolean; // default true (only port 443 or default)
++}
++
+ /**
+- * Checks if an IPv4 address string falls into private, loopback, or link-local ranges.
++ * Checks if an IPv4 address string falls into private, loopback, link-local, or reserved ranges.
+  */
+-function isPrivateOrReservedIpv4(ip: string): boolean {
++export function isPrivateOrReservedIpv4(ip: string): boolean {
+   const parts = ip.split(".").map((p) => parseInt(p, 10));
+   if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
+     return true; // Malformed IP: treat as unsafe
+   }
+ 
+   const [b0, b1] = parts;
+-  // 0.0.0.0/8 (Current network)
++  // 0.0.0.0/8 (Current network / "this" network)
+   if (b0 === 0) return true;
+   // 127.0.0.0/8 (Loopback)
+   if (b0 === 127) return true;
+   // 10.0.0.0/8 (Private)
+   if (b0 === 10) return true;
+-  // 172.16.0.0/12 (Private: 172.16 - 172.31)
++  // 172.16.0.0/12 (Private: 172.16.0.0 - 172.31.255.255)
+   if (b0 === 172 && b1 >= 16 && b1 <= 31) return true;
+   // 192.168.0.0/16 (Private)
+   if (b0 === 192 && b1 === 168) return true;
+@@ -34,14 +40,42 @@ function isPrivateOrReservedIpv4(ip: string): boolean {
+   if (b0 === 169 && b1 === 254) return true;
+   // 100.64.0.0/10 (Carrier-grade NAT)
+   if (b0 === 100 && b1 >= 64 && b1 <= 127) return true;
++  // 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 (TEST-NET)
++  if (b0 === 192 && b1 === 0 && parts[2] === 2) return true;
++  if (b0 === 198 && b1 === 51 && parts[2] === 100) return true;
++  if (b0 === 203 && b1 === 0 && parts[2] === 113) return true;
++  // 224.0.0.0/4 (Multicast)
++  if (b0 >= 224 && b0 <= 239) return true;
++  // 240.0.0.0/4 (Reserved / Future use)
++  if (b0 >= 240) return true;
+ 
+   return false;
+ }
+ 
++/**
++ * Checks if an IPv6 address string falls into loopback, unique local, link-local, or IPv4-mapped ranges.
++ */
++export function isPrivateOrReservedIpv6(cleanIpv6: string): boolean {
++  const lower = cleanIpv6.toLowerCase();
++  if (lower === "::1" || lower === "0:0:0:0:0:0:0:1" || lower === "::") return true;
++  if (lower.startsWith("fe80:") || lower.startsWith("fe8") || lower.startsWith("fe9") || lower.startsWith("fea") || lower.startsWith("feb")) return true; // Link-local
++  if (lower.startsWith("fc00:") || lower.startsWith("fd00:") || lower.startsWith("fc") || lower.startsWith("fd")) return true; // Unique local
++  if (lower.startsWith("::ffff:")) {
++    // IPv4-mapped IPv6 address (e.g. ::ffff:127.0.0.1)
++    const ipv4Part = lower.replace("::ffff:", "");
++    if (ipv4Part.includes(".") && isPrivateOrReservedIpv4(ipv4Part)) return true;
++  }
++  return false;
++}
++
+ /**
+  * Validates that an image download URL is strictly secure and safe to fetch.
++ * Protects against SSRF, internal network scans, loopbacks, cloud metadata, and protocol smuggling.
+  */
+-export function validateSecureCdnUrl(urlStr: string): { valid: boolean; reason?: string } {
++export function validateSecureCdnUrl(
++  urlStr: string,
++  options?: UrlSecurityOptions
++): { valid: boolean; reason?: string } {
+   if (!urlStr || typeof urlStr !== "string") {
+     return { valid: false, reason: "Download URL must be a non-empty string" };
+   }
+@@ -53,7 +87,7 @@ export function validateSecureCdnUrl(urlStr: string): { valid: boolean; reason?:
+     return { valid: false, reason: `Malformed URL: ${urlStr}` };
+   }
+ 
+-  // 1. Protocol MUST be HTTPS
++  // 1. Protocol MUST be HTTPS (Reject HTTP, FTP, file:, data:, gopher:, etc.)
+   if (parsed.protocol !== "https:") {
+     return {
+       valid: false,
+@@ -76,21 +110,34 @@ export function validateSecureCdnUrl(urlStr: string): { valid: boolean; reason?:
+     return { valid: false, reason: "URL hostname cannot be empty." };
+   }
+ 
+-  // 4. Reject localhost and loopbacks
++  // 4. Reject non-standard HTTPS port (prevents port scanning of internal services)
++  const port = parsed.port;
++  const allowStandardOnly = options?.allowStandardPortsOnly ?? true;
++  if (allowStandardOnly && port && port !== "443" && port !== "") {
++    return {
++      valid: false,
++      reason: `Non-standard port '${port}' is forbidden for secure CDN access. Only port 443 is permitted.`,
++    };
++  }
++
++  // 5. Reject localhost, 0.0.0.0, and loopbacks
+   if (
+     hostname === "localhost" ||
+     hostname === "127.0.0.1" ||
+     hostname === "::1" ||
+     hostname === "[::1]" ||
+-    hostname === "0.0.0.0"
++    hostname === "0.0.0.0" ||
++    hostname.endsWith(".localhost") ||
++    hostname.endsWith(".local") ||
++    hostname.endsWith(".internal")
+   ) {
+     return {
+       valid: false,
+-      reason: `Forbidden target: Loopback/localhost '${hostname}' is rejected.`,
++      reason: `Forbidden target: Loopback/local domain '${hostname}' is rejected.`,
+     };
+   }
+ 
+-  // 5. Check if hostname is an IPv4 literal
++  // 6. Check if hostname is an IPv4 literal
+   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+     if (isPrivateOrReservedIpv4(hostname)) {
+       return {
+@@ -100,24 +147,20 @@ export function validateSecureCdnUrl(urlStr: string): { valid: boolean; reason?:
+     }
+   }
+ 
+-  // 6. Check if hostname is an IPv6 literal
++  // 7. Check if hostname is an IPv6 literal
+   if (hostname.startsWith("[") || hostname.includes(":")) {
+     const cleanIpv6 = hostname.replace(/^\[|\]$/g, "");
+-    if (
+-      cleanIpv6 === "::1" ||
+-      cleanIpv6.startsWith("fe80:") ||
+-      cleanIpv6.startsWith("fc00:") ||
+-      cleanIpv6.startsWith("fd00:")
+-    ) {
++    if (isPrivateOrReservedIpv6(cleanIpv6)) {
+       return {
+         valid: false,
+-        reason: `Forbidden target: Private or link-local IPv6 address '${hostname}'.`,
++        reason: `Forbidden target: Private, link-local, or loopback IPv6 address '${hostname}'.`,
+       };
+     }
+   }
+ 
+-  // 7. Verify hostname against trusted CDN suffixes
+-  const isTrustedHost = TRUSTED_CDN_SUFFIXES.some(
++  // 8. Verify hostname against trusted CDN suffixes
++  const allowed = options?.allowedDomains || TRUSTED_CDN_SUFFIXES;
++  const isTrustedHost = allowed.some(
+     (suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`)
+   );
+ 
+diff --git a/src/cache/cacheManifest.ts b/src/cache/cacheManifest.ts
+index f8d385d..d2b9d88 100644
+--- a/src/cache/cacheManifest.ts
++++ b/src/cache/cacheManifest.ts
+@@ -2,7 +2,17 @@ import * as fs from "fs";
+ import * as path from "path";
+ import * as crypto from "crypto";
+ import { validatePngBuffer } from "./pngValidator.js";
+-import { isPathInsideDirectory } from "../../tools/visual-regression/safe_word_automation.js";
++
++/**
++ * Checks if targetPath is inside parentDir (or identical to it), preventing directory traversal.
++ */
++export function isPathInsideDirectory(targetPath: string, parentDir: string): boolean {
++  const normTarget = path.resolve(targetPath);
++  const normParent = path.resolve(parentDir);
++  if (normTarget === normParent) return true;
++  const rel = path.relative(normParent, normTarget);
++  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
++}
+ 
+ export type CacheSourceType =
+   | "FIGMA_REFERENCE" // Genuine original frame image rendered by Figma
+@@ -66,6 +76,31 @@ export interface DetailedLookupResult {
+   resolvedPath?: string;
+ }
+ 
++export const DEFAULT_CACHE_DIR_NAME = "debug/cache";
++
++/**
++ * Returns canonical default cache root path.
++ */
++export function getDefaultCacheRoot(baseDir: string = process.cwd()): string {
++  return path.resolve(baseDir, DEFAULT_CACHE_DIR_NAME);
++}
++
++/**
++ * Validates that an identifier does not contain path traversal characters.
++ */
++export function isValidIdentifier(id: string): boolean {
++  if (!id || typeof id !== "string") return false;
++  if (
++    id.includes("..") ||
++    id.includes("/") ||
++    id.includes("\\") ||
++    id.includes("\0")
++  ) {
++    return false;
++  }
++  return true;
++}
++
+ /**
+  * Creates a new blank cache manifest
+  */
+@@ -114,7 +149,7 @@ export function saveCacheManifest(manifest: CacheManifest, manifestPath: string)
+   if (!fs.existsSync(dir)) {
+     fs.mkdirSync(dir, { recursive: true });
+   }
+-  const tmpPath = `${manifestPath}.tmp_${Date.now()}`;
++  const tmpPath = `${manifestPath}.tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+   fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2), "utf8");
+   fs.renameSync(tmpPath, manifestPath);
+ }
+@@ -199,8 +234,12 @@ export function verifyCacheEntry(
+ }
+ 
+ /**
+- * Performs deep, exhaustive validation on a FIGMA_REFERENCE cache candidate (Phase 34A).
+- * Distinguishes VALID, MISSING, CORRUPT, INVALID_FORMAT, SOURCE_MISMATCH, and PATH_TRAVERSAL.
++ * Performs deep, exhaustive validation on a FIGMA_REFERENCE cache candidate.
++ * Hardened for Phase 34A.1 (GATE-03):
++ * - Single source of truth for cache root enforcement.
++ * - Enforces allowedCacheDir isolation even if caller omits the option.
++ * - Rejects relative path escapes, absolute path escapes, and symlink escapes (via realpath).
++ * - Validates fileKey safety against path traversal sequences.
+  */
+ export function getFigmaReferenceDetailed(
+   manifest: CacheManifest,
+@@ -211,7 +250,33 @@ export function getFigmaReferenceDetailed(
+     allowedCacheDir?: string;
+   }
+ ): DetailedLookupResult {
+-  const baseDir = options?.baseDir || process.cwd();
++  const baseDir = options?.baseDir ? path.resolve(options.baseDir) : process.cwd();
++
++  // Enforce cache root boundary strictly:
++  // If allowedCacheDir is specified, resolve it against baseDir.
++  // If omitted:
++  // - If options.baseDir was explicitly provided (e.g. isolated test environment), default boundary is baseDir.
++  // - Otherwise, default boundary is getDefaultCacheRoot(baseDir) ("debug/cache").
++  const allowedDir = options?.allowedCacheDir
++    ? path.resolve(baseDir, options.allowedCacheDir)
++    : (options?.baseDir ? baseDir : getDefaultCacheRoot(baseDir));
++
++  // Canonicalize allowedDir with realpath to ensure consistent prefix matching on symlinked systems (e.g. macOS /var -> /private/var)
++  let realAllowedDir = allowedDir;
++  try {
++    if (fs.existsSync(allowedDir)) {
++      realAllowedDir = fs.realpathSync(allowedDir);
++    }
++  } catch {}
++
++  // Identifier safety: reject path traversal sequences in fileKey
++  if (!isValidIdentifier(fileKey)) {
++    return {
++      status: "PATH_TRAVERSAL",
++      reason: `fileKey contains path traversal or invalid characters: '${fileKey}'`,
++    };
++  }
++
+   const key = getManifestKey("FIGMA_REFERENCE", fileKey, nodeId);
+   const entry = manifest.entries[key];
+ 
+@@ -237,22 +302,19 @@ export function getFigmaReferenceDetailed(
+   }
+ 
+   const resolvedPath = path.isAbsolute(entry.imagePath)
+-    ? entry.imagePath
++    ? path.normalize(entry.imagePath)
+     : path.resolve(baseDir, entry.imagePath);
+ 
+-  // Path Traversal Security: Ensure target resides inside allowedCacheDir
+-  if (options?.allowedCacheDir) {
+-    const normAllowed = path.resolve(baseDir, options.allowedCacheDir);
+-    if (!isPathInsideDirectory(resolvedPath, normAllowed)) {
+-      return {
+-        status: "PATH_TRAVERSAL",
+-        reason: `Target image path '${entry.imagePath}' escapes allowed cache directory '${options.allowedCacheDir}'`,
+-        resolvedPath,
+-      };
+-    }
++  // Path Traversal Security: Ensure target resides inside allowedDir
++  if (!isPathInsideDirectory(resolvedPath, allowedDir) && !isPathInsideDirectory(resolvedPath, realAllowedDir)) {
++    return {
++      status: "PATH_TRAVERSAL",
++      reason: `Target image path '${entry.imagePath}' escapes allowed cache directory '${allowedDir}'`,
++      resolvedPath,
++    };
+   }
+ 
+-  // Symlink check
++  // Symlink and Realpath Boundary check
+   try {
+     if (fs.existsSync(resolvedPath)) {
+       const lstat = fs.lstatSync(resolvedPath);
+@@ -263,6 +325,14 @@ export function getFigmaReferenceDetailed(
+           resolvedPath,
+         };
+       }
++      const real = fs.realpathSync(resolvedPath);
++      if (!isPathInsideDirectory(real, realAllowedDir) && !isPathInsideDirectory(real, allowedDir)) {
++        return {
++          status: "PATH_TRAVERSAL",
++          reason: `Real path '${real}' escapes allowed cache directory '${allowedDir}'`,
++          resolvedPath,
++        };
++      }
+     }
+   } catch {
+     return { status: "MISSING", reason: `File access error: ${entry.imagePath}`, resolvedPath };
+@@ -314,18 +384,163 @@ export function getFigmaReferenceDetailed(
+ 
+ /**
+  * Retrieves genuine FIGMA_REFERENCE cache entry for a given nodeId.
+- * Phase 34A Hardening: Invokes getFigmaReferenceDetailed() and strictly returns entry ONLY if status === 'VALID'.
++ * Invokes getFigmaReferenceDetailed() and strictly returns entry ONLY if status === 'VALID'.
+  * Any missing file, hash mismatch, or format corruption returns null (fail-closed).
+  */
+ export function getFigmaReference(
+   manifest: CacheManifest,
+   fileKey: string,
+   nodeId: string,
+-  baseDir?: string
++  baseDir?: string,
++  allowedCacheDir?: string
+ ): CacheEntry | null {
+-  const detailed = getFigmaReferenceDetailed(manifest, fileKey, nodeId, { baseDir });
++  const detailed = getFigmaReferenceDetailed(manifest, fileKey, nodeId, {
++    baseDir,
++    allowedCacheDir,
++  });
+   if (detailed.status === "VALID" && detailed.entry) {
+     return detailed.entry;
+   }
+   return null;
+ }
++
++// ============================================================================
++// Crash Recovery & Transaction Journaling (Phase 34A.1 / GATE-06)
++// ============================================================================
++
++export interface CacheJournalEntry {
++  fileKey: string;
++  nodeId: string;
++  frameName: string;
++  width: number;
++  height: number;
++  imagePath: string;
++  expectedSha256: string;
++  fileSizeBytes: number;
++  capturedAt: string;
++  captureMethod: string;
++  status: "PENDING_COMMIT" | "COMMITTED";
++}
++
++/**
++ * Writes an atomic transaction journal entry before final commit.
++ */
++export function writeJournalEntry(journalPath: string, entry: CacheJournalEntry): void {
++  const dir = path.dirname(journalPath);
++  if (!fs.existsSync(dir)) {
++    fs.mkdirSync(dir, { recursive: true });
++  }
++  const tmpPath = `${journalPath}.tmp_${Date.now()}`;
++  fs.writeFileSync(tmpPath, JSON.stringify(entry, null, 2), "utf8");
++  fs.renameSync(tmpPath, journalPath);
++}
++
++/**
++ * Removes journal entry after successful commit.
++ */
++export function removeJournalEntry(journalPath: string): void {
++  if (fs.existsSync(journalPath)) {
++    try {
++      fs.unlinkSync(journalPath);
++    } catch {}
++  }
++}
++
++/**
++ * Safely removes leftover temporary download files (.tmp_*.png).
++ */
++export function cleanupStaleTempFiles(targetDir: string): number {
++  if (!fs.existsSync(targetDir)) return 0;
++  let count = 0;
++  try {
++    const files = fs.readdirSync(targetDir);
++    for (const f of files) {
++      if (f.startsWith(".tmp_") && f.endsWith(".png")) {
++        try {
++          fs.unlinkSync(path.join(targetDir, f));
++          count++;
++        } catch {}
++      }
++    }
++  } catch {}
++  return count;
++}
++
++/**
++ * Reconciles uncommitted files using transaction journals.
++ * Never auto-promotes unproven orphan files. Only recovers files whose SHA-256 matches a pending journal.
++ */
++export function recoverPendingJournals(
++  outputDir: string,
++  manifest: CacheManifest,
++  manifestPath: string
++): { recoveredCount: number; discardedCount: number } {
++  if (!fs.existsSync(outputDir)) return { recoveredCount: 0, discardedCount: 0 };
++
++  let recoveredCount = 0;
++  let discardedCount = 0;
++
++  try {
++    const files = fs.readdirSync(outputDir);
++    for (const f of files) {
++      if (f.startsWith(".journal_") && f.endsWith(".json")) {
++        const journalPath = path.join(outputDir, f);
++        try {
++          const raw = fs.readFileSync(journalPath, "utf8");
++          const journal: CacheJournalEntry = JSON.parse(raw);
++
++          // Verify that corresponding image exists on disk
++          const targetImgPath = path.isAbsolute(journal.imagePath)
++            ? journal.imagePath
++            : path.resolve(outputDir, journal.imagePath);
++
++          if (fs.existsSync(targetImgPath)) {
++            const actualHash = computeFileSha256(targetImgPath);
++            const actualStat = fs.statSync(targetImgPath);
++            const pngCheck = validatePngBuffer(fs.readFileSync(targetImgPath));
++
++            if (
++              actualHash === journal.expectedSha256 &&
++              actualStat.size === journal.fileSizeBytes &&
++              pngCheck.valid
++            ) {
++              // Valid journal with verified file: recover into manifest!
++              const entry: CacheEntry = {
++                sourceType: "FIGMA_REFERENCE",
++                fileKey: journal.fileKey,
++                nodeId: journal.nodeId,
++                frameName: journal.frameName,
++                width: journal.width,
++                height: journal.height,
++                imagePath: path.relative(process.cwd(), targetImgPath),
++                sha256Hash: actualHash,
++                fileSizeBytes: actualStat.size,
++                capturedAt: journal.capturedAt,
++                captureMethod: journal.captureMethod,
++                verificationStatus: "VERIFIED",
++                versionMatch: "UNVERIFIED",
++                resolution: {
++                  width: journal.width,
++                  height: journal.height,
++                },
++              };
++
++              registerCacheEntry(manifest, entry);
++              saveCacheManifest(manifest, manifestPath);
++              recoveredCount++;
++            } else {
++              // Corrupted or tampered file: do not recover
++              discardedCount++;
++            }
++          }
++          // Remove journal after reconciliation
++          removeJournalEntry(journalPath);
++        } catch {
++          discardedCount++;
++        }
++      }
++    }
++  } catch {}
++
++  return { recoveredCount, discardedCount };
++}
+diff --git a/src/cache/pngValidator.ts b/src/cache/pngValidator.ts
+index ce44f6e..2e2380a 100644
+--- a/src/cache/pngValidator.ts
++++ b/src/cache/pngValidator.ts
+@@ -3,6 +3,35 @@ import * as zlib from "zlib";
+ const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+ const MAX_PNG_BYTES = 50 * 1024 * 1024; // 50 MB
+ const MAX_DIMENSION = 25000; // 25,000 px
++const MAX_DECOMPRESSED_BYTES = 100 * 1024 * 1024; // 100 MB max uncompressed scanline data
++
++// Standard IEEE 802.3 CRC-32 table
++const CRC_TABLE = new Uint32Array(256);
++for (let n = 0; n < 256; n++) {
++  let c = n;
++  for (let k = 0; k < 8; k++) {
++    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
++  }
++  CRC_TABLE[n] = c >>> 0;
++}
++
++/**
++ * Computes standard IEEE 802.3 CRC-32 over a byte buffer.
++ */
++export function computeCrc32(buf: Uint8Array, prevCrc = 0xffffffff): number {
++  let c = prevCrc;
++  for (let i = 0; i < buf.length; i++) {
++    c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
++  }
++  return (c ^ 0xffffffff) >>> 0;
++}
++
++export interface PngValidationOptions {
++  maxBytes?: number;
++  maxDimension?: number;
++  maxDecompressedBytes?: number;
++  strictEof?: boolean; // default true: reject trailing data after IEND
++}
+ 
+ export interface PngValidationResult {
+   valid: boolean;
+@@ -10,22 +39,65 @@ export interface PngValidationResult {
+   height?: number;
+   bitDepth?: number;
+   colorType?: number;
++  compressionMethod?: number;
++  filterMethod?: number;
++  interlaceMethod?: number;
++  chunkCount?: number;
++  decompressedBytes?: number;
+   reason?: string;
+ }
+ 
++const VALID_COLOR_DEPTH_COMBOS: Record<number, number[]> = {
++  0: [1, 2, 4, 8, 16], // Grayscale
++  2: [8, 16],          // Truecolor RGB
++  3: [1, 2, 4, 8],     // Indexed-color
++  4: [8, 16],          // Grayscale with alpha
++  6: [8, 16],          // Truecolor with alpha RGBA
++};
++
++function getChannelsForColorType(colorType: number): number {
++  switch (colorType) {
++    case 0: return 1; // Grayscale
++    case 2: return 3; // RGB
++    case 3: return 1; // Indexed
++    case 4: return 2; // Grayscale + Alpha
++    case 6: return 4; // RGBA
++    default: return 0;
++  }
++}
++
+ /**
+- * Validates that binary data is a genuine, structural, and renderable PNG file (Phase 34A).
+- * Defends against truncated data, HTML error pages, fake headers, and corrupted IHDR.
++ * Validates that binary data is a genuine, structural, and renderable PNG file.
++ * Hardened for Phase 34A.1 (GATE-01):
++ * - Verifies 8-byte PNG magic header
++ * - Rejects HTML/JSON error payloads
++ * - Enforces 13-byte IHDR chunk at byte offset 8
++ * - Validates color type and bit depth combination per W3C specification
++ * - Verifies full chunk stream boundaries
++ * - Verifies chunk CRC-32 for every chunk (IHDR, PLTE, IDAT, IEND, etc.)
++ * - Validates presence and consecutive sequence of IDAT chunks
++ * - Fully decompresses IDAT zlib stream and verifies raw scanline byte length
++ * - Enforces decompression bomb defenses (max dimensions and max decompressed bytes)
++ * - Verifies IEND chunk position and structure
++ * - Rejects truncated files and trailing garbage after IEND
+  */
+-export function validatePngBuffer(data: Buffer | Uint8Array): PngValidationResult {
++export function validatePngBuffer(
++  data: Buffer | Uint8Array,
++  options?: PngValidationOptions
++): PngValidationResult {
+   const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+ 
++  const maxBytes = options?.maxBytes ?? MAX_PNG_BYTES;
++  const maxDim = options?.maxDimension ?? MAX_DIMENSION;
++  const maxDecompressed = options?.maxDecompressedBytes ?? MAX_DECOMPRESSED_BYTES;
++  const strictEof = options?.strictEof ?? true;
++
+   if (!buf || buf.length < 45) {
+-    return { valid: false, reason: `Data too short for valid PNG (${buf?.length || 0} bytes)` };
++    return { valid: false, reason: `Data too short for valid PNG (${buf?.length || 0} bytes < 45)` };
+   }
+ 
+-  if (buf.length > MAX_PNG_BYTES) {
+-    return { valid: false, reason: `Data exceeds maximum allowed PNG size (${buf.length} bytes > ${MAX_PNG_BYTES})` };
++  if (buf.length > maxBytes) {
++    return { valid: false, reason: `Data exceeds maximum allowed PNG size (${buf.length} bytes > ${maxBytes})` };
+   }
+ 
+   // 1. Check for text/HTML/JSON error responses returned with HTTP 200
+@@ -46,12 +118,12 @@ export function validatePngBuffer(data: Buffer | Uint8Array): PngValidationResul
+     }
+   }
+ 
+-  // 3. Validate IHDR chunk (First chunk immediately following signature)
+-  const ihdrLen = buf.readUInt32BE(8);
+-  const ihdrType = buf.subarray(12, 16).toString("ascii");
++  // 3. First chunk MUST be IHDR (starts at byte 8)
++  const firstChunkLen = buf.readUInt32BE(8);
++  const firstChunkType = buf.subarray(12, 16).toString("ascii");
+ 
+-  if (ihdrLen !== 13 || ihdrType !== "IHDR") {
+-    return { valid: false, reason: `Invalid first chunk: expected 13-byte IHDR, got ${ihdrLen}-byte ${ihdrType}` };
++  if (firstChunkLen !== 13 || firstChunkType !== "IHDR") {
++    return { valid: false, reason: `Invalid first chunk: expected 13-byte IHDR, got ${firstChunkLen}-byte ${firstChunkType}` };
+   }
+ 
+   const width = buf.readUInt32BE(16);
+@@ -62,93 +134,272 @@ export function validatePngBuffer(data: Buffer | Uint8Array): PngValidationResul
+   const filter = buf.readUInt8(27);
+   const interlace = buf.readUInt8(28);
+ 
+-  if (width === 0 || width > MAX_DIMENSION) {
+-    return { valid: false, reason: `Invalid PNG width: ${width} px` };
++  if (width === 0 || width > maxDim) {
++    return { valid: false, reason: `Invalid PNG width: ${width} px (limit: ${maxDim})` };
+   }
+ 
+-  if (height === 0 || height > MAX_DIMENSION) {
+-    return { valid: false, reason: `Invalid PNG height: ${height} px` };
++  if (height === 0 || height > maxDim) {
++    return { valid: false, reason: `Invalid PNG height: ${height} px (limit: ${maxDim})` };
+   }
+ 
+-  const validBitDepths = [1, 2, 4, 8, 16];
+-  if (!validBitDepths.includes(bitDepth)) {
+-    return { valid: false, reason: `Invalid PNG bit depth: ${bitDepth}` };
++  const allowedDepths = VALID_COLOR_DEPTH_COMBOS[colorType];
++  if (!allowedDepths) {
++    return { valid: false, reason: `Invalid PNG color type: ${colorType}` };
+   }
+ 
+-  const validColorTypes = [0, 2, 3, 4, 6];
+-  if (!validColorTypes.includes(colorType)) {
+-    return { valid: false, reason: `Invalid PNG color type: ${colorType}` };
++  if (!allowedDepths.includes(bitDepth)) {
++    return {
++      valid: false,
++      reason: `Invalid bit depth ${bitDepth} for PNG color type ${colorType} (allowed: ${allowedDepths.join(", ")})`,
++    };
+   }
+ 
+   if (compression !== 0 || filter !== 0 || (interlace !== 0 && interlace !== 1)) {
+     return { valid: false, reason: `Invalid IHDR method parameters (c:${compression}, f:${filter}, i:${interlace})` };
+   }
+ 
+-  // 4. Validate presence of IEND trailer chunk
+-  const iendStr = buf.subarray(buf.length - 12).toString("binary");
+-  if (!iendStr.includes("IEND")) {
++  // 4. Calculate expected uncompressed scanline dimensions and defend against decompression bomb
++  const channels = getChannelsForColorType(colorType);
++  const bitsPerPixel = channels * bitDepth;
++  const scanlineBytes = 1 + Math.ceil((width * bitsPerPixel) / 8);
++  const expectedRawBytes = height * scanlineBytes;
++
++  if (expectedRawBytes > maxDecompressed) {
++    return {
++      valid: false,
++      reason: `Decompression bomb defense: expected uncompressed scanlines (${expectedRawBytes} bytes) exceeds limit (${maxDecompressed} bytes)`,
++    };
++  }
++
++  // 5. Walk entire chunk stream from byte 8
++  let offset = 8;
++  let chunkCount = 0;
++  let sawIhdr = false;
++  let sawIend = false;
++  let sawIdat = false;
++  let idatEnded = false;
++  let sawPlte = false;
++  const idatChunks: Buffer[] = [];
++
++  while (offset < buf.length) {
++    // Need at least 8 bytes for length (4) + type (4)
++    if (offset + 8 > buf.length) {
++      return { valid: false, reason: `Truncated chunk header at byte ${offset} (expected 8 bytes, got ${buf.length - offset})` };
++    }
++
++    const chunkLen = buf.readUInt32BE(offset);
++    const chunkType = buf.subarray(offset + 4, offset + 8).toString("ascii");
++
++    // Need chunkLen + 4 (for CRC)
++    if (offset + 8 + chunkLen + 4 > buf.length) {
++      return {
++        valid: false,
++        reason: `Truncated chunk data for '${chunkType}' at byte ${offset} (length ${chunkLen}, buffer ends at ${buf.length})`,
++      };
++    }
++
++    // Verify CRC-32 calculated over Type (4 bytes) + Data (chunkLen bytes)
++    const typeAndData = buf.subarray(offset + 4, offset + 8 + chunkLen);
++    const expectedCrc = buf.readUInt32BE(offset + 8 + chunkLen);
++    const actualCrc = computeCrc32(typeAndData);
++
++    if (expectedCrc !== actualCrc) {
++      return {
++        valid: false,
++        reason: `CRC-32 mismatch in chunk '${chunkType}' at offset ${offset} (expected 0x${expectedCrc.toString(16)}, got 0x${actualCrc.toString(16)})`,
++      };
++    }
++
++    const chunkData = buf.subarray(offset + 8, offset + 8 + chunkLen);
++
++    if (chunkType === "IHDR") {
++      if (sawIhdr) {
++        return { valid: false, reason: "Duplicate IHDR chunk found in PNG stream" };
++      }
++      sawIhdr = true;
++    } else if (chunkType === "PLTE") {
++      if (sawIdat) {
++        return { valid: false, reason: "PLTE chunk appears after IDAT chunk" };
++      }
++      if (chunkLen % 3 !== 0) {
++        return { valid: false, reason: `PLTE chunk length ${chunkLen} is not divisible by 3` };
++      }
++      sawPlte = true;
++    } else if (chunkType === "IDAT") {
++      if (idatEnded) {
++        return { valid: false, reason: "Non-consecutive IDAT chunk detected in PNG stream" };
++      }
++      if (colorType === 3 && !sawPlte) {
++        return { valid: false, reason: "Indexed-color PNG (type 3) missing required PLTE chunk before IDAT" };
++      }
++      sawIdat = true;
++      idatChunks.push(chunkData);
++    } else if (chunkType === "IEND") {
++      if (!sawIdat || idatChunks.length === 0) {
++        return { valid: false, reason: "IEND chunk appears before any IDAT chunk" };
++      }
++      if (chunkLen !== 0) {
++        return { valid: false, reason: `IEND chunk must have 0 length (got ${chunkLen})` };
++      }
++      sawIend = true;
++
++      const eofOffset = offset + 12;
++      if (strictEof && eofOffset < buf.length) {
++        return {
++          valid: false,
++          reason: `Trailing data (${buf.length - eofOffset} bytes) detected after IEND chunk`,
++        };
++      }
++      break;
++    } else {
++      // Any other chunk after IDAT means IDAT sequence has concluded
++      if (sawIdat) {
++        idatEnded = true;
++      }
++    }
++
++    offset += 12 + chunkLen;
++    chunkCount++;
++  }
++
++  if (!sawIend) {
+     return { valid: false, reason: "PNG missing mandatory IEND trailer chunk (truncated file)" };
+   }
+ 
++  if (!sawIdat || idatChunks.length === 0) {
++    return { valid: false, reason: "PNG missing IDAT image data chunk" };
++  }
++
++  // 6. Concatenate IDAT chunks and decompress with zlib to verify valid image payload
++  const compressedData = Buffer.concat(idatChunks);
++  let decompressed: Buffer;
++  try {
++    decompressed = zlib.inflateSync(compressedData, {
++      maxOutputLength: Math.min(maxDecompressed, Math.max(expectedRawBytes * 2, 64 * 1024)),
++    });
++  } catch (zErr: any) {
++    return {
++      valid: false,
++      reason: `Corrupted IDAT zlib stream: ${zErr.message}`,
++    };
++  }
++
++  // For non-interlaced images, the raw byte count must match exactly
++  if (interlace === 0 && decompressed.length !== expectedRawBytes) {
++    return {
++      valid: false,
++      reason: `Decompressed scanline size mismatch: expected ${expectedRawBytes} bytes, got ${decompressed.length} bytes`,
++    };
++  }
++
+   return {
+     valid: true,
+     width,
+     height,
+     bitDepth,
+     colorType,
++    compressionMethod: compression,
++    filterMethod: filter,
++    interlaceMethod: interlace,
++    chunkCount,
++    decompressedBytes: decompressed.length,
+   };
+ }
+ 
++export interface MinimalPngOptions {
++  colorType?: number; // default 6 (RGBA) or 2 (RGB)
++  bitDepth?: number;  // default 8
++  corruptCrc?: boolean;
++  corruptIdat?: boolean;
++  omitIdat?: boolean;
++  omitIend?: boolean;
++  trailingBytes?: Buffer;
++}
++
+ /**
+- * Creates a minimal valid, decodable PNG buffer for testing purposes.
++ * Creates valid or deliberately synthesized/corrupted PNG buffers for rigorous gate testing.
+  */
+-export function createMinimalValidPng(width = 1, height = 1): Buffer {
+-  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
++export function createMinimalValidPng(
++  width = 1,
++  height = 1,
++  options?: MinimalPngOptions | number
++): Buffer {
++  // Support legacy signature (width, height, colorTypeNumber)
++  const opts: MinimalPngOptions =
++    typeof options === "number" ? { colorType: options } : options || {};
+ 
+-  // IHDR: 13 bytes
+-  const ihdrData = Buffer.alloc(13);
+-  ihdrData.writeUInt32BE(width, 0);
+-  ihdrData.writeUInt32BE(height, 4);
+-  ihdrData.writeUInt8(8, 8); // 8-bit depth
+-  ihdrData.writeUInt8(6, 9); // RGBA (color type 6)
+-  ihdrData.writeUInt8(0, 10);
+-  ihdrData.writeUInt8(0, 11);
+-  ihdrData.writeUInt8(0, 12);
+-
+-  const crc = (type: string, data: Buffer): number => {
+-    const combined = Buffer.concat([Buffer.from(type, "ascii"), data]);
+-    let c = 0xffffffff;
+-    for (let i = 0; i < combined.length; i++) {
+-      c ^= combined[i];
+-      for (let j = 0; j < 8; j++) {
+-        c = (c >>> 1) ^ (c & 1 ? 0xedb88320 : 0);
+-      }
+-    }
+-    return (c ^ 0xffffffff) >>> 0;
+-  };
++  const colorType = opts.colorType ?? 6; // default RGBA
++  const bitDepth = opts.bitDepth ?? 8;
++  const signature = Buffer.from(PNG_SIGNATURE);
+ 
+-  const makeChunk = (type: string, data: Buffer): Buffer => {
++  const makeChunk = (type: string, data: Buffer, corruptCrc = false): Buffer => {
+     const lenBuf = Buffer.alloc(4);
+     lenBuf.writeUInt32BE(data.length, 0);
+     const typeBuf = Buffer.from(type, "ascii");
+     const crcBuf = Buffer.alloc(4);
+-    crcBuf.writeUInt32BE(crc(type, data), 0);
++    let crcVal = computeCrc32(Buffer.concat([typeBuf, data]));
++    if (corruptCrc) {
++      crcVal ^= 0x12345678;
++    }
++    crcBuf.writeUInt32BE(crcVal >>> 0, 0);
+     return Buffer.concat([lenBuf, typeBuf, data, crcBuf]);
+   };
+ 
+-  const ihdrChunk = makeChunk("IHDR", ihdrData);
++  // IHDR: 13 bytes
++  const ihdrData = Buffer.alloc(13);
++  ihdrData.writeUInt32BE(width, 0);
++  ihdrData.writeUInt32BE(height, 4);
++  ihdrData.writeUInt8(bitDepth, 8);
++  ihdrData.writeUInt8(colorType, 9);
++  ihdrData.writeUInt8(0, 10); // Deflate
++  ihdrData.writeUInt8(0, 11); // Filter None
++  ihdrData.writeUInt8(0, 12); // Interlace None
++
++  const ihdrChunk = makeChunk("IHDR", ihdrData, opts.corruptCrc === true);
+ 
+-  // Scanline: 1 byte filter (0) + width * 4 bytes RGBA (all 255)
+-  const rawScanline = Buffer.alloc(1 + width * 4);
+-  rawScanline[0] = 0; // Filter None
++  // PLTE chunk if indexed color
++  let plteChunk: Buffer | null = null;
++  if (colorType === 3) {
++    const plteData = Buffer.from([255, 255, 255, 0, 0, 0]); // 2 colors: white, black
++    plteChunk = makeChunk("PLTE", plteData);
++  }
++
++  // Scanline data
++  const channels = getChannelsForColorType(colorType);
++  const bitsPerPixel = channels * bitDepth;
++  const scanlineLength = 1 + Math.ceil((width * bitsPerPixel) / 8);
++  const rawScanline = Buffer.alloc(scanlineLength);
++  rawScanline[0] = 0; // Filter 0 (None)
+   for (let i = 1; i < rawScanline.length; i++) {
+-    rawScanline[i] = 255; // White pixel
++    rawScanline[i] = 255;
+   }
+ 
+   const rawData = Buffer.concat(Array(height).fill(rawScanline));
+-  const compressed = zlib.deflateSync(rawData);
+-  const idatChunk = makeChunk("IDAT", compressed);
+-  const iendChunk = makeChunk("IEND", Buffer.alloc(0));
++  let compressed = zlib.deflateSync(rawData);
++
++  if (opts.corruptIdat) {
++    // Corrupt zlib stream bytes
++    compressed = Buffer.from(compressed);
++    if (compressed.length > 5) {
++      compressed[compressed.length - 2] ^= 0xff;
++      compressed[compressed.length - 3] ^= 0xaa;
++    }
++  }
++
++  const chunks: Buffer[] = [signature, ihdrChunk];
++  if (plteChunk) chunks.push(plteChunk);
++
++  if (!opts.omitIdat) {
++    chunks.push(makeChunk("IDAT", compressed));
++  }
++
++  if (!opts.omitIend) {
++    chunks.push(makeChunk("IEND", Buffer.alloc(0)));
++  }
++
++  if (opts.trailingBytes) {
++    chunks.push(opts.trailingBytes);
++  }
+ 
+-  return Buffer.concat([signature, ihdrChunk, idatChunk, iendChunk]);
++  return Buffer.concat(chunks);
+ }
+diff --git a/tests/phase33-offline-fidelity.test.ts b/tests/phase33-offline-fidelity.test.ts
+index e2db586..aacfffe 100644
+--- a/tests/phase33-offline-fidelity.test.ts
++++ b/tests/phase33-offline-fidelity.test.ts
+@@ -191,8 +191,8 @@ describe("Phase 33: Offline-First Fidelity Engine & One-Shot Capture Suite", ()
+   // --------------------------------------------------------------------------
+   describe("Pillar 3: One-Shot Reference Capture & Fail-Fast Safety", () => {
+     it("3.1 safely masks access tokens for diagnostic logs", () => {
+-      expect(maskToken("figd_abcdef1234567890")).toBe("figd...7890");
+-      expect(maskToken("short")).toBe("********");
++      expect(maskToken("figd_abcdef1234567890")).toBe("***MASKED_SECRET***");
++      expect(maskToken("short")).toBe("***MASKED_SECRET***");
+       expect(maskToken(undefined)).toBe("<none>");
+     });
+ 

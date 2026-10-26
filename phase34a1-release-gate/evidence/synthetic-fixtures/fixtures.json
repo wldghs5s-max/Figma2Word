@@ -1,0 +1,65 @@
+{
+  "phase": "34A.1",
+  "fixtures": [
+    {
+      "name": "genuine_rgba_32x24",
+      "colorType": 6,
+      "bitDepth": 8,
+      "width": 32,
+      "height": 24,
+      "expectedStatus": "VALID",
+      "expectedDecompressedBytes": 2328
+    },
+    {
+      "name": "genuine_rgb_16x16",
+      "colorType": 2,
+      "bitDepth": 8,
+      "width": 16,
+      "height": 16,
+      "expectedStatus": "VALID",
+      "expectedDecompressedBytes": 784
+    },
+    {
+      "name": "corrupt_crc_ihdr",
+      "description": "IHDR chunk with tampered CRC-32 bytes",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "CRC-32 mismatch in chunk 'IHDR'"
+    },
+    {
+      "name": "corrupt_idat_zlib",
+      "description": "IDAT chunk with corrupted Deflate compressed bitstream",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "Corrupted IDAT zlib stream"
+    },
+    {
+      "name": "missing_idat",
+      "description": "PNG containing IHDR and IEND but zero IDAT chunks",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "IEND chunk appears before any IDAT"
+    },
+    {
+      "name": "missing_iend",
+      "description": "PNG truncated before final IEND chunk",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "missing mandatory IEND trailer chunk"
+    },
+    {
+      "name": "invalid_color_depth_combo",
+      "description": "Color type 2 (RGB) with bit depth 1 (forbidden by W3C PNG spec)",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "Invalid bit depth 1 for PNG color type 2"
+    },
+    {
+      "name": "trailing_payload_after_iend",
+      "description": "Valid PNG followed by 28 bytes of trailing payload",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "Trailing data (28 bytes) detected after IEND chunk"
+    },
+    {
+      "name": "decompression_bomb",
+      "description": "Synthetic 20000x20000 PNG designed to explode memory on decompression",
+      "expectedStatus": "INVALID",
+      "expectedRejectionReason": "Decompression bomb defense"
+    }
+  ]
+}

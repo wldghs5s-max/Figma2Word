@@ -1,0 +1,260 @@
+{
+  "phase": "34A.1",
+  "timestamp": "2026-10-26T08:18:40.601Z",
+  "releaseGateVerdict": "READY_FOR_LIVE_CAPTURE: YES",
+  "preflightReadiness": "NEEDS_USER_APPROVAL",
+  "versionMatchStatus": "VERSION_MATCH_UNVERIFIED",
+  "policy": {
+    "networkMode": "offline",
+    "dryRun": true,
+    "confirmExecution": false,
+    "realHttpCallsPermitted": false,
+    "actualHttpCallsMade": 0,
+    "actualFigmaApiCalls": 0,
+    "actualCdnDownloads": 0
+  },
+  "figmaJsonSource": {
+    "fileName": "펜테크 3차 디자인.json",
+    "sizeBytes": 195582942,
+    "sizeMb": 186.52,
+    "nodeIdUniqueness": true,
+    "totalFrames": 17
+  },
+  "targetFramesSummary": {
+    "totalFrames": 17,
+    "cachedFigmaReferences": 0,
+    "framesToFetchForPhase34B": 17,
+    "toFetchNodeIds": [
+      "763:5068",
+      "766:256",
+      "757:88",
+      "759:759",
+      "757:92",
+      "757:142",
+      "757:158",
+      "759:911",
+      "757:124",
+      "759:1076",
+      "766:2289",
+      "757:118",
+      "766:2942",
+      "759:1314",
+      "759:1858",
+      "759:1533",
+      "768:3434"
+    ]
+  },
+  "requestBudgetPlan": {
+    "batchSize": 20,
+    "expectedFigmaApiRequests": 1,
+    "expectedImageDownloads": 17,
+    "expectedTotalHttpRequests": 18,
+    "maxAllowedApiLimit": 5,
+    "maxAllowedCdnLimit": 25,
+    "maxAllowedTotalLimit": 30,
+    "withinBudgetCeiling": true
+  },
+  "frameAudits": [
+    {
+      "index": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "width": 1920,
+      "height": 1080,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 2,
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "width": 1920,
+      "height": 1080,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 3,
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "width": 1440,
+      "height": 1024,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 4,
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 5,
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "width": 1449,
+      "height": 1580,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 6,
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "width": 1449,
+      "height": 1083,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 7,
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "width": 1449,
+      "height": 1083,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 8,
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 9,
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "width": 1178,
+      "height": 1291,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 10,
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "width": 504,
+      "height": 613,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 12,
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "width": 1178,
+      "height": 1291,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "width": 504,
+      "height": 935,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 14,
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 16,
+      "nodeId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "width": 1920,
+      "height": 1221,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 17,
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    }
+  ],
+  "dryRunExecution": {
+    "status": "DRY_RUN",
+    "success": true,
+    "dryRun": true
+  },
+  "resolvedGates": {
+    "GATE-01": "RESOLVED: Strict binary PNG parsing, CRC-32 verification, IDAT zlib decompression, decompression bomb defense",
+    "GATE-02": "RESOLVED: Manual redirect interception, SSRF re-validation on all hops, protocol downgrade block, loop defense",
+    "GATE-03": "RESOLVED: Cache root isolation mandatory even if allowedCacheDir omitted, symlink realpath traversal blocked",
+    "GATE-04": "RESOLVED: Token completely redacted (***MASKED_SECRET***), zero prefix/suffix leakage, error sanitization",
+    "GATE-05": "RESOLVED: CDN 401/403/429 immediate Fail-Fast, budget incremented before requests, partial success saved",
+    "GATE-06": "RESOLVED: Per-frame atomic manifest save, transaction journaling, crash recovery, stale temp cleanup",
+    "GATE-07": "RESOLVED: Objective 14-condition release gate evaluation, zero external network calls verified"
+  }
+}

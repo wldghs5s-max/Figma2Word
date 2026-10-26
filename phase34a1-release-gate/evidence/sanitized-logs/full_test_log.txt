@@ -1,0 +1,191 @@
+
+> figma2word@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 /Users/mac/projects/Figma2Word/Figma2Word
+
+(node:41229) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41223) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41227) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41228) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/step-2b6-background-row.test.ts (10 tests) 162ms
+ ✓ tests/stress.test.ts (4 tests) 169ms
+ ✓ tests/figma-offline-snapshot.test.ts (10 tests) 267ms
+ ✓ tests/word-automation-safety.test.ts (3 tests) 781ms
+   ✓ Phase 27: Word Automation Safety & Zero Data Loss Guard (3)
+     ✓ 2. Captures Word state non-destructively without modifying or closing open documents 774ms
+ ✓ tests/synthetic-benchmarks.test.ts (7 tests) 175ms
+(node:41337) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/phase30-production-fidelity.test.ts (9 tests) 801ms
+   ✓ Phase 30: Production Visual Fidelity & Automation Lifecycle Suite (9)
+     ✓ Pillar 1: Word Automation Lifecycle & Partial Success Safety (4)
+       ✓ 3. Pruning residual directories respects currently open documents and preserves them 734ms
+(node:41338) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41339) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41340) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/e2e-real-figma.test.ts (4 tests) 237ms
+(node:41341) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/step-2b2-flatten.test.ts (8 tests) 238ms
+ ✓ tests/nested-table-flattening-guard.test.ts (7 tests) 208ms
+ ✓ tests/layout-p1.test.ts (8 tests) 251ms
+ ✓ tests/step-2b5-safe-flatten.test.ts (6 tests) 148ms
+(node:41374) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41361) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/phase16-1-remediation.test.ts (9 tests) 184ms
+(node:41375) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41376) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/compact-chip-boundary.test.ts (5 tests) 185ms
+ ✓ tests/phase19-docx-text-fidelity.test.ts (13 tests) 147ms
+ ✓ tests/parent-context-row-cluster.test.ts (12 tests) 87ms
+ ✓ tests/border-preservation.test.ts (7 tests) 126ms
+(node:41379) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41380) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/decorative-shapes-minimization.test.ts (5 tests) 86ms
+(node:41382) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41381) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/phase34a1-release-gate.test.ts (29 tests) 36ms
+ ✓ tests/frame-selection.test.ts (11 tests) 107ms
+ ✓ tests/page-orientation-selection.test.ts (6 tests) 95ms
+ ✓ tests/canvas-engine.test.ts (17 tests) 142ms
+(node:41384) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/faq-table-isolation.test.ts (6 tests) 81ms
+(node:41403) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/pipeline.test.ts (2 tests) 105ms
+ ✓ tests/geometry-cluster-coordinates.test.ts (7 tests) 99ms
+ ✓ tests/page-orientation-fidelity.test.ts (6 tests) 90ms
+ ✓ tests/phase18-architecture-fidelity.test.ts (9 tests) 102ms
+(node:41407) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/folded-cards-clustering.test.ts (2 tests) 57ms
+(node:41425) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41424) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41427) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41426) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/character-style-overrides.test.ts (12 tests) 84ms
+ ✓ tests/renderer.test.ts (2 tests) 117ms
+(node:41428) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/step-12c-fidelity-improvements.test.ts (4 tests) 65ms
+ ✓ tests/data-table-support.test.ts (11 tests) 119ms
+ ✓ tests/cta-padding-preservation.test.ts (4 tests) 74ms
+ ✓ tests/phase34a-capture-hardening.test.ts (23 tests) 26ms
+(node:41431) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41432) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/canvas-and-guard.test.ts (4 tests) 47ms
+ ✓ tests/hwpx-schema-conformance.test.ts (7 tests) 71ms
+ ✓ tests/desktop-padding-clamping.test.ts (5 tests) 79ms
+(node:41437) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/phase24-hwpx-layout-audit.test.ts (11 tests) 101ms
+ ✓ tests/browser-memory-stability.test.ts (4 tests) 57ms
+ ✓ tests/metrics-trustworthiness.test.ts (8 tests) 2708ms
+   ✓ Phase 27: Metrics Trustworthiness & Dynamic Calculation Suite (8)
+     ✓ Case 3: Real 17-frame input measures actual dynamic counts 2595ms
+(node:41440) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41443) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/quality-audit/synthetic-fixtures.test.ts (6 tests) 2772ms
+   ✓ Step 12A: Synthetic Quality Audit Fixtures & Verification Engine (6)
+     ✓ Requirement 1: detects zero difference when comparing identical images 1170ms
+     ✓ Requirement 2: detects visual divergence when image content is shifted 1083ms
+ ✓ tests/canvas-multi-screen-isolation.test.ts (6 tests) 70ms
+ ✓ tests/phase17-quality-integration.test.ts (7 tests) 121ms
+ ✓ tests/step-12b-fidelity-improvements.test.ts (5 tests) 128ms
+(node:41445) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41446) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/header-overlay.test.ts (1 test) 47ms
+ ✓ tests/phase31-audit-verification.test.ts (8 tests) 104ms
+ ✓ tests/geometry-cluster.test.ts (9 tests | 2 skipped) 60ms
+ ✓ tests/phase32-fidelity-benchmark.test.ts (6 tests) 45ms
+(node:41569) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/phase16-h2-remediation.test.ts (7 tests) 48ms
+ ✓ tests/phase16-h1-remediation.test.ts (5 tests) 50ms
+ ✓ tests/regression-guards.test.ts (12 tests) 51ms
+(node:41570) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41571) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/text-layout.test.ts (1 test) 54ms
+ ✓ tests/determinism.test.ts (2 tests) 58ms
+(node:41572) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41573) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41575) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/empty-shape-no-table.test.ts (3 tests) 55ms
+(node:41576) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/tabbar-button-wrapping.test.ts (2 tests) 57ms
+ ✓ tests/screen36-modal-isolation.test.ts (4 tests) 48ms
+ ✓ tests/bento-grid-layout.test.ts (8 tests) 69ms
+ ✓ tests/phase23-1-text-geometry.test.ts (5 tests) 108ms
+ ✓ tests/phase33-offline-fidelity.test.ts (13 tests) 49ms
+ ✓ tests/phase29-word-automation-final-guard.test.ts (10 tests) 46ms
+ ✓ tests/phase28-word-isolation-and-rendering.test.ts (11 tests) 42ms
+ ✓ tests/phase26-universal-rendering.test.ts (3 tests) 46ms
+ ✓ tests/figma-api.test.ts (18 tests) 21ms
+ ✓ tests/phase25-web-ui-fidelity.test.ts (4 tests) 37ms
+ ✓ tests/parser.test.ts (4 tests) 9ms
+ ✓ tests/quality-audit/audit-infra.test.ts (4 tests) 15ms
+ ✓ tests/desktop-card-group-clustering.test.ts (4 tests) 6ms
+ ✓ tests/edge-cases.test.ts (5 tests) 30ms
+ ✓ tests/desktop-screen-isolation.test.ts (9 tests) 7ms
+ ✓ tests/desktop-multi-page-isolation.test.ts (6 tests) 6ms
+ ✓ tests/autolayout.test.ts (2 tests) 3ms
+(node:41594) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/model.test.ts (3 tests) 5ms
+ ✓ tests/phase16-h3-remediation.test.ts (4 tests) 6ms
+ ✓ tests/phase27-renderer-improvements.test.ts (3 tests) 2ms
+ ✓ tests/visual-comparison-algorithm.test.ts (3 tests) 4105ms
+   ✓ Phase 27: Visual Comparison Algorithm & Local Window SSIM Suite (3)
+     ✓ 1. Detects perfect identity on identical images (Global=1.0, Local=1.0, Worst=1.0, MAE=0.0) 1099ms
+     ✓ 2. Local Window SSIM catches localized missing button while Global SSIM remains falsely high 1149ms
+     ✓ 3. Color shift significantly increases MAE and triggers mismatch ratio 650ms
+ ✓ tests/phase31-1-word-safety.test.ts (16 tests) 4936ms
+   ✓ Phase 31.1: Word Automation Failure Injection & Residual Safety Suite (16)
+     ✓ Part B: openTargetDocumentSafely Failure Injection (O1 ~ O5) (5)
+       ✓ Test O1 (Pre-Request Failure): Rejects ownership if path is already open in Word prior to launch 1229ms
+       ✓ Test O3 (Uncertain Request Delivery / Polling Timeout): Word polling times out -> state uncertain, files preserved 1001ms
+       ✓ Test O4 (Word State Query Failure During Open): Query throws -> fails closed, preserves files 1004ms
+       ✓ Test O5 (Normal Open Success): Matches document by normalized POSIX path and returns confirmed handle 1008ms
+
+ Test Files  75 passed (75)
+      Tests  534 passed | 2 skipped (536)
+   Start at  17:22:25
+   Duration  5.21s (tests 78%, import 13%, transform 8%, worker 1%)
+
+    Isolate  75 workers spawned · ~104ms startup each (spawn + environment, per file)
+             at least ~766ms faster with isolate: false — reuses workers across files instead of one per file
+

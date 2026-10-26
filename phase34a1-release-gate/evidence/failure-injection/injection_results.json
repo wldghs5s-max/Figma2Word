@@ -1,0 +1,61 @@
+{
+  "phase": "34A.1",
+  "failureInjectionScenarios": [
+    {
+      "id": "FI-01",
+      "injectionPoint": "Immediately after temp file write (.tmp_*.png)",
+      "simulatedCrash": "Process termination during download before validation",
+      "expectedRecovery": "Stale temp file removed on initialization; legitimate cache preserved; frame re-scheduled cleanly",
+      "testCoverage": "tests/phase34a1-release-gate.test.ts #6.1",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-02",
+      "injectionPoint": "Immediately after PNG binary validation before final rename",
+      "simulatedCrash": "Crash before atomic rename",
+      "expectedRecovery": "Stale temp file unlinked in finally block; manifest untouched; frame re-scheduled cleanly",
+      "testCoverage": "src/api/oneShotCapture.ts:finally block",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-03",
+      "injectionPoint": "Immediately after final rename (frame_*.png) before manifest commit",
+      "simulatedCrash": "Crash while journal (.journal_*.json) exists but manifest not updated",
+      "expectedRecovery": "recoverPendingJournals validates journal hash against disk file, commits entry to manifest, removes journal",
+      "testCoverage": "tests/phase34a1-release-gate.test.ts #6.2",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-04",
+      "injectionPoint": "During manifest atomic write",
+      "simulatedCrash": "Interruption while writing temporary manifest (.tmp)",
+      "expectedRecovery": "Main manifest file untouched; no corruption; atomic rename ensures ACID consistency",
+      "testCoverage": "src/cache/cacheManifest.ts:saveCacheManifest",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-05",
+      "injectionPoint": "Unverified orphan file present in cache directory",
+      "simulatedCrash": "Rogue/untracked file placed in cache without transaction journal",
+      "expectedRecovery": "recoverPendingJournals ignores unverified orphan; zero automatic promotion to FIGMA_REFERENCE",
+      "testCoverage": "tests/phase34a1-release-gate.test.ts #6.3",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-06",
+      "injectionPoint": "CDN Rate Limit (HTTP 429) on frame N",
+      "simulatedCrash": "CDN returns 429 after partial downloads",
+      "expectedRecovery": "Entire capture halts immediately with Fail-Fast; zero subsequent HTTP calls; prior frames preserved in manifest",
+      "testCoverage": "tests/phase34a1-release-gate.test.ts #5.1, #5.3",
+      "verdict": "PASS"
+    },
+    {
+      "id": "FI-07",
+      "injectionPoint": "CDN Access Denied (HTTP 401/403) on frame N",
+      "simulatedCrash": "CDN URL expired or credentials rejected",
+      "expectedRecovery": "Entire capture halts immediately with Fail-Fast; zero subsequent HTTP calls",
+      "testCoverage": "tests/phase34a1-release-gate.test.ts #5.2",
+      "verdict": "PASS"
+    }
+  ]
+}

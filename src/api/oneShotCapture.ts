@@ -8,6 +8,7 @@ import {
   getFigmaNetworkMode,
   assertFigmaNetworkAllowed,
   maskToken,
+  redactSecretFromText,
 } from "./networkMode.js";
 import {
   CacheManifest,
@@ -17,6 +18,11 @@ import {
   registerCacheEntry,
   computeFileSha256,
   getFigmaReferenceDetailed,
+  writeJournalEntry,
+  removeJournalEntry,
+  cleanupStaleTempFiles,
+  recoverPendingJournals,
+  isPathInsideDirectory,
 } from "../cache/cacheManifest.js";
 import { validateSecureCdnUrl } from "./urlSecurity.js";
 import { validatePngBuffer } from "../cache/pngValidator.js";
@@ -90,9 +96,257 @@ export interface OneShotCaptureResult {
 
 export { maskToken };
 
+export interface SecureCdnFetchResult {
+  ok: boolean;
+  status: number;
+  buffer?: Buffer;
+  error?: string;
+  isRateLimit?: boolean;
+  isAuthError?: boolean;
+  redirectCount: number;
+  redirectChain: string[];
+  finalUrl: string;
+}
+
 /**
- * Plans a one-shot capture operation without initiating any network activity (Phase 34A).
- * Integrates deep cache validation to prevent false hits on corrupted or missing files.
+ * Downloads CDN image with explicit, manual redirect tracking and SSRF defense (Phase 34A.1 / GATE-02).
+ * - redirect: "manual" prevents standard fetch from following redirects invisibly.
+ * - Every redirect hop (301, 302, 303, 307, 308) is re-validated via validateSecureCdnUrl().
+ * - HTTPS -> HTTP protocol downgrade is strictly blocked.
+ * - Target loopback, localhost, and cloud metadata addresses are blocked.
+ * - Redirect loops and excess redirect hops (> maxRedirects) are rejected.
+ * - Never sends Authorization or X-Figma-Token to CDN endpoints.
+ */
+export async function fetchCdnImageWithSecureRedirects(
+  initialUrl: string,
+  fetchImpl: typeof fetch,
+  options?: {
+    maxRedirects?: number;
+    timeoutMs?: number;
+    maxBytes?: number;
+  }
+): Promise<SecureCdnFetchResult> {
+  const maxRedirects = options?.maxRedirects ?? 3;
+  const timeoutMs = options?.timeoutMs ?? 30000;
+  const maxBytes = options?.maxBytes ?? 50 * 1024 * 1024;
+
+  let currentUrl = initialUrl;
+  const redirectChain: string[] = [];
+  const visitedUrls = new Set<string>([initialUrl]);
+
+  while (true) {
+    // 1. SSRF and Domain Security validation for current hop
+    const check = validateSecureCdnUrl(currentUrl);
+    if (!check.valid) {
+      return {
+        ok: false,
+        status: 0,
+        error: `SSRF validation failed for URL '${currentUrl}': ${check.reason}`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res: Response;
+    try {
+      res = await fetchImpl(currentUrl, {
+        method: "GET",
+        headers: {
+          Accept: "image/png,*/*",
+        },
+        redirect: "manual", // Strictly disable auto-follow
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (err.name === "AbortError") {
+        return {
+          ok: false,
+          status: 408,
+          error: `Download timed out after ${timeoutMs}ms for '${currentUrl}'`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+      return {
+        ok: false,
+        status: 0,
+        error: `Network error downloading from '${currentUrl}': ${err.message}`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const status = res.status ?? (res.ok ? 200 : 500);
+
+    // 2. Check for redirect responses
+    if ([301, 302, 303, 307, 308].includes(status)) {
+      if (redirectChain.length >= maxRedirects) {
+        return {
+          ok: false,
+          status,
+          error: `Exceeded maximum redirect limit (${maxRedirects}) while downloading CDN image`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      const location = res.headers?.get ? res.headers.get("location") : (res.headers as any)?.location;
+      if (!location) {
+        return {
+          ok: false,
+          status,
+          error: `Redirect response (HTTP ${status}) missing 'Location' header`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      let destUrl: string;
+      try {
+        destUrl = new URL(location, currentUrl).href;
+      } catch {
+        return {
+          ok: false,
+          status,
+          error: `Malformed redirect Location header '${location}'`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      // Check protocol downgrade
+      const destParsed = new URL(destUrl);
+      if (destParsed.protocol !== "https:") {
+        return {
+          ok: false,
+          status,
+          error: `Insecure protocol downgrade forbidden: redirect target '${destUrl}' is not HTTPS`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      // Detect redirect loops
+      if (visitedUrls.has(destUrl)) {
+        return {
+          ok: false,
+          status,
+          error: `Redirect loop detected at '${destUrl}'`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      // Immediate re-validation against SSRF
+      const destValidation = validateSecureCdnUrl(destUrl);
+      if (!destValidation.valid) {
+        return {
+          ok: false,
+          status,
+          error: `Insecure redirect destination blocked: ${destValidation.reason}`,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+
+      redirectChain.push(currentUrl);
+      visitedUrls.add(destUrl);
+      currentUrl = destUrl;
+      continue; // Follow next hop safely
+    }
+
+    // 3. Fail-Fast on Rate Limiting (429) or Access Denied (401/403)
+    if (status === 429) {
+      return {
+        ok: false,
+        status: 429,
+        isRateLimit: true,
+        error: "CDN Rate Limit (429) encountered. Immediately halting capture with Fail-Fast.",
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    if (status === 401 || status === 403) {
+      return {
+        ok: false,
+        status,
+        isAuthError: true,
+        error: `CDN access denied with HTTP ${status}. Halting capture with Fail-Fast.`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        status,
+        error: `CDN server returned HTTP ${status}`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    // 4. Read body buffer and check size limit
+    const cl = res.headers?.get ? res.headers.get("content-length") : (res.headers as any)?.["content-length"];
+    if (cl && parseInt(cl, 10) > maxBytes) {
+      return {
+        ok: false,
+        status: 200,
+        error: `CDN image Content-Length (${cl} bytes) exceeds maximum limit (${maxBytes} bytes)`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length > maxBytes) {
+      return {
+        ok: false,
+        status: 200,
+        error: `CDN image buffer size (${buffer.length} bytes) exceeds maximum limit (${maxBytes} bytes)`,
+        redirectCount: redirectChain.length,
+        redirectChain,
+        finalUrl: currentUrl,
+      };
+    }
+
+    return {
+      ok: true,
+      status: 200,
+      buffer,
+      redirectCount: redirectChain.length,
+      redirectChain,
+      finalUrl: currentUrl,
+    };
+  }
+}
+
+/**
+ * Plans a one-shot capture operation without initiating any network activity.
+ * Hardened for Phase 34A.1 (GATE-03): Always supplies allowedCacheDir to enforce path isolation.
  */
 export function planOneShotCapture(
   options: OneShotCaptureOptions,
@@ -107,9 +361,15 @@ export function planOneShotCapture(
   const targetFrames: TargetFrameItem[] = [];
   const toFetchNodeIds: string[] = [];
 
+  const allowedCacheDir =
+    options.outputDir ||
+    (options.manifestPath ? path.dirname(path.resolve(options.manifestPath)) : undefined);
+
   for (const node of targetNodes) {
-    // Deep verification: only treat as cached if status is strictly 'VALID'
-    const lookup = getFigmaReferenceDetailed(manifest, fileKey, node.nodeId);
+    // Deep verification with enforced cache root
+    const lookup = getFigmaReferenceDetailed(manifest, fileKey, node.nodeId, {
+      allowedCacheDir,
+    });
     const isCached = lookup.status === "VALID";
 
     targetFrames.push({
@@ -149,18 +409,7 @@ export function planOneShotCapture(
 }
 
 /**
- * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A Hardening.
- *
- * Safety Invariants:
- * 1. ZERO network calls by default (dryRun: true or confirmExecution !== true).
- * 2. Unified assertFigmaNetworkAllowed() check enforced on BOTH API calls and CDN downloads.
- * 3. Strict SSRF & CDN URL validation (HTTPS only, no private/loopback/cloud metadata IP).
- * 4. Never sends authorization headers to third-party or CDN domains.
- * 5. Validates PNG signature, IHDR structure, dimension limits, and HTML/JSON error rejection.
- * 6. Atomic temporary file download and replacement.
- * 7. Enforces strict request budgets for API, CDN, and Total HTTP requests.
- * 8. Immediate Fail-Fast abort on HTTP 429, 401, or 403.
- * 9. Safe token masking in all diagnostic logging.
+ * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A.1 Hardening & Failure Recovery.
  */
 export async function executeOneShotCapture(
   options: OneShotCaptureOptions
@@ -260,11 +509,16 @@ export async function executeOneShotCapture(
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
+  // Clean up any stale temp files and recover pending journals from previous crash
+  cleanupStaleTempFiles(outputDir);
+  recoverPendingJournals(outputDir, manifest, manifestPath);
+
   let apiCallsCount = 0;
   let cdnDownloadsCount = 0;
   const capturedEntries: CacheEntry[] = [];
   const errors: string[] = [];
   let abortedDueToRateLimit = false;
+  let abortedDueToAuth = false;
   let budgetExceeded = false;
 
   // Split toFetchNodeIds into batches
@@ -312,7 +566,7 @@ export async function executeOneShotCapture(
       break;
     }
 
-    // Fail-fast error handlers
+    // Fail-fast error handlers on API response
     if (apiRes.status === 429) {
       abortedDueToRateLimit = true;
       errors.push("Figma API Rate Limit (429) encountered. Immediately halting capture with Fail-Fast.");
@@ -320,6 +574,7 @@ export async function executeOneShotCapture(
     }
 
     if (apiRes.status === 401 || apiRes.status === 403) {
+      abortedDueToAuth = true;
       errors.push(`Figma images API authentication failed with HTTP ${apiRes.status}`);
       break;
     }
@@ -346,7 +601,7 @@ export async function executeOneShotCapture(
         continue;
       }
 
-      // 1. Validate URL security (SSRF & Protocol protection)
+      // 1. Initial URL security check (SSRF & Protocol protection)
       const urlValidation = validateSecureCdnUrl(imgUrl);
       if (!urlValidation.valid) {
         errors.push(`Blocked insecure CDN download URL for node '${nodeId}': ${urlValidation.reason}`);
@@ -371,44 +626,73 @@ export async function executeOneShotCapture(
       cdnDownloadsCount++;
 
       let tempFilePath: string | null = null;
+      let journalFilePath: string | null = null;
       try {
-        // Critical Security: Do NOT pass X-Figma-Token to CDN endpoints!
-        const dlRes = await fetchImpl(imgUrl, {
-          method: "GET",
-          headers: {
-            Accept: "image/png,*/*",
-          },
-        });
+        // Download via secure redirect fetcher (manual redirect, no auth headers, SSRF re-validated on hops)
+        const dlResult = await fetchCdnImageWithSecureRedirects(imgUrl, fetchImpl);
 
-        if (!dlRes.ok) {
-          errors.push(`Failed to download image for node '${nodeId}': HTTP ${dlRes.status}`);
+        // Fail-Fast check on CDN response (GATE-05)
+        if (dlResult.isRateLimit) {
+          abortedDueToRateLimit = true;
+          errors.push(dlResult.error || `CDN rate limit (429) encountered on node '${nodeId}'`);
+          break; // Halt entire capture immediately
+        }
+
+        if (dlResult.isAuthError) {
+          abortedDueToAuth = true;
+          errors.push(dlResult.error || `CDN access denied (HTTP ${dlResult.status}) on node '${nodeId}'`);
+          break; // Halt entire capture immediately
+        }
+
+        if (!dlResult.ok || !dlResult.buffer) {
+          errors.push(dlResult.error || `Failed to download image for node '${nodeId}': HTTP ${dlResult.status}`);
           continue;
         }
 
-        const arrayBuffer = await dlRes.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const buffer = dlResult.buffer;
 
-        // 4. Validate PNG binary integrity BEFORE moving to cache
+        // 4. Validate PNG binary integrity (GATE-01 deep validation: IHDR, CRC, IDAT decompression, IEND)
         const pngResult = validatePngBuffer(buffer);
         if (!pngResult.valid) {
           errors.push(`Downloaded data for node '${nodeId}' is not a valid PNG: ${pngResult.reason}`);
           continue;
         }
 
-        // 5. Atomic write: write to unique temp file, then atomic rename
+        // 5. Pre-write path verification: ensure files stay strictly inside outputDir
         const safeNodeId = nodeId.replace(/[:\/]/g, "_");
         tempFilePath = path.join(outputDir, `.tmp_${safeNodeId}_${Date.now()}.png`);
         const outFileName = `frame_${safeNodeId}.png`;
         const finalFilePath = path.join(outputDir, outFileName);
 
-        fs.writeFileSync(tempFilePath, buffer);
+        if (!isPathInsideDirectory(tempFilePath, outputDir) || !isPathInsideDirectory(finalFilePath, outputDir)) {
+          errors.push(`Path traversal blocked during cache write for node '${nodeId}'`);
+          continue;
+        }
 
-        // Atomic move
+        // 6. Write temporary file and compute SHA-256
+        fs.writeFileSync(tempFilePath, buffer);
+        const sha256 = computeFileSha256(tempFilePath);
+        const meta = targetNodeLookup.get(nodeId);
+
+        // 7. Write transaction journal before moving to final path (Method B/C recovery protection)
+        journalFilePath = path.join(outputDir, `.journal_${safeNodeId}.json`);
+        writeJournalEntry(journalFilePath, {
+          fileKey: plan.fileKey,
+          nodeId,
+          frameName: meta?.frameName || `Frame ${nodeId}`,
+          width: pngResult.width ?? meta?.width ?? 0,
+          height: pngResult.height ?? meta?.height ?? 0,
+          imagePath: finalFilePath,
+          expectedSha256: sha256,
+          fileSizeBytes: buffer.length,
+          capturedAt: new Date().toISOString(),
+          captureMethod: "figma_rest_api_v1_images_one_shot",
+          status: "PENDING_COMMIT",
+        });
+
+        // 8. Atomic move to final cache location
         fs.renameSync(tempFilePath, finalFilePath);
         tempFilePath = null; // Successfully transferred
-
-        const sha256 = computeFileSha256(finalFilePath);
-        const meta = targetNodeLookup.get(nodeId);
 
         const entry: CacheEntry = {
           sourceType: "FIGMA_REFERENCE",
@@ -430,8 +714,14 @@ export async function executeOneShotCapture(
           },
         };
 
+        // 9. Frame-by-frame commit (Method A): Register entry and save manifest immediately!
         registerCacheEntry(manifest, entry);
+        saveCacheManifest(manifest, manifestPath);
         capturedEntries.push(entry);
+
+        // 10. Clean up journal after successful manifest commit
+        removeJournalEntry(journalFilePath);
+        journalFilePath = null;
       } catch (dlErr: any) {
         errors.push(`Error downloading image for node '${nodeId}': ${dlErr.message}`);
       } finally {
@@ -444,14 +734,9 @@ export async function executeOneShotCapture(
       }
     }
 
-    if (abortedDueToRateLimit || budgetExceeded) {
+    if (abortedDueToRateLimit || abortedDueToAuth || budgetExceeded) {
       break;
     }
-  }
-
-  // Atomically persist manifest if any new entries were successfully captured
-  if (capturedEntries.length > 0) {
-    saveCacheManifest(manifest, manifestPath);
   }
 
   let finalStatus: CaptureExecutionStatus = "COMPLETED";
@@ -463,14 +748,14 @@ export async function executeOneShotCapture(
 
   return {
     status: finalStatus,
-    success: errors.length === 0 && !abortedDueToRateLimit && !budgetExceeded,
+    success: errors.length === 0 && !abortedDueToRateLimit && !abortedDueToAuth && !budgetExceeded,
     dryRun: false,
     plan,
     actualFigmaApiCalls: apiCallsCount,
     actualCdnDownloads: cdnDownloadsCount,
     totalHttpRequests: apiCallsCount + cdnDownloadsCount,
     capturedEntries,
-    errors,
+    errors: errors.map((e) => redactSecretFromText(e, options.accessToken)),
     abortedDueToRateLimit,
     budgetExceeded,
   };

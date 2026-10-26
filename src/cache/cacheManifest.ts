@@ -2,7 +2,17 @@ import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
 import { validatePngBuffer } from "./pngValidator.js";
-import { isPathInsideDirectory } from "../../tools/visual-regression/safe_word_automation.js";
+
+/**
+ * Checks if targetPath is inside parentDir (or identical to it), preventing directory traversal.
+ */
+export function isPathInsideDirectory(targetPath: string, parentDir: string): boolean {
+  const normTarget = path.resolve(targetPath);
+  const normParent = path.resolve(parentDir);
+  if (normTarget === normParent) return true;
+  const rel = path.relative(normParent, normTarget);
+  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+}
 
 export type CacheSourceType =
   | "FIGMA_REFERENCE" // Genuine original frame image rendered by Figma
@@ -66,6 +76,31 @@ export interface DetailedLookupResult {
   resolvedPath?: string;
 }
 
+export const DEFAULT_CACHE_DIR_NAME = "debug/cache";
+
+/**
+ * Returns canonical default cache root path.
+ */
+export function getDefaultCacheRoot(baseDir: string = process.cwd()): string {
+  return path.resolve(baseDir, DEFAULT_CACHE_DIR_NAME);
+}
+
+/**
+ * Validates that an identifier does not contain path traversal characters.
+ */
+export function isValidIdentifier(id: string): boolean {
+  if (!id || typeof id !== "string") return false;
+  if (
+    id.includes("..") ||
+    id.includes("/") ||
+    id.includes("\\") ||
+    id.includes("\0")
+  ) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Creates a new blank cache manifest
  */
@@ -114,7 +149,7 @@ export function saveCacheManifest(manifest: CacheManifest, manifestPath: string)
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  const tmpPath = `${manifestPath}.tmp_${Date.now()}`;
+  const tmpPath = `${manifestPath}.tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2), "utf8");
   fs.renameSync(tmpPath, manifestPath);
 }
@@ -199,8 +234,12 @@ export function verifyCacheEntry(
 }
 
 /**
- * Performs deep, exhaustive validation on a FIGMA_REFERENCE cache candidate (Phase 34A).
- * Distinguishes VALID, MISSING, CORRUPT, INVALID_FORMAT, SOURCE_MISMATCH, and PATH_TRAVERSAL.
+ * Performs deep, exhaustive validation on a FIGMA_REFERENCE cache candidate.
+ * Hardened for Phase 34A.1 (GATE-03):
+ * - Single source of truth for cache root enforcement.
+ * - Enforces allowedCacheDir isolation even if caller omits the option.
+ * - Rejects relative path escapes, absolute path escapes, and symlink escapes (via realpath).
+ * - Validates fileKey safety against path traversal sequences.
  */
 export function getFigmaReferenceDetailed(
   manifest: CacheManifest,
@@ -211,7 +250,33 @@ export function getFigmaReferenceDetailed(
     allowedCacheDir?: string;
   }
 ): DetailedLookupResult {
-  const baseDir = options?.baseDir || process.cwd();
+  const baseDir = options?.baseDir ? path.resolve(options.baseDir) : process.cwd();
+
+  // Enforce cache root boundary strictly:
+  // If allowedCacheDir is specified, resolve it against baseDir.
+  // If omitted:
+  // - If options.baseDir was explicitly provided (e.g. isolated test environment), default boundary is baseDir.
+  // - Otherwise, default boundary is getDefaultCacheRoot(baseDir) ("debug/cache").
+  const allowedDir = options?.allowedCacheDir
+    ? path.resolve(baseDir, options.allowedCacheDir)
+    : (options?.baseDir ? baseDir : getDefaultCacheRoot(baseDir));
+
+  // Canonicalize allowedDir with realpath to ensure consistent prefix matching on symlinked systems (e.g. macOS /var -> /private/var)
+  let realAllowedDir = allowedDir;
+  try {
+    if (fs.existsSync(allowedDir)) {
+      realAllowedDir = fs.realpathSync(allowedDir);
+    }
+  } catch {}
+
+  // Identifier safety: reject path traversal sequences in fileKey
+  if (!isValidIdentifier(fileKey)) {
+    return {
+      status: "PATH_TRAVERSAL",
+      reason: `fileKey contains path traversal or invalid characters: '${fileKey}'`,
+    };
+  }
+
   const key = getManifestKey("FIGMA_REFERENCE", fileKey, nodeId);
   const entry = manifest.entries[key];
 
@@ -237,22 +302,19 @@ export function getFigmaReferenceDetailed(
   }
 
   const resolvedPath = path.isAbsolute(entry.imagePath)
-    ? entry.imagePath
+    ? path.normalize(entry.imagePath)
     : path.resolve(baseDir, entry.imagePath);
 
-  // Path Traversal Security: Ensure target resides inside allowedCacheDir
-  if (options?.allowedCacheDir) {
-    const normAllowed = path.resolve(baseDir, options.allowedCacheDir);
-    if (!isPathInsideDirectory(resolvedPath, normAllowed)) {
-      return {
-        status: "PATH_TRAVERSAL",
-        reason: `Target image path '${entry.imagePath}' escapes allowed cache directory '${options.allowedCacheDir}'`,
-        resolvedPath,
-      };
-    }
+  // Path Traversal Security: Ensure target resides inside allowedDir
+  if (!isPathInsideDirectory(resolvedPath, allowedDir) && !isPathInsideDirectory(resolvedPath, realAllowedDir)) {
+    return {
+      status: "PATH_TRAVERSAL",
+      reason: `Target image path '${entry.imagePath}' escapes allowed cache directory '${allowedDir}'`,
+      resolvedPath,
+    };
   }
 
-  // Symlink check
+  // Symlink and Realpath Boundary check
   try {
     if (fs.existsSync(resolvedPath)) {
       const lstat = fs.lstatSync(resolvedPath);
@@ -260,6 +322,14 @@ export function getFigmaReferenceDetailed(
         return {
           status: "PATH_TRAVERSAL",
           reason: `Symbolic link detected at '${entry.imagePath}'`,
+          resolvedPath,
+        };
+      }
+      const real = fs.realpathSync(resolvedPath);
+      if (!isPathInsideDirectory(real, realAllowedDir) && !isPathInsideDirectory(real, allowedDir)) {
+        return {
+          status: "PATH_TRAVERSAL",
+          reason: `Real path '${real}' escapes allowed cache directory '${allowedDir}'`,
           resolvedPath,
         };
       }
@@ -314,18 +384,163 @@ export function getFigmaReferenceDetailed(
 
 /**
  * Retrieves genuine FIGMA_REFERENCE cache entry for a given nodeId.
- * Phase 34A Hardening: Invokes getFigmaReferenceDetailed() and strictly returns entry ONLY if status === 'VALID'.
+ * Invokes getFigmaReferenceDetailed() and strictly returns entry ONLY if status === 'VALID'.
  * Any missing file, hash mismatch, or format corruption returns null (fail-closed).
  */
 export function getFigmaReference(
   manifest: CacheManifest,
   fileKey: string,
   nodeId: string,
-  baseDir?: string
+  baseDir?: string,
+  allowedCacheDir?: string
 ): CacheEntry | null {
-  const detailed = getFigmaReferenceDetailed(manifest, fileKey, nodeId, { baseDir });
+  const detailed = getFigmaReferenceDetailed(manifest, fileKey, nodeId, {
+    baseDir,
+    allowedCacheDir,
+  });
   if (detailed.status === "VALID" && detailed.entry) {
     return detailed.entry;
   }
   return null;
+}
+
+// ============================================================================
+// Crash Recovery & Transaction Journaling (Phase 34A.1 / GATE-06)
+// ============================================================================
+
+export interface CacheJournalEntry {
+  fileKey: string;
+  nodeId: string;
+  frameName: string;
+  width: number;
+  height: number;
+  imagePath: string;
+  expectedSha256: string;
+  fileSizeBytes: number;
+  capturedAt: string;
+  captureMethod: string;
+  status: "PENDING_COMMIT" | "COMMITTED";
+}
+
+/**
+ * Writes an atomic transaction journal entry before final commit.
+ */
+export function writeJournalEntry(journalPath: string, entry: CacheJournalEntry): void {
+  const dir = path.dirname(journalPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  const tmpPath = `${journalPath}.tmp_${Date.now()}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(entry, null, 2), "utf8");
+  fs.renameSync(tmpPath, journalPath);
+}
+
+/**
+ * Removes journal entry after successful commit.
+ */
+export function removeJournalEntry(journalPath: string): void {
+  if (fs.existsSync(journalPath)) {
+    try {
+      fs.unlinkSync(journalPath);
+    } catch {}
+  }
+}
+
+/**
+ * Safely removes leftover temporary download files (.tmp_*.png).
+ */
+export function cleanupStaleTempFiles(targetDir: string): number {
+  if (!fs.existsSync(targetDir)) return 0;
+  let count = 0;
+  try {
+    const files = fs.readdirSync(targetDir);
+    for (const f of files) {
+      if (f.startsWith(".tmp_") && f.endsWith(".png")) {
+        try {
+          fs.unlinkSync(path.join(targetDir, f));
+          count++;
+        } catch {}
+      }
+    }
+  } catch {}
+  return count;
+}
+
+/**
+ * Reconciles uncommitted files using transaction journals.
+ * Never auto-promotes unproven orphan files. Only recovers files whose SHA-256 matches a pending journal.
+ */
+export function recoverPendingJournals(
+  outputDir: string,
+  manifest: CacheManifest,
+  manifestPath: string
+): { recoveredCount: number; discardedCount: number } {
+  if (!fs.existsSync(outputDir)) return { recoveredCount: 0, discardedCount: 0 };
+
+  let recoveredCount = 0;
+  let discardedCount = 0;
+
+  try {
+    const files = fs.readdirSync(outputDir);
+    for (const f of files) {
+      if (f.startsWith(".journal_") && f.endsWith(".json")) {
+        const journalPath = path.join(outputDir, f);
+        try {
+          const raw = fs.readFileSync(journalPath, "utf8");
+          const journal: CacheJournalEntry = JSON.parse(raw);
+
+          // Verify that corresponding image exists on disk
+          const targetImgPath = path.isAbsolute(journal.imagePath)
+            ? journal.imagePath
+            : path.resolve(outputDir, journal.imagePath);
+
+          if (fs.existsSync(targetImgPath)) {
+            const actualHash = computeFileSha256(targetImgPath);
+            const actualStat = fs.statSync(targetImgPath);
+            const pngCheck = validatePngBuffer(fs.readFileSync(targetImgPath));
+
+            if (
+              actualHash === journal.expectedSha256 &&
+              actualStat.size === journal.fileSizeBytes &&
+              pngCheck.valid
+            ) {
+              // Valid journal with verified file: recover into manifest!
+              const entry: CacheEntry = {
+                sourceType: "FIGMA_REFERENCE",
+                fileKey: journal.fileKey,
+                nodeId: journal.nodeId,
+                frameName: journal.frameName,
+                width: journal.width,
+                height: journal.height,
+                imagePath: path.relative(process.cwd(), targetImgPath),
+                sha256Hash: actualHash,
+                fileSizeBytes: actualStat.size,
+                capturedAt: journal.capturedAt,
+                captureMethod: journal.captureMethod,
+                verificationStatus: "VERIFIED",
+                versionMatch: "UNVERIFIED",
+                resolution: {
+                  width: journal.width,
+                  height: journal.height,
+                },
+              };
+
+              registerCacheEntry(manifest, entry);
+              saveCacheManifest(manifest, manifestPath);
+              recoveredCount++;
+            } else {
+              // Corrupted or tampered file: do not recover
+              discardedCount++;
+            }
+          }
+          // Remove journal after reconciliation
+          removeJournalEntry(journalPath);
+        } catch {
+          discardedCount++;
+        }
+      }
+    }
+  } catch {}
+
+  return { recoveredCount, discardedCount };
 }

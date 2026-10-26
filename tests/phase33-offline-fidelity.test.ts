@@ -191,8 +191,8 @@ describe("Phase 33: Offline-First Fidelity Engine & One-Shot Capture Suite", () 
   // --------------------------------------------------------------------------
   describe("Pillar 3: One-Shot Reference Capture & Fail-Fast Safety", () => {
     it("3.1 safely masks access tokens for diagnostic logs", () => {
-      expect(maskToken("figd_abcdef1234567890")).toBe("figd...7890");
-      expect(maskToken("short")).toBe("********");
+      expect(maskToken("figd_abcdef1234567890")).toBe("***MASKED_SECRET***");
+      expect(maskToken("short")).toBe("***MASKED_SECRET***");
       expect(maskToken(undefined)).toBe("<none>");
     });
 

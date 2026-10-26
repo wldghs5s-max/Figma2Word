@@ -81,13 +81,13 @@ export function assertFigmaNetworkAllowed(params: NetworkPermissionParams): void
 }
 
 /**
- * Masks secret access tokens for logs and diagnostics (Backward-compatible).
+ * Masks secret access tokens for logs and diagnostics.
+ * Hardened for Phase 34A.1 (GATE-04): Strictly redacts token without leaking ANY identifying substrings.
+ * Unifies maskToken() with sanitizeSecret() to guarantee zero leakage.
  */
 export function maskToken(token?: string): string {
-  if (!token) return "<none>";
-  const trimmed = token.trim();
-  if (trimmed.length <= 8) return "********";
-  return `${trimmed.substring(0, 4)}...${trimmed.substring(trimmed.length - 4)}`;
+  if (!token || token.trim().length === 0) return "<none>";
+  return "***MASKED_SECRET***";
 }
 
 /**
@@ -96,4 +96,18 @@ export function maskToken(token?: string): string {
 export function sanitizeSecret(secret?: string): string {
   if (!secret || secret.trim().length === 0) return "<none>";
   return "***MASKED_SECRET***";
+}
+
+/**
+ * Scans a text message, error message, or log string and redacts all instances of the secret token
+ * as well as common credential header patterns (Phase 34A.1 / GATE-04).
+ */
+export function redactSecretFromText(text: string, secret?: string): string {
+  if (!text || typeof text !== "string") return String(text ?? "");
+  let result = text;
+  if (secret && secret.trim().length > 0) {
+    result = result.replaceAll(secret.trim(), "***MASKED_SECRET***");
+  }
+  result = result.replace(/(?:X-Figma-Token|Bearer)\s*[:=]\s*[^\s,;"]+/gi, "X-Figma-Token: ***MASKED_SECRET***");
+  return result;
 }
