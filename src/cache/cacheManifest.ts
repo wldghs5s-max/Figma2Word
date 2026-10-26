@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
+import { validatePngBuffer } from "./pngValidator.js";
+import { isPathInsideDirectory } from "../../tools/visual-regression/safe_word_automation.js";
 
 export type CacheSourceType =
   | "FIGMA_REFERENCE" // Genuine original frame image rendered by Figma
@@ -18,6 +20,15 @@ export type VerificationStatus =
   | "NOT_VERIFIED"
   | "CORRUPTED"
   | "MISSING";
+
+export type CacheLookupStatus =
+  | "VALID"
+  | "MISSING"
+  | "CORRUPT"
+  | "INVALID_FORMAT"
+  | "SOURCE_MISMATCH"
+  | "PATH_TRAVERSAL"
+  | "VERSION_UNVERIFIED";
 
 export interface CacheEntry {
   sourceType: CacheSourceType;
@@ -46,6 +57,13 @@ export interface CacheManifest {
   description: string;
   lastUpdated: string;
   entries: Record<string, CacheEntry>; // key: `${sourceType}:${fileKey}:${nodeId}`
+}
+
+export interface DetailedLookupResult {
+  status: CacheLookupStatus;
+  entry?: CacheEntry;
+  reason?: string;
+  resolvedPath?: string;
 }
 
 /**
@@ -118,11 +136,12 @@ export function computeFileSha256(filePath: string): string {
 }
 
 /**
- * Verifies integrity of a cache entry against local disk
+ * Verifies integrity of a cache entry against local disk and optional binary PNG format (Phase 34A).
  */
 export function verifyCacheEntry(
   entry: CacheEntry,
-  baseDir: string = process.cwd()
+  baseDir: string = process.cwd(),
+  options?: { validateFormat?: boolean }
 ): { valid: boolean; reason?: string } {
   const resolvedPath = path.isAbsolute(entry.imagePath)
     ? entry.imagePath
@@ -130,6 +149,16 @@ export function verifyCacheEntry(
 
   if (!fs.existsSync(resolvedPath)) {
     return { valid: false, reason: `File not found on disk: ${entry.imagePath}` };
+  }
+
+  // Prevent symlink traversal
+  try {
+    const lstat = fs.lstatSync(resolvedPath);
+    if (lstat.isSymbolicLink()) {
+      return { valid: false, reason: `Symbolic links are forbidden for cache security: ${entry.imagePath}` };
+    }
+  } catch (err: any) {
+    return { valid: false, reason: `Cannot stat file: ${err.message}` };
   }
 
   const stat = fs.statSync(resolvedPath);
@@ -150,24 +179,153 @@ export function verifyCacheEntry(
     }
   }
 
+  // Phase 34A Hardening: Verify PNG structural integrity if requested
+  if (options?.validateFormat) {
+    try {
+      const fileBytes = fs.readFileSync(resolvedPath);
+      const pngResult = validatePngBuffer(fileBytes);
+      if (!pngResult.valid) {
+        return {
+          valid: false,
+          reason: `Corrupt PNG structure: ${pngResult.reason}`,
+        };
+      }
+    } catch (err: any) {
+      return { valid: false, reason: `Failed to read PNG for verification: ${err.message}` };
+    }
+  }
+
   return { valid: true };
 }
 
 /**
+ * Performs deep, exhaustive validation on a FIGMA_REFERENCE cache candidate (Phase 34A).
+ * Distinguishes VALID, MISSING, CORRUPT, INVALID_FORMAT, SOURCE_MISMATCH, and PATH_TRAVERSAL.
+ */
+export function getFigmaReferenceDetailed(
+  manifest: CacheManifest,
+  fileKey: string,
+  nodeId: string,
+  options?: {
+    baseDir?: string;
+    allowedCacheDir?: string;
+  }
+): DetailedLookupResult {
+  const baseDir = options?.baseDir || process.cwd();
+  const key = getManifestKey("FIGMA_REFERENCE", fileKey, nodeId);
+  const entry = manifest.entries[key];
+
+  if (!entry) {
+    // Check if it was mis-registered as non-FIGMA_REFERENCE
+    const anyKeyMatch = Object.values(manifest.entries).find(
+      (e) => e.fileKey === fileKey && e.nodeId.replace(/-/g, ":") === nodeId.replace(/-/g, ":")
+    );
+    if (anyKeyMatch && anyKeyMatch.sourceType !== "FIGMA_REFERENCE") {
+      return {
+        status: "SOURCE_MISMATCH",
+        reason: `Cache entry has sourceType '${anyKeyMatch.sourceType}', expected 'FIGMA_REFERENCE'`,
+      };
+    }
+    return { status: "MISSING", reason: "No entry found in manifest" };
+  }
+
+  if (entry.sourceType !== "FIGMA_REFERENCE") {
+    return {
+      status: "SOURCE_MISMATCH",
+      reason: `Cache entry has invalid sourceType '${entry.sourceType}', expected 'FIGMA_REFERENCE'`,
+    };
+  }
+
+  const resolvedPath = path.isAbsolute(entry.imagePath)
+    ? entry.imagePath
+    : path.resolve(baseDir, entry.imagePath);
+
+  // Path Traversal Security: Ensure target resides inside allowedCacheDir
+  if (options?.allowedCacheDir) {
+    const normAllowed = path.resolve(baseDir, options.allowedCacheDir);
+    if (!isPathInsideDirectory(resolvedPath, normAllowed)) {
+      return {
+        status: "PATH_TRAVERSAL",
+        reason: `Target image path '${entry.imagePath}' escapes allowed cache directory '${options.allowedCacheDir}'`,
+        resolvedPath,
+      };
+    }
+  }
+
+  // Symlink check
+  try {
+    if (fs.existsSync(resolvedPath)) {
+      const lstat = fs.lstatSync(resolvedPath);
+      if (lstat.isSymbolicLink()) {
+        return {
+          status: "PATH_TRAVERSAL",
+          reason: `Symbolic link detected at '${entry.imagePath}'`,
+          resolvedPath,
+        };
+      }
+    }
+  } catch {
+    return { status: "MISSING", reason: `File access error: ${entry.imagePath}`, resolvedPath };
+  }
+
+  if (!fs.existsSync(resolvedPath)) {
+    return { status: "MISSING", reason: `File not found on disk: ${entry.imagePath}`, resolvedPath };
+  }
+
+  // Size check
+  const stat = fs.statSync(resolvedPath);
+  if (entry.fileSizeBytes !== undefined && entry.fileSizeBytes !== stat.size) {
+    return {
+      status: "CORRUPT",
+      reason: `Size mismatch: expected ${entry.fileSizeBytes} B, found ${stat.size} B`,
+      resolvedPath,
+    };
+  }
+
+  // Hash check
+  if (entry.sha256Hash) {
+    const actualHash = computeFileSha256(resolvedPath);
+    if (actualHash !== entry.sha256Hash) {
+      return {
+        status: "CORRUPT",
+        reason: `SHA-256 hash mismatch: expected ${entry.sha256Hash}, got ${actualHash}`,
+        resolvedPath,
+      };
+    }
+  }
+
+  // PNG binary validation
+  const fileBytes = fs.readFileSync(resolvedPath);
+  const pngValidation = validatePngBuffer(fileBytes);
+  if (!pngValidation.valid) {
+    return {
+      status: "INVALID_FORMAT",
+      reason: `Invalid PNG binary: ${pngValidation.reason}`,
+      resolvedPath,
+    };
+  }
+
+  return {
+    status: "VALID",
+    entry,
+    resolvedPath,
+  };
+}
+
+/**
  * Retrieves genuine FIGMA_REFERENCE cache entry for a given nodeId.
- * Strictly forbids returning WORD_RENDERED or REFERENCE_DOCX_RENDERED as genuine Figma reference.
+ * Phase 34A Hardening: Invokes getFigmaReferenceDetailed() and strictly returns entry ONLY if status === 'VALID'.
+ * Any missing file, hash mismatch, or format corruption returns null (fail-closed).
  */
 export function getFigmaReference(
   manifest: CacheManifest,
   fileKey: string,
-  nodeId: string
+  nodeId: string,
+  baseDir?: string
 ): CacheEntry | null {
-  const key = getManifestKey("FIGMA_REFERENCE", fileKey, nodeId);
-  const entry = manifest.entries[key];
-  if (!entry) return null;
-  if (entry.sourceType !== "FIGMA_REFERENCE") {
-    // Defense: do not allow non-FIGMA_REFERENCE to masquerade
-    return null;
+  const detailed = getFigmaReferenceDetailed(manifest, fileKey, nodeId, { baseDir });
+  if (detailed.status === "VALID" && detailed.entry) {
+    return detailed.entry;
   }
-  return entry;
+  return null;
 }

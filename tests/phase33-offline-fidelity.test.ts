@@ -255,6 +255,7 @@ describe("Phase 33: Offline-First Fidelity Engine & One-Shot Capture Suite", () 
         fileKeyOrUrl: "testKey",
         accessToken: "figd_test_token",
         targetNodes: [{ nodeId: "1:1" }, { nodeId: "1:2" }],
+        networkMode: "online",
         dryRun: false,
         confirmExecution: true, // User explicit consent flag
         fetchFn: mockFetch,
