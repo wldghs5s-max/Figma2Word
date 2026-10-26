@@ -686,19 +686,12 @@ export function safeCleanupIsolatedDirectory(handle: AutomatedWordHandle): boole
   validateOwnershipHandle(handle);
 
   if (handle.lifecycleState !== 'close_confirmed') {
-    // If not close_confirmed, strictly preserve directory unless Word is completely stopped
-    try {
-      const state = captureWordState();
-      if (!state.wordWasRunning) {
-        // Word is not running, safe to clean up isolated folder
-      } else {
-        transitionLifecycleState(handle, 'uncertain', `Refusing cleanup: state is '${handle.lifecycleState}' and Word is running`);
-        return false;
-      }
-    } catch {
-      transitionLifecycleState(handle, 'uncertain', 'Refusing cleanup: unable to query Word state');
-      return false;
-    }
+    transitionLifecycleState(
+      handle,
+      'uncertain',
+      `Refusing cleanup: state is '${handle.lifecycleState}' (expected 'close_confirmed')`
+    );
+    return false;
   }
 
   try {
@@ -773,12 +766,26 @@ export function cleanupTargetDocOnly(handle: unknown): void {
 }
 
 /**
+ * Checks whether a target path is equal to or strictly located inside a parent directory,
+ * respecting OS path separators and boundary rules.
+ * Prevents false positives where /tmp/vr_123 would erroneously match /tmp/vr_1234.
+ */
+export function isPathInsideDirectory(targetPath: string, parentDir: string): boolean {
+  const normTarget = normalizeWordPath(targetPath);
+  const normParent = normalizeWordPath(parentDir);
+  if (normTarget === normParent) return true;
+  const rel = path.relative(normParent, normTarget);
+  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
+/**
  * Prunes residual isolation folders from previous runs safely.
  * Only deletes a directory if:
  * 1. Word is running and we CAN verify the path is not open in any Word document window.
  * 2. Or Word is completely not running.
  * 3. The directory is older than maxAgeMs (default: 30 minutes).
  * 4. TOCTOU Defense (Phase 32): Re-verifies Word lock immediately prior to directory removal.
+ * 5. Boundary Defense (Phase 33): Strict directory boundary check prevents prefix collision (e.g. vr_123 vs vr_1234).
  */
 export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 1000): {
   scanned: number;
@@ -821,19 +828,19 @@ export function cleanResidualIsolationDirsSafely(maxAgeMs: number = 30 * 60 * 10
         continue;
       }
 
-      // Check if any open document path in Word points to this directory
+      // Check if any open document path in Word points to this directory (Phase 33 strict boundary)
       const normDir = normalizeWordPath(fullDir);
-      const isLockedByWord = wordOpenPaths.some((p) => p.startsWith(normDir));
+      const isLockedByWord = wordOpenPaths.some((p) => isPathInsideDirectory(p, normDir));
       if (isLockedByWord) {
         preserved++;
         continue;
       }
 
-      // TOCTOU Defense (Phase 32): Re-query Word state immediately prior to unlinking
+      // TOCTOU Defense (Phase 32 & 33): Re-query Word state immediately prior to unlinking with strict boundary
       try {
         const freshState = captureWordState();
         if (freshState.wordWasRunning) {
-          const freshLocked = freshState.initialDocumentPaths.some((p) => p.startsWith(normDir));
+          const freshLocked = freshState.initialDocumentPaths.some((p) => isPathInsideDirectory(p, normDir));
           if (freshLocked) {
             preserved++;
             continue;

@@ -126,9 +126,19 @@ describe("Figma API Integration & URL Parser Tests", () => {
 
   describe("FigmaClient Mock Fetch & Error Handling", () => {
     const originalFetch = globalThis.fetch;
+    const originalNetworkMode = process.env.FIGMA_NETWORK_MODE;
+
+    beforeEach(() => {
+      process.env.FIGMA_NETWORK_MODE = "online";
+    });
 
     afterEach(() => {
       globalThis.fetch = originalFetch;
+      if (originalNetworkMode !== undefined) {
+        process.env.FIGMA_NETWORK_MODE = originalNetworkMode;
+      } else {
+        delete process.env.FIGMA_NETWORK_MODE;
+      }
       vi.restoreAllMocks();
     });
 

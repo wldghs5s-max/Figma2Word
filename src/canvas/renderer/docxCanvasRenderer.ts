@@ -528,10 +528,15 @@ export class DocxCanvasRenderer {
         return "";
       }
 
-      const dashChild = hasStroke && elem.style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+      const elemOpacity = typeof elem.opacity === "number" ? elem.opacity : 1.0;
+      const fillAlpha = (elem.style.fillOpacity ?? 1) * elemOpacity;
+      const strokeOpacityAttr = hasStroke && elemOpacity < 1 ? ` opacity="${elemOpacity.toFixed(2)}"` : "";
+      const dashChild = hasStroke && (elem.style.strokeDashed || elemOpacity < 1)
+        ? `<v:stroke${elem.style.strokeDashed ? ' dashstyle="dash"' : ""}${strokeOpacityAttr}/>`
+        : "";
       const opacityChild =
-        hasFill && elem.style.fillOpacity !== undefined && elem.style.fillOpacity < 1
-          ? `<v:fill opacity="${elem.style.fillOpacity.toFixed(2)}"/>`
+        hasFill && fillAlpha < 1
+          ? `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`
           : "";
       const shadowChild = elem.style.shadow
         ? `<v:shadow on="t" type="single" color="#${cleanHex(elem.style.shadow.color, "000000")}" offset="${(elem.style.shadow.offsetX || 0).toFixed(2)}pt,${(elem.style.shadow.offsetY || 0).toFixed(2)}pt"${typeof elem.style.shadow.opacity === "number" ? ` opacity="${elem.style.shadow.opacity.toFixed(2)}"` : ""}/>`
@@ -705,6 +710,8 @@ export class DocxCanvasRenderer {
         : "";
 
       const imgDashChild = imgHasStroke && imgStyleObj.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+      const imgElemOpacity = typeof elem.opacity === "number" ? elem.opacity : 1.0;
+      const imgOpacityChild = imgElemOpacity < 1 ? `<v:fill opacity="${imgElemOpacity.toFixed(2)}"/>` : "";
 
       return `<w:r>
   <w:pict>
@@ -715,7 +722,7 @@ export class DocxCanvasRenderer {
              ${imgShapeExtraAttrs}${imgFilledAttr}${imgFillcolorAttr}
              ${imgStrokedAttr}
              ${imgStrokecolorAttr}
-             ${imgStrokeweightAttr}>${imgDashChild}${imgShadowChild}
+             ${imgStrokeweightAttr}>${imgDashChild}${imgOpacityChild}${imgShadowChild}
       <v:imagedata r:id="${relId}"${cropAttr} o:title="${escapeXml(elem.name || "image")}"/>
     </${imgTag}>
   </w:pict>
@@ -899,10 +906,15 @@ export class DocxCanvasRenderer {
       </v:textbox>`;
     }
 
-    const dashChild = hasStroke && style.strokeDashed ? '<v:stroke dashstyle="dash"/>' : "";
+    const elemOpacity = typeof elem.opacity === "number" ? elem.opacity : 1.0;
+    const fillAlpha = (style.fillOpacity ?? 1) * elemOpacity;
+    const strokeOpacityAttr = hasStroke && elemOpacity < 1 ? ` opacity="${elemOpacity.toFixed(2)}"` : "";
+    const dashChild = hasStroke && (style.strokeDashed || elemOpacity < 1)
+      ? `<v:stroke${style.strokeDashed ? ' dashstyle="dash"' : ""}${strokeOpacityAttr}/>`
+      : "";
     const opacityChild =
-      hasFill && style.fillOpacity !== undefined && style.fillOpacity < 1
-        ? `<v:fill opacity="${style.fillOpacity.toFixed(2)}"/>`
+      hasFill && fillAlpha < 1
+        ? `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`
         : "";
     const shadowChild = style.shadow
       ? `<v:shadow on="t" type="single" color="#${cleanHex(

@@ -64,16 +64,37 @@ async function run() {
   const snapshot = captureWordState();
   console.log(`[Phase 32 Benchmark] Word status: running=${snapshot.wordWasRunning}, activeDocs=${snapshot.initialDocumentCount}`);
 
-  const handle = await openTargetDocumentSafely(outDocx, snapshot, 40);
-  console.log(`[Phase 32 Benchmark] Word opened document: ${handle.runId}, sections=${handle.sectionsCount}`);
+  let handle: any = null;
+  try {
+    handle = await openTargetDocumentSafely(outDocx, snapshot, 40);
+    console.log(`[Phase 32 Benchmark] Word opened document: ${handle.runId}, sections=${handle.sectionsCount}`);
 
-  const outPdf = path.join(outDir, 'phase32_rendered.pdf');
-  exportTargetDocToPdfOnly(handle, outPdf, 600);
-  console.log(`[Phase 32 Benchmark] PDF exported: ${outPdf}`);
+    const outPdf = path.join(outDir, 'phase32_rendered.pdf');
+    exportTargetDocToPdfOnly(handle, outPdf, 600);
+    console.log(`[Phase 32 Benchmark] PDF exported: ${outPdf}`);
+  } catch (err) {
+    console.error('[Phase 32 Benchmark] Error during Word rendering or export:', err);
+    if (handle) {
+      try {
+        closeTargetDocOnly(handle);
+      } catch (closeErr) {
+        console.error('[Phase 32 Benchmark] Warning: fail-closed during emergency doc close:', closeErr);
+      }
+      try {
+        safeCleanupIsolatedDirectory(handle);
+      } catch (cleanErr) {
+        console.error('[Phase 32 Benchmark] Warning: fail-closed during emergency cleanup:', cleanErr);
+      }
+    }
+    throw err;
+  }
 
   closeTargetDocOnly(handle);
   safeCleanupIsolatedDirectory(handle);
   console.log('[Phase 32 Benchmark] Word document closed and cleaned up safely.');
 }
 
-run().catch(console.error);
+run().catch((err) => {
+  console.error('[Phase 32 Benchmark] Fatal execution error:', err);
+  process.exit(1);
+});

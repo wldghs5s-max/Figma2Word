@@ -140,72 +140,82 @@ describe("Phase 4 End-to-End Real Figma Pipeline Verification", () => {
   });
 
   it("Live E2E flow: convertFigmaUrl resolves remote JSON and image assets end-to-end", async () => {
-    const mockFilePayload = JSON.parse(
-      fs.readFileSync(
-        path.join(process.cwd(), "samples/real-world/sample-e2e-document.json"),
-        "utf-8"
-      )
-    );
+    const prevMode = process.env.FIGMA_NETWORK_MODE;
+    process.env.FIGMA_NETWORK_MODE = "online";
+    try {
+      const mockFilePayload = JSON.parse(
+        fs.readFileSync(
+          path.join(process.cwd(), "samples/real-world/sample-e2e-document.json"),
+          "utf-8"
+        )
+      );
 
-    // Mock fetch for Figma REST API calls
-    globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
-      if (url.includes("/v1/files/mockFileKey/images")) {
-        return {
-          ok: true,
-          json: async () => ({
-            meta: {
-              images: {
-                e2e_doc_diagram_asset_hash_01:
-                  "https://s3.amazonaws.com/figma-alpha/mock-image.png",
+      // Mock fetch for Figma REST API calls
+      globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/v1/files/mockFileKey/images")) {
+          return {
+            ok: true,
+            json: async () => ({
+              meta: {
+                images: {
+                  e2e_doc_diagram_asset_hash_01:
+                    "https://s3.amazonaws.com/figma-alpha/mock-image.png",
+                },
               },
-            },
-          }),
-        } as Response;
-      }
+            }),
+          } as Response;
+        }
 
-      if (url.includes("mock-image.png")) {
-        // Mock image binary
-        const imgBuffer = Buffer.from("fake-png-binary-content");
+        if (url.includes("mock-image.png")) {
+          // Mock image binary
+          const imgBuffer = Buffer.from("fake-png-binary-content");
+          return {
+            ok: true,
+            headers: new Headers({ "content-type": "image/png" }),
+            arrayBuffer: async () => imgBuffer.buffer,
+          } as Response;
+        }
+
+        if (url.includes("/v1/files/mockFileKey")) {
+          return {
+            ok: true,
+            json: async () => mockFilePayload,
+          } as Response;
+        }
+
         return {
-          ok: true,
-          headers: new Headers({ "content-type": "image/png" }),
-          arrayBuffer: async () => imgBuffer.buffer,
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
         } as Response;
+      });
+
+      const livePipeline = new ConversionPipeline();
+      const testFigmaUrl =
+        "https://www.figma.com/design/mockFileKey/Mock-Whitepaper-Document";
+      const outputPath = path.join(
+        process.cwd(),
+        "samples/output/sample-e2e-live-mock.docx"
+      );
+
+      const result = await livePipeline.convertFigmaUrl(
+        testFigmaUrl,
+        "figma_pat_test_token_12345",
+        { outputPath }
+      );
+
+      expect(result.docxBuffer).toBeInstanceOf(Buffer);
+      expect(result.docxBuffer.length).toBeGreaterThan(3000);
+      expect(fs.existsSync(outputPath)).toBe(true);
+      expect(result.internalDocument.metadata.title).toBe(
+        "Mock-Whitepaper-Document"
+      );
+    } finally {
+      if (prevMode !== undefined) {
+        process.env.FIGMA_NETWORK_MODE = prevMode;
+      } else {
+        delete process.env.FIGMA_NETWORK_MODE;
       }
-
-      if (url.includes("/v1/files/mockFileKey")) {
-        return {
-          ok: true,
-          json: async () => mockFilePayload,
-        } as Response;
-      }
-
-      return {
-        ok: false,
-        status: 404,
-        statusText: "Not Found",
-      } as Response;
-    });
-
-    const livePipeline = new ConversionPipeline();
-    const testFigmaUrl =
-      "https://www.figma.com/design/mockFileKey/Mock-Whitepaper-Document";
-    const outputPath = path.join(
-      process.cwd(),
-      "samples/output/sample-e2e-live-mock.docx"
-    );
-
-    const result = await livePipeline.convertFigmaUrl(
-      testFigmaUrl,
-      "figma_pat_test_token_12345",
-      { outputPath }
-    );
-
-    expect(result.docxBuffer).toBeInstanceOf(Buffer);
-    expect(result.docxBuffer.length).toBeGreaterThan(3000);
-    expect(fs.existsSync(outputPath)).toBe(true);
-    expect(result.internalDocument.metadata.title).toBe(
-      "Mock-Whitepaper-Document"
-    );
+    }
   });
 });

@@ -6,10 +6,13 @@ export interface ParsedFigmaUrl {
   fileName?: string;
 }
 
+export type FigmaNetworkMode = "offline" | "online";
+
 export interface FigmaClientOptions {
-  accessToken: string;
+  accessToken?: string;
   baseUrl?: string;
   timeoutMs?: number;
+  networkMode?: FigmaNetworkMode;
 }
 
 export interface FigmaGetFileOptions {

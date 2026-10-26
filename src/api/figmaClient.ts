@@ -5,8 +5,10 @@ import {
   FigmaGetNodesResponse,
   FigmaImageFillsResponse,
   FigmaRateLimitInfo,
+  FigmaNetworkMode,
 } from "./types.js";
 import { FigmaFileResponse, FigmaNode } from "../parser/types.js";
+import { getFigmaNetworkMode, assertOnlineAllowed } from "./networkMode.js";
 
 /**
  * Standard Figma API Error with clear, actionable user messages
@@ -166,24 +168,39 @@ export class FigmaClient {
   private accessToken: string;
   private baseUrl: string;
   private timeoutMs: number;
+  private networkMode: FigmaNetworkMode;
   private imageCache = new Map<string, string>(); // imageRef -> base64 data URL
 
   constructor(options: FigmaClientOptions) {
-    if (!options.accessToken) {
+    this.networkMode = options.networkMode ?? getFigmaNetworkMode();
+    if (this.networkMode === "online" && !options.accessToken) {
       throw new FigmaApiError(
-        "Figma access token is required. Set FIGMA_ACCESS_TOKEN or provide it explicitly.",
+        "Figma access token is required in online mode. Set FIGMA_ACCESS_TOKEN or provide it explicitly.",
         401
       );
     }
-    this.accessToken = options.accessToken.trim();
+    this.accessToken = (options.accessToken || "").trim();
     this.baseUrl = options.baseUrl || "https://api.figma.com/v1";
     this.timeoutMs = options.timeoutMs || 30000;
+  }
+
+  public getNetworkMode(): FigmaNetworkMode {
+    return this.networkMode;
+  }
+
+  public preloadImageCache(images: Record<string, string>): void {
+    for (const [ref, dataUrl] of Object.entries(images)) {
+      if (dataUrl) this.imageCache.set(ref, dataUrl);
+    }
   }
 
   /**
    * Helper to perform HTTP GET with standard error handling and headers
    */
   private async get<T>(endpoint: string): Promise<T> {
+    if (this.networkMode === "offline") {
+      assertOnlineAllowed(`GET ${endpoint}`);
+    }
     const url = `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
     const headers: Record<string, string> = {
       "X-Figma-Token": this.accessToken,
@@ -383,6 +400,9 @@ export class FigmaClient {
    * Download image binary from URL and convert to Base64 data URL
    */
   public async downloadImageAsBase64(url: string): Promise<string> {
+    if (this.networkMode === "offline") {
+      assertOnlineAllowed(`downloadImageAsBase64: ${url}`);
+    }
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -450,6 +470,12 @@ export class FigmaClient {
     }
 
     if (uncashedRefs.length === 0) {
+      return resultMap;
+    }
+
+    if (this.networkMode === "offline") {
+      // Phase 33 Invariant: Zero network calls in offline mode.
+      // Return currently resolved/cached images without contacting Figma API.
       return resultMap;
     }
 

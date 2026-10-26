@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "description": "Figma2Word Offline Reference & Rendering Cache Manifest",
+  "lastUpdated": "2026-10-26T07:00:00.000Z",
+  "entries": {
+    "WORD_RENDERED:pentech_v3:1-1": {
+      "sourceType": "WORD_RENDERED",
+      "fileKey": "pentech_v3",
+      "nodeId": "1:1",
+      "frameName": "디자인 시스템 1",
+      "width": 1440,
+      "height": 810,
+      "imagePath": "debug/phase33-benchmark/pages/page-001.png",
+      "resolution": {
+        "width": 2160,
+        "height": 1215,
+        "dpi": 108
+      },
+      "sha256Hash": "a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
+      "fileSizeBytes": 212698,
+      "capturedAt": "2026-10-26T07:05:00.000Z",
+      "captureMethod": "word_mac_pdf_coregraphics",
+      "verificationStatus": "VERIFIED",
+      "versionMatch": "UNVERIFIED",
+      "metadata": {
+        "pageNumber": 1,
+        "elementsCount": 72
+      }
+    },
+    "FIGMA_REFERENCE:pentech_v3:1-1": {
+      "sourceType": "FIGMA_REFERENCE",
+      "fileKey": "pentech_v3",
+      "nodeId": "1:1",
+      "frameName": "디자인 시스템 1",
+      "width": 1440,
+      "height": 810,
+      "imagePath": "debug/cache/figma_references/pentech_v3/frame_1_1.png",
+      "capturedAt": "2026-10-26T07:00:00.000Z",
+      "captureMethod": "figma_rest_api_v1_images_one_shot",
+      "verificationStatus": "NOT_VERIFIED",
+      "versionMatch": "UNVERIFIED",
+      "metadata": {
+        "note": "Requires explicit user consent and one-shot capture command"
+      }
+    }
+  }
+}

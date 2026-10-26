@@ -1,0 +1,450 @@
+{
+  "timestamp": "2026-10-26T06:54:18.658Z",
+  "pagesCount": 17,
+  "docxSizeBytes": 15732329,
+  "hwpxSizeBytes": 15773167,
+  "pages": [
+    {
+      "pageIndex": 1,
+      "pageName": "디자인 시스템 1",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 810
+      },
+      "counts": {
+        "total": 72,
+        "text": 44,
+        "card": 28,
+        "image": 0,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 14,
+        "shadowed": 0,
+        "rounded": 27,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 2,
+      "pageName": "디자인 시스템 2",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 810
+      },
+      "counts": {
+        "total": 50,
+        "text": 30,
+        "card": 19,
+        "image": 0,
+        "vector": 1,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 11,
+        "shadowed": 0,
+        "rounded": 18,
+        "translucent": 0,
+        "centerTexts": 7,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 3,
+      "pageName": "Desktop - 1",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 841.89,
+        "height": 595.28
+      },
+      "counts": {
+        "total": 1,
+        "text": 0,
+        "card": 0,
+        "image": 1,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 0,
+        "shadowed": 0,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 4,
+      "pageName": "Desktop - 대시보드 (지도뷰)",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 100,
+        "text": 50,
+        "card": 30,
+        "image": 2,
+        "vector": 9,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 24,
+        "shadowed": 3,
+        "rounded": 24,
+        "translucent": 0,
+        "centerTexts": 8,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 5,
+      "pageName": "Desktop - 2",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1086.75,
+        "height": 1185
+      },
+      "counts": {
+        "total": 9,
+        "text": 3,
+        "card": 4,
+        "image": 2,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 4,
+        "shadowed": 3,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 6,
+      "pageName": "촬영계획",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "counts": {
+        "total": 4,
+        "text": 3,
+        "card": 0,
+        "image": 1,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 0,
+        "shadowed": 3,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 7,
+      "pageName": "촬영계획 - 건물을 선택시",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "counts": {
+        "total": 1,
+        "text": 0,
+        "card": 0,
+        "image": 1,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 0,
+        "shadowed": 0,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 8,
+      "pageName": "사업목록 선택된 화면",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 101,
+        "text": 50,
+        "card": 31,
+        "image": 2,
+        "vector": 9,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 24,
+        "shadowed": 3,
+        "rounded": 24,
+        "translucent": 0,
+        "centerTexts": 8,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 9,
+      "pageName": "필터 팝업",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 883.5,
+        "height": 968.25
+      },
+      "counts": {
+        "total": 4,
+        "text": 2,
+        "card": 1,
+        "image": 1,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 1,
+        "shadowed": 2,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 10,
+      "pageName": "신규등록 - 1",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 152,
+        "text": 73,
+        "card": 47,
+        "image": 2,
+        "vector": 20,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 47,
+        "shadowed": 3,
+        "rounded": 34,
+        "translucent": 0,
+        "centerTexts": 8,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 11,
+      "pageName": "필터",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 378,
+        "height": 459.75
+      },
+      "counts": {
+        "total": 71,
+        "text": 32,
+        "card": 27,
+        "image": 0,
+        "vector": 10,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 38,
+        "shadowed": 0,
+        "rounded": 27,
+        "translucent": 0,
+        "centerTexts": 2,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 12,
+      "pageName": "Frame 1",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 883.5,
+        "height": 968.25
+      },
+      "counts": {
+        "total": 6,
+        "text": 5,
+        "card": 0,
+        "image": 1,
+        "vector": 0,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 0,
+        "shadowed": 5,
+        "rounded": 0,
+        "translucent": 0,
+        "centerTexts": 0,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 13,
+      "pageName": "사업정보 수정",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 378,
+        "height": 701.25
+      },
+      "counts": {
+        "total": 89,
+        "text": 38,
+        "card": 14,
+        "image": 0,
+        "vector": 35,
+        "oval": 0
+      },
+      "styles": {
+        "stroked": 50,
+        "shadowed": 0,
+        "rounded": 14,
+        "translucent": 0,
+        "centerTexts": 2,
+        "rightTexts": 0
+      }
+    },
+    {
+      "pageIndex": 14,
+      "pageName": "신규등록 - 2",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 141,
+        "text": 70,
+        "card": 47,
+        "image": 2,
+        "vector": 13,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 38,
+        "shadowed": 3,
+        "rounded": 35,
+        "translucent": 0,
+        "centerTexts": 8,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 15,
+      "pageName": "사업목록 클릭 시",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 228,
+        "text": 93,
+        "card": 60,
+        "image": 1,
+        "vector": 68,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 114,
+        "shadowed": 3,
+        "rounded": 51,
+        "translucent": 0,
+        "centerTexts": 18,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 16,
+      "pageName": "사업목록 클릭 시 - 탭디자인1",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 915.75
+      },
+      "counts": {
+        "total": 209,
+        "text": 90,
+        "card": 54,
+        "image": 1,
+        "vector": 58,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 103,
+        "shadowed": 4,
+        "rounded": 45,
+        "translucent": 0,
+        "centerTexts": 18,
+        "rightTexts": 1
+      }
+    },
+    {
+      "pageIndex": 17,
+      "pageName": "사업목록 클릭 시",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 877.5
+      },
+      "counts": {
+        "total": 83,
+        "text": 42,
+        "card": 19,
+        "image": 2,
+        "vector": 13,
+        "oval": 1
+      },
+      "styles": {
+        "stroked": 25,
+        "shadowed": 3,
+        "rounded": 15,
+        "translucent": 0,
+        "centerTexts": 2,
+        "rightTexts": 1
+      }
+    }
+  ]
+}

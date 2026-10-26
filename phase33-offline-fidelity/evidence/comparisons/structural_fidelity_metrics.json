@@ -1,0 +1,24 @@
+{
+  "canvasIR": {
+    "pagesCount": 17,
+    "totalElements": 1321,
+    "texts": 625,
+    "cards": 381,
+    "vectors": 236,
+    "ovals": 7,
+    "images": 19
+  },
+  "docxXmlMetrics": {
+    "totalVmlShapes": 1081,
+    "totalParagraphs": 642,
+    "totalRuns": 1790,
+    "fillOpacityElements": 4,
+    "strokeOpacityElements": 0,
+    "shadowElements": 35
+  },
+  "hwpxXmlMetrics": {
+    "totalFillBrushes": 1297,
+    "dropShadows": 35,
+    "translucentBrushes": 37
+  }
+}

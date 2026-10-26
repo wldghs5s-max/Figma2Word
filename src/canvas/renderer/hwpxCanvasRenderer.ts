@@ -712,8 +712,12 @@ ${paraPrEntries}
     const lineColor = hasStroke ? cleanHex(elem.style.strokeColor, "000000") : "000000";
     const lineWidth = hasStroke ? Math.round((elem.style.strokeWidth || 1) * 10).toString() : "0";
 
+    const elemOpacity = typeof elem.opacity === "number" ? elem.opacity : 1.0;
+    const fillAlpha = (elem.style.fillOpacity ?? 1.0) * elemOpacity;
+    const alphaVal = Math.max(0, Math.min(255, Math.round((1 - fillAlpha) * 255)));
+
     const fillBrushXml = hasFill
-      ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="0"/></hc:fillBrush>`
+      ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="${alphaVal}"/></hc:fillBrush>`
       : `<hc:fillBrush/>`;
 
     const shapeW = wHwpu;

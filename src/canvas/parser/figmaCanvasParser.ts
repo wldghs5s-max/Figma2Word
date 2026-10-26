@@ -442,17 +442,21 @@ export class FigmaCanvasParser {
     const elements: CanvasElement[] = [];
     let currentZIndex = 1;
 
-    // Helper to recursively process children
-    const processChildren = (node: FigmaNode) => {
+    // Helper to recursively process children with cascading opacity propagation (Phase 33)
+    const processChildren = (node: FigmaNode, parentOpacity: number = 1.0) => {
       if (!node.children) return;
 
       for (const child of node.children) {
         if (child.visible === false) continue;
 
+        const childRawOpacity = typeof child.opacity === "number" ? child.opacity : 1.0;
+        const effectiveOpacity = Math.max(0, Math.min(1.0, parentOpacity * childRawOpacity));
+        const finalElemOpacity = effectiveOpacity < 1.0 ? effectiveOpacity : (child.opacity !== undefined ? child.opacity : undefined);
+
         const childBox = child.absoluteBoundingBox;
         if (!childBox) {
           // If no absolute bounding box, still process children if any
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
           continue;
         }
 
@@ -531,7 +535,7 @@ export class FigmaCanvasParser {
             bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
             zIndex: currentZIndex++,
             rotation: (child as any).rotation,
-            opacity: child.opacity,
+            opacity: finalElemOpacity,
             style: this.extractStyle(child, scaleX),
             imageRef: resId,
             imageScaleMode,
@@ -613,7 +617,7 @@ export class FigmaCanvasParser {
             bounds: { x: xPt, y: textYPt, width: wPt, height: textHPt },
             zIndex: currentZIndex++,
             rotation: (child as any).rotation,
-            opacity: child.opacity,
+            opacity: finalElemOpacity,
             style,
             textRuns,
             paragraphAlign: align,
@@ -647,7 +651,7 @@ export class FigmaCanvasParser {
             },
             zIndex: currentZIndex++,
             rotation: rawRot,
-            opacity: child.opacity,
+            opacity: finalElemOpacity,
             style: this.extractStyle(child, scaleX),
             sourceNodeId: child.id,
             sourceNodeType: child.type,
@@ -702,7 +706,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
                 zIndex: currentZIndex++,
                 rotation: (child as any).rotation,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style,
                 vectorPath: vmlPath,
                 rawSvgPath: rawPath,
@@ -719,14 +723,14 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
                 zIndex: currentZIndex++,
                 rotation: (child as any).rotation,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style,
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
               });
             }
           }
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
         } else if (
           child.type === "VECTOR" ||
           child.type === "STAR" ||
@@ -796,7 +800,7 @@ export class FigmaCanvasParser {
               sourceNodeType: child.type,
             });
           }
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
         } else if (
           child.type === "RECTANGLE" ||
           child.type === "FRAME" ||
@@ -826,7 +830,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
                 zIndex: currentZIndex++,
                 rotation: (child as any).rotation,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style: {
                   fillColor: style.fillColor,
                   fillOpacity: style.fillOpacity,
@@ -851,7 +855,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt + hPt, width: wPt, height: 1 },
                 zIndex: currentZIndex++,
                 rotation: 0,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style: {
                   strokeColor,
                   strokeWidth: bs.bottom,
@@ -869,7 +873,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt, width: wPt, height: 1 },
                 zIndex: currentZIndex++,
                 rotation: 0,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style: {
                   strokeColor,
                   strokeWidth: bs.top,
@@ -887,7 +891,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt, y: yPt, width: 1, height: hPt },
                 zIndex: currentZIndex++,
                 rotation: 0,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style: {
                   strokeColor,
                   strokeWidth: bs.left,
@@ -905,7 +909,7 @@ export class FigmaCanvasParser {
                 bounds: { x: xPt + wPt, y: yPt, width: 1, height: hPt },
                 zIndex: currentZIndex++,
                 rotation: 0,
-                opacity: child.opacity,
+                opacity: finalElemOpacity,
                 style: {
                   strokeColor,
                   strokeWidth: bs.right,
@@ -923,7 +927,7 @@ export class FigmaCanvasParser {
               bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
               zIndex: currentZIndex++,
               rotation: (child as any).rotation,
-              opacity: child.opacity,
+              opacity: finalElemOpacity,
               style,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
@@ -931,9 +935,9 @@ export class FigmaCanvasParser {
           }
 
           // Process nested children inside this container
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
         } else if (child.type === "GROUP") {
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
         } else {
           // Fallback for VECTOR, STAR, ELLIPSE, etc.
           const style = this.extractStyle(child, scaleX);
@@ -945,13 +949,13 @@ export class FigmaCanvasParser {
               bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
               zIndex: currentZIndex++,
               rotation: (child as any).rotation,
-              opacity: child.opacity,
+              opacity: finalElemOpacity,
               style,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
             });
           }
-          processChildren(child);
+          processChildren(child, effectiveOpacity);
         }
       }
     };
