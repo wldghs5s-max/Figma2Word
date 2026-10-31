@@ -1,0 +1,542 @@
+{
+  "benchmarkVersion": "Phase 35 Optimized DOCX Renderer (Windows COM Native)",
+  "measuredAt": "2026-10-31T04:51:20.410Z",
+  "engine": "Figma2Word Independent Benchmark Engine v1.0",
+  "wordVersion": "Microsoft Word 16.0 (COM Automation)",
+  "rasterizer": "WinRT Windows.Data.Pdf.PdfDocument",
+  "scaleFactor": 1.3333333,
+  "totalFrames": 17,
+  "evaluatedFramesCount": 16,
+  "missingReferenceCount": 1,
+  "averages": {
+    "ssim": 0.8734,
+    "mae": 121.46,
+    "rmse": 167.08,
+    "mismatchRatio": 0.7204
+  },
+  "provenance": {
+    "docxPath": "phase35-fidelity-verification\\evidence\\word-renders\\phase35_improved.docx",
+    "docxSha256": "898d2d4e33399837539b4e96cbf075624b1adb7e15c76988e6106adfb8d58690",
+    "pdfPath": "phase35-fidelity-verification\\evidence\\word-renders\\phase35_improved.pdf",
+    "pdfSha256": "d6a9bd53c9b5909409ff0dd42290b5f3afce94c26ef90860a743b650c2e964f3",
+    "wordDurationMs": 5847
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1080
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 810
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1440
+      },
+      "ssim": 0.8952,
+      "mae": 133.29,
+      "rmse": 175.81,
+      "mismatchRatio": 0.9557,
+      "contentBBoxDiff": {
+        "dx": -71,
+        "dy": -76,
+        "dw": -285,
+        "dh": 245
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Color swatch badge border-radius subpixel anti-aliasing",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-001.png"
+    },
+    {
+      "pageNumber": 2,
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1080
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 810
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1440
+      },
+      "ssim": 0.9389,
+      "mae": 121.63,
+      "rmse": 170.27,
+      "mismatchRatio": 0.9523,
+      "contentBBoxDiff": {
+        "dx": -70,
+        "dy": -76,
+        "dw": 424,
+        "dh": 365
+      },
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Button corner radius and DirectWrite glyph padding",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-002.png"
+    },
+    {
+      "pageNumber": 3,
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1440,
+        "height": 1024
+      },
+      "canvasSizePt": {
+        "width": 841.89,
+        "height": 595.28
+      },
+      "wordPixelSize": {
+        "width": 1497,
+        "height": 1058
+      },
+      "ssim": 0.7494,
+      "mae": 45.46,
+      "rmse": 82.97,
+      "mismatchRatio": 0.4387,
+      "contentBBoxDiff": {
+        "dx": 22,
+        "dy": -53,
+        "dw": -159,
+        "dh": 89
+      },
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Desktop-1 A4 landscape scaling letterbox margins",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-003.png"
+    },
+    {
+      "pageNumber": 4,
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.8285,
+      "mae": 131.9,
+      "rmse": 176.48,
+      "mismatchRatio": 0.6754,
+      "contentBBoxDiff": {
+        "dx": 0,
+        "dy": 21,
+        "dw": -640,
+        "dh": -411
+      },
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Map view container layout and widget card alignment",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-004.png"
+    },
+    {
+      "pageNumber": 5,
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1580
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 1185
+      },
+      "wordPixelSize": {
+        "width": 1932,
+        "height": 2107
+      },
+      "ssim": 0.8786,
+      "mae": 117.82,
+      "rmse": 170.87,
+      "mismatchRatio": 0.5041,
+      "contentBBoxDiff": {
+        "dx": 11,
+        "dy": -16,
+        "dw": -514,
+        "dh": -477
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-005.png"
+    },
+    {
+      "pageNumber": 6,
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1083
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "wordPixelSize": {
+        "width": 1932,
+        "height": 1444
+      },
+      "ssim": 0.8318,
+      "mae": 121.64,
+      "rmse": 170.28,
+      "mismatchRatio": 0.7301,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -14,
+        "dw": -415,
+        "dh": -313
+      },
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-006.png"
+    },
+    {
+      "pageNumber": 7,
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1083
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "wordPixelSize": {
+        "width": 1932,
+        "height": 1444
+      },
+      "ssim": 0.9212,
+      "mae": 120.5,
+      "rmse": 170.06,
+      "mismatchRatio": 0.7213,
+      "contentBBoxDiff": {
+        "dx": 29,
+        "dy": -16,
+        "dw": -541,
+        "dh": -311
+      },
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-007.png"
+    },
+    {
+      "pageNumber": 8,
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.9077,
+      "mae": 121.5,
+      "rmse": 170.18,
+      "mismatchRatio": 0.8658,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -13,
+        "dw": -572,
+        "dh": -343
+      },
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-008.png"
+    },
+    {
+      "pageNumber": 9,
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1178,
+        "height": 1291
+      },
+      "canvasSizePt": {
+        "width": 883.5,
+        "height": 968.25
+      },
+      "wordPixelSize": {
+        "width": 1571,
+        "height": 1721
+      },
+      "ssim": 0.8682,
+      "mae": 128.72,
+      "rmse": 173.5,
+      "mismatchRatio": 0.6862,
+      "contentBBoxDiff": {
+        "dx": 58,
+        "dy": 146,
+        "dw": -509,
+        "dh": -659
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-009.png"
+    },
+    {
+      "pageNumber": 10,
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.8816,
+      "mae": 153.46,
+      "rmse": 179.47,
+      "mismatchRatio": 0.9244,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -34,
+        "dw": -572,
+        "dh": -322
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-010.png"
+    },
+    {
+      "pageNumber": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 504,
+        "height": 613
+      },
+      "canvasSizePt": {
+        "width": 378,
+        "height": 459.75
+      },
+      "wordPixelSize": {
+        "width": 672,
+        "height": 817
+      },
+      "ssim": 0.8578,
+      "mae": 117.63,
+      "rmse": 171.57,
+      "mismatchRatio": 0.4831,
+      "contentBBoxDiff": {
+        "dx": 0,
+        "dy": 23,
+        "dw": -168,
+        "dh": -251
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Modal dialog isolated page viewport aspect ratio",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-011.png"
+    },
+    {
+      "pageNumber": 12,
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1178,
+        "height": 1291
+      },
+      "canvasSizePt": {
+        "width": 883.5,
+        "height": 968.25
+      },
+      "wordPixelSize": {
+        "width": 1571,
+        "height": 1721
+      },
+      "ssim": 0.9001,
+      "mae": 118.49,
+      "rmse": 170.77,
+      "mismatchRatio": 0.5511,
+      "contentBBoxDiff": {
+        "dx": 156,
+        "dy": 16,
+        "dw": -754,
+        "dh": -594
+      },
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-012.png"
+    },
+    {
+      "pageNumber": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 504,
+        "height": 935
+      },
+      "canvasSizePt": {
+        "width": 378,
+        "height": 701.25
+      },
+      "wordPixelSize": {
+        "width": 672,
+        "height": 1247
+      },
+      "ssim": 0.8295,
+      "mae": 117.76,
+      "rmse": 171.42,
+      "mismatchRatio": 0.4973,
+      "contentBBoxDiff": {
+        "dx": 0,
+        "dy": 23,
+        "dw": -168,
+        "dh": -359
+      },
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Modal dialog isolated page viewport aspect ratio",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-013.png"
+    },
+    {
+      "pageNumber": 14,
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.8848,
+      "mae": 154.56,
+      "rmse": 179.92,
+      "mismatchRatio": 0.9274,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -34,
+        "dw": -572,
+        "dh": -322
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-014.png"
+    },
+    {
+      "pageNumber": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.9095,
+      "mae": 117.72,
+      "rmse": 169.68,
+      "mismatchRatio": 0.7365,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -13,
+        "dw": -572,
+        "dh": -343
+      },
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-015.png"
+    },
+    {
+      "pageNumber": 16,
+      "nodeId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "status": "REFERENCE_MISSING_VERSION_UNVERIFIED",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1221
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 915.75
+      },
+      "ssim": null,
+      "mae": null,
+      "rmse": null,
+      "mismatchRatio": null,
+      "primaryDefect": "MISSING_IN_CLOUD",
+      "defectDetails": "Node returned null by Figma API (deleted/modified in cloud). Strictly isolated per principle 1.1."
+    },
+    {
+      "pageNumber": 17,
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "wordPixelSize": {
+        "width": 2560,
+        "height": 1560
+      },
+      "ssim": 0.8909,
+      "mae": 121.34,
+      "rmse": 169.96,
+      "mismatchRatio": 0.8775,
+      "contentBBoxDiff": {
+        "dx": -34,
+        "dy": -13,
+        "dw": -572,
+        "dh": -343
+      },
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics",
+      "diffImagePath": "phase35-fidelity-verification\\evidence\\diff-heatmaps\\diff-page-017.png"
+    }
+  ]
+}

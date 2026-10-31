@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 
-describe("Phase 27: Visual Comparison Algorithm & Local Window SSIM Suite", () => {
+describe.skipIf(process.platform !== "darwin")("Phase 27: Visual Comparison Algorithm & Local Window SSIM Suite", () => {
   const tmpDir = path.resolve(process.cwd(), "debug/phase27-algorithm-test");
   const swiftScript = path.resolve(process.cwd(), "tools/visual-regression/compare_engine.swift");
 

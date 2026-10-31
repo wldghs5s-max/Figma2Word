@@ -1,0 +1,109 @@
+﻿diff --git a/.gitignore b/.gitignore
+index 387da68..1e1e8b3 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -83,3 +83,7 @@ __pycache__/
+ # Phase 26 large rendering artifacts (keep reports & metrics, ignore binary outputs)
+ research/rea-document-engine/phase26-visual-fidelity/artifacts/
+ 
++# Phase 35 rendering evidence (keep reports & metrics, ignore binary outputs)
++phase35-fidelity-verification/evidence/word-renders/
++phase35-fidelity-verification/evidence/diff-heatmaps/
++
+diff --git a/src/canvas/renderer/docxCanvasRenderer.ts b/src/canvas/renderer/docxCanvasRenderer.ts
+index 0962521..9d3dac7 100644
+--- a/src/canvas/renderer/docxCanvasRenderer.ts
++++ b/src/canvas/renderer/docxCanvasRenderer.ts
+@@ -795,7 +795,7 @@ export class DocxCanvasRenderer {
+         // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
+         extraShapeAttrs = `arcsize="${Math.min(
+           0.5,
+-          scalarRadius / minDim
++          minDim > 0 ? scalarRadius / minDim : 0
+         ).toFixed(3)}" `;
+       }
+     }
+@@ -899,6 +899,8 @@ export class DocxCanvasRenderer {
+               <w:contextualSpacing w:val="0"/>
+               <w:autoSpaceDE w:val="0"/>
+               <w:autoSpaceDN w:val="0"/>
++              <w:snapToGrid w:val="0"/>
++              <w:overflowPunct w:val="0"/>
+             </w:pPr>
+             ${runsXml.join("\n            ")}
+           </w:p>
+diff --git a/tests/phase31-1-word-safety.test.ts b/tests/phase31-1-word-safety.test.ts
+index 5767fc8..405f05d 100644
+--- a/tests/phase31-1-word-safety.test.ts
++++ b/tests/phase31-1-word-safety.test.ts
+@@ -384,7 +384,7 @@ describe("Phase 31.1: Word Automation Failure Injection & Residual Safety Suite"
+       closeTargetDocOnly(handle, 1, deps);
+ 
+       // Invariant: The AppleScript must match ONLY our isolated doc path
+-      expect(executedScript).toContain(handle.normalizedPosixPath);
++      expect(executedScript).toContain(handle.normalizedPosixPath.replace(/\\/g, "\\\\"));
+       expect(executedScript).not.toContain("ImportantUserThesis.docx");
+       expect(executedScript).not.toContain("FinancialReport.docx");
+       expect(executedScript).not.toContain("close every document");
+diff --git a/tests/visual-comparison-algorithm.test.ts b/tests/visual-comparison-algorithm.test.ts
+index 561b9d1..09428ad 100644
+--- a/tests/visual-comparison-algorithm.test.ts
++++ b/tests/visual-comparison-algorithm.test.ts
+@@ -3,7 +3,7 @@ import * as fs from "fs";
+ import * as path from "path";
+ import { execSync } from "child_process";
+ 
+-describe("Phase 27: Visual Comparison Algorithm & Local Window SSIM Suite", () => {
++describe.skipIf(process.platform !== "darwin")("Phase 27: Visual Comparison Algorithm & Local Window SSIM Suite", () => {
+   const tmpDir = path.resolve(process.cwd(), "debug/phase27-algorithm-test");
+   const swiftScript = path.resolve(process.cwd(), "tools/visual-regression/compare_engine.swift");
+ 
+diff --git a/tools/visual-regression/safe_word_automation.ts b/tools/visual-regression/safe_word_automation.ts
+index 559de20..2b53e9e 100644
+--- a/tools/visual-regression/safe_word_automation.ts
++++ b/tools/visual-regression/safe_word_automation.ts
+@@ -202,6 +202,44 @@ export function runAppleScript(script: string, timeoutMs: number = 15000): strin
+  * 3. Accurately identifies unsaved/untitled documents (<UNTITLED>) to guarantee user data protection.
+  */
+ export function captureWordState(): WordEnvironmentSnapshot {
++  if (process.platform === 'win32') {
++    let isRunning = false;
++    try {
++      const out = execSync('tasklist /FI "IMAGENAME eq WINWORD.EXE" /NH', { encoding: 'utf8' });
++      isRunning = out.includes('WINWORD.EXE');
++    } catch {
++      isRunning = false;
++    }
++    if (!isRunning) {
++      return {
++        wordWasRunning: false,
++        initialDocumentNames: [],
++        initialDocumentPaths: [],
++        initialDocumentCount: 0,
++        untitledDocumentsCount: 0,
++      };
++    }
++    try {
++      const psCmd = `powershell -Command "try { $w = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Word.Application'); if ($w) { $names = @($w.Documents | ForEach-Object { $_.FullName }); $names -join '|' } } catch {}"`;
++      const psOut = execSync(psCmd, { encoding: 'utf8' }).trim();
++      const docPaths = psOut ? psOut.split('|').filter(Boolean) : [];
++      return {
++        wordWasRunning: true,
++        initialDocumentNames: docPaths.map(p => path.basename(p)),
++        initialDocumentPaths: docPaths,
++        initialDocumentCount: docPaths.length,
++        untitledDocumentsCount: 0,
++      };
++    } catch {
++      return {
++        wordWasRunning: true,
++        initialDocumentNames: [],
++        initialDocumentPaths: [],
++        initialDocumentCount: 0,
++        untitledDocumentsCount: 0,
++      };
++    }
++  }
+   const isRunningScript = `
+     tell application "System Events"
+       return (count of (processes whose name is "Microsoft Word")) > 0

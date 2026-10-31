@@ -795,7 +795,7 @@ export class DocxCanvasRenderer {
         // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
         extraShapeAttrs = `arcsize="${Math.min(
           0.5,
-          scalarRadius / minDim
+          minDim > 0 ? scalarRadius / minDim : 0
         ).toFixed(3)}" `;
       }
     }
@@ -899,6 +899,8 @@ export class DocxCanvasRenderer {
               <w:contextualSpacing w:val="0"/>
               <w:autoSpaceDE w:val="0"/>
               <w:autoSpaceDN w:val="0"/>
+              <w:snapToGrid w:val="0"/>
+              <w:overflowPunct w:val="0"/>
             </w:pPr>
             ${runsXml.join("\n            ")}
           </w:p>

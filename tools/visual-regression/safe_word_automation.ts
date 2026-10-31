@@ -202,6 +202,44 @@ export function runAppleScript(script: string, timeoutMs: number = 15000): strin
  * 3. Accurately identifies unsaved/untitled documents (<UNTITLED>) to guarantee user data protection.
  */
 export function captureWordState(): WordEnvironmentSnapshot {
+  if (process.platform === 'win32') {
+    let isRunning = false;
+    try {
+      const out = execSync('tasklist /FI "IMAGENAME eq WINWORD.EXE" /NH', { encoding: 'utf8' });
+      isRunning = out.includes('WINWORD.EXE');
+    } catch {
+      isRunning = false;
+    }
+    if (!isRunning) {
+      return {
+        wordWasRunning: false,
+        initialDocumentNames: [],
+        initialDocumentPaths: [],
+        initialDocumentCount: 0,
+        untitledDocumentsCount: 0,
+      };
+    }
+    try {
+      const psCmd = `powershell -Command "try { $w = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Word.Application'); if ($w) { $names = @($w.Documents | ForEach-Object { $_.FullName }); $names -join '|' } } catch {}"`;
+      const psOut = execSync(psCmd, { encoding: 'utf8' }).trim();
+      const docPaths = psOut ? psOut.split('|').filter(Boolean) : [];
+      return {
+        wordWasRunning: true,
+        initialDocumentNames: docPaths.map(p => path.basename(p)),
+        initialDocumentPaths: docPaths,
+        initialDocumentCount: docPaths.length,
+        untitledDocumentsCount: 0,
+      };
+    } catch {
+      return {
+        wordWasRunning: true,
+        initialDocumentNames: [],
+        initialDocumentPaths: [],
+        initialDocumentCount: 0,
+        untitledDocumentsCount: 0,
+      };
+    }
+  }
   const isRunningScript = `
     tell application "System Events"
       return (count of (processes whose name is "Microsoft Word")) > 0

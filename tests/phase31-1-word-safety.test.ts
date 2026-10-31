@@ -384,7 +384,7 @@ describe("Phase 31.1: Word Automation Failure Injection & Residual Safety Suite"
       closeTargetDocOnly(handle, 1, deps);
 
       // Invariant: The AppleScript must match ONLY our isolated doc path
-      expect(executedScript).toContain(handle.normalizedPosixPath);
+      expect(executedScript).toContain(handle.normalizedPosixPath.replace(/\\/g, "\\\\"));
       expect(executedScript).not.toContain("ImportantUserThesis.docx");
       expect(executedScript).not.toContain("FinancialReport.docx");
       expect(executedScript).not.toContain("close every document");

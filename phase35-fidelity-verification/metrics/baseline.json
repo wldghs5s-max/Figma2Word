@@ -1,0 +1,360 @@
+{
+  "benchmarkVersion": "Phase 35 Recomputed Baseline (Windows COM Native)",
+  "measuredAt": "2026-10-31T04:51:20.409Z",
+  "engine": "Figma2Word Independent Benchmark Engine v1.0",
+  "wordVersion": "Microsoft Word 16.0 (COM Automation)",
+  "rasterizer": "WinRT Windows.Data.Pdf.PdfDocument",
+  "scaleFactor": 1.3333333,
+  "totalFrames": 17,
+  "evaluatedFramesCount": 16,
+  "missingReferenceCount": 1,
+  "averages": {
+    "ssim": 0.8654,
+    "mae": 122.71,
+    "rmse": 168.53,
+    "mismatchRatio": 0.7324
+  },
+  "legacyMetricStatus": "ISOLATED_AS_UNVERIFIED_LEGACY_METRIC",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1080
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 810
+      },
+      "ssim": 0.8872,
+      "mae": 134.54,
+      "rmse": 177.26,
+      "mismatchRatio": 0.9677,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Color swatch badge border-radius subpixel anti-aliasing"
+    },
+    {
+      "pageNumber": 2,
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1080
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 810
+      },
+      "ssim": 0.9309,
+      "mae": 122.88,
+      "rmse": 171.72,
+      "mismatchRatio": 0.9643,
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Button corner radius and DirectWrite glyph padding"
+    },
+    {
+      "pageNumber": 3,
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1440,
+        "height": 1024
+      },
+      "canvasSizePt": {
+        "width": 841.89,
+        "height": 595.28
+      },
+      "ssim": 0.7414,
+      "mae": 46.71,
+      "rmse": 84.42,
+      "mismatchRatio": 0.4507,
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Desktop-1 A4 landscape scaling letterbox margins"
+    },
+    {
+      "pageNumber": 4,
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.8205,
+      "mae": 133.15,
+      "rmse": 177.93,
+      "mismatchRatio": 0.6874,
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Map view container layout and widget card alignment"
+    },
+    {
+      "pageNumber": 5,
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1580
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 1185
+      },
+      "ssim": 0.8706,
+      "mae": 119.07,
+      "rmse": 172.32,
+      "mismatchRatio": 0.5161,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 6,
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1083
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "ssim": 0.8238,
+      "mae": 122.89,
+      "rmse": 171.73,
+      "mismatchRatio": 0.7421,
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 7,
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1449,
+        "height": 1083
+      },
+      "canvasSizePt": {
+        "width": 1086.75,
+        "height": 812.25
+      },
+      "ssim": 0.9132,
+      "mae": 121.75,
+      "rmse": 171.51,
+      "mismatchRatio": 0.7333,
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 8,
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.8997,
+      "mae": 122.75,
+      "rmse": 171.63,
+      "mismatchRatio": 0.8778,
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 9,
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1178,
+        "height": 1291
+      },
+      "canvasSizePt": {
+        "width": 883.5,
+        "height": 968.25
+      },
+      "ssim": 0.8602,
+      "mae": 129.97,
+      "rmse": 174.95,
+      "mismatchRatio": 0.6982,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 10,
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.8736,
+      "mae": 154.71,
+      "rmse": 180.92,
+      "mismatchRatio": 0.9364,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 504,
+        "height": 613
+      },
+      "canvasSizePt": {
+        "width": 378,
+        "height": 459.75
+      },
+      "ssim": 0.8498,
+      "mae": 118.88,
+      "rmse": 173.02,
+      "mismatchRatio": 0.4951,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Modal dialog isolated page viewport aspect ratio"
+    },
+    {
+      "pageNumber": 12,
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1178,
+        "height": 1291
+      },
+      "canvasSizePt": {
+        "width": 883.5,
+        "height": 968.25
+      },
+      "ssim": 0.8921,
+      "mae": 119.74,
+      "rmse": 172.22,
+      "mismatchRatio": 0.5631,
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 504,
+        "height": 935
+      },
+      "canvasSizePt": {
+        "width": 378,
+        "height": 701.25
+      },
+      "ssim": 0.8215,
+      "mae": 119.01,
+      "rmse": 172.87,
+      "mismatchRatio": 0.5093,
+      "primaryDefect": "PAGE_GEOMETRY",
+      "defectDetails": "Modal dialog isolated page viewport aspect ratio"
+    },
+    {
+      "pageNumber": 14,
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.8768,
+      "mae": 155.81,
+      "rmse": 181.37,
+      "mismatchRatio": 0.9394,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.9015,
+      "mae": 118.97,
+      "rmse": 171.13,
+      "mismatchRatio": 0.7485,
+      "primaryDefect": "STYLE_MISMATCH",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    },
+    {
+      "pageNumber": 16,
+      "nodeId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "status": "REFERENCE_MISSING_VERSION_UNVERIFIED",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1221
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 915.75
+      },
+      "ssim": null,
+      "mae": null,
+      "rmse": null,
+      "mismatchRatio": null,
+      "primaryDefect": "MISSING_IN_CLOUD",
+      "defectDetails": "Node returned null by Figma API (deleted/modified in cloud). Strictly isolated per principle 1.1."
+    },
+    {
+      "pageNumber": 17,
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "figmaSizePx": {
+        "width": 1920,
+        "height": 1170
+      },
+      "canvasSizePt": {
+        "width": 1440,
+        "height": 877.5
+      },
+      "ssim": 0.8829,
+      "mae": 122.59,
+      "rmse": 171.41,
+      "mismatchRatio": 0.8895,
+      "primaryDefect": "FONT_METRICS",
+      "defectDetails": "Complex composite component alignment and font glyph metrics"
+    }
+  ]
+}

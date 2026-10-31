@@ -1,0 +1,31 @@
+# Phase 35 SHA-256 Verification & Provenance Manifest
+# Generated: 2026-10-31T04:51:20.420Z
+
+## DOCX & PDF Binaries
+898d2d4e33399837539b4e96cbf075624b1adb7e15c76988e6106adfb8d58690  phase35-fidelity-verification\evidence\word-renders\phase35_improved.docx
+d6a9bd53c9b5909409ff0dd42290b5f3afce94c26ef90860a743b650c2e964f3  phase35-fidelity-verification\evidence\word-renders\phase35_improved.pdf
+
+## Rendered Word PNG Pages (WinRT 1.3333x)
+6486e1f83840cbb479728921241080648a4d68a2d94194884e1e9d859a249d84  phase35-fidelity-verification\evidence\word-renders\pages\page-001.png (2560x1440)
+dc6b324a8f5aa4818e17ea417b2915a474296d7b8c944d0b24817ce922c33669  phase35-fidelity-verification\evidence\word-renders\pages\page-002.png (2560x1440)
+717ee54f9de15e8de389c29f9cbfd2304936a4820b736250318b9427ee9be11d  phase35-fidelity-verification\evidence\word-renders\pages\page-003.png (1497x1058)
+8ed4319290fd093ea29bd4b35bf384ac6b91b3717818549903d09c433b56d76d  phase35-fidelity-verification\evidence\word-renders\pages\page-004.png (2560x1560)
+9ffadc43b663c5eea3b479c4e8fc90caea5dfc13b8f2bbe9564542cbe99c0f46  phase35-fidelity-verification\evidence\word-renders\pages\page-005.png (1932x2107)
+68303985c60e2ecafff380c07f7e782d5c540f444516c8ad7101a512d39423b8  phase35-fidelity-verification\evidence\word-renders\pages\page-006.png (1932x1444)
+a3e986be95b9dba62c2c646865b07d0c9ce3ae13e0453b64cb1e051e1357a7ed  phase35-fidelity-verification\evidence\word-renders\pages\page-007.png (1932x1444)
+683f9a5b663d6608ca0abcb9e109c74787984a0f5aa4dc389b0657642c4707c3  phase35-fidelity-verification\evidence\word-renders\pages\page-008.png (2560x1560)
+48fd4ae6afb84491a2aa7ec43c31ef70216c70672bc6be12e2c7571fe5577bd9  phase35-fidelity-verification\evidence\word-renders\pages\page-009.png (1571x1721)
+344a2dccce91cf1a5b19de9e2c67b9a2f205ac033fd42d7e369f65e6208177d4  phase35-fidelity-verification\evidence\word-renders\pages\page-010.png (2560x1560)
+6113b42f2c805302ce6855d2bbcc2adf4973159aa55a708cc493f03b082cb482  phase35-fidelity-verification\evidence\word-renders\pages\page-011.png (672x817)
+536ac9960958ff4d27ca7cb2c86ce75f653347ec2adfb7d153b2bcba54b00e60  phase35-fidelity-verification\evidence\word-renders\pages\page-012.png (1571x1721)
+5fbadb036a3b9725088cdced2e87bada9ffc2f45213ca49ceb8af826261bc28e  phase35-fidelity-verification\evidence\word-renders\pages\page-013.png (672x1247)
+0ad7d8fd993d8d2f54695c58a955fb98506243eef4df665a8ce16051ec9db966  phase35-fidelity-verification\evidence\word-renders\pages\page-014.png (2560x1560)
+ec640dab3331d7e4f922a4e362d4afbe0680c7b7673a57c109992f7134f755c0  phase35-fidelity-verification\evidence\word-renders\pages\page-015.png (2560x1560)
+bb4a51e0c9aa0e394104ba95cc3655b4a58ac4fd351cc2b2b89cf9c44bf2cefb  phase35-fidelity-verification\evidence\word-renders\pages\page-016.png (2560x1628)
+4364318a66d31766cda628997d4d2d8bc8c2619c28aae92841b88a3f2bd543a5  phase35-fidelity-verification\evidence\word-renders\pages\page-017.png (2560x1560)
+
+## Metrics & Artifacts
+46a89548ab9db5ed4b86d962895b991dcfa02dcf2290a8c4462e76929057e966  phase35-fidelity-verification/metrics/baseline.json
+cf6d47ee36f0dc3b3ecd86ef98bf15a5822bc20dabfa60464a09a8a8011ea5eb  phase35-fidelity-verification/metrics/improved.json
+74d5e7c432904e5721408e919deb01581859286078121d8afef858b07ab00710  phase35-fidelity-verification/metrics/comparison.csv
+0e81122759337b68c42383c2c7910b40f4e7b84fa21a70a9908ece5ddd26b4f0  phase35-fidelity-verification/metrics/editability-summary.json

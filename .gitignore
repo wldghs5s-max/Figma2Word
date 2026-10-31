@@ -83,3 +83,7 @@ __pycache__/
 # Phase 26 large rendering artifacts (keep reports & metrics, ignore binary outputs)
 research/rea-document-engine/phase26-visual-fidelity/artifacts/
 
+# Phase 35 rendering evidence (keep reports & metrics, ignore binary outputs)
+phase35-fidelity-verification/evidence/word-renders/
+phase35-fidelity-verification/evidence/diff-heatmaps/
+
