@@ -12,8 +12,18 @@ export interface EditedObjectBox {
   marker?: string;
 }
 
+export type PageStabilityStatus =
+  | "STABLE"
+  | "LAYOUT_REGRESSION_DETECTED"
+  | "INSUFFICIENT_INSPECTION_COVERAGE"
+  | "INVALID_MASK"
+  | "IMAGE_DIMENSION_MISMATCH"
+  | "MISSING_RENDER_EVIDENCE"
+  | "UNVERIFIED";
+
 export interface PageLayoutStabilityResult {
   pageNumber: number;
+  status: PageStabilityStatus;
   hasEdits: boolean;
   editedObjectsCount: number;
   totalPixelsChecked: number;
@@ -38,6 +48,10 @@ export interface LayoutStabilityReport {
   sectionCountPreserved: boolean;
   totalEditedObjects: number;
   unintendedRegressionsCount: number;
+  insufficientCoverageCount: number;
+  dimensionMismatchCount: number;
+  missingEvidenceCount: number;
+  stablePagesCount: number;
   averageUnchangedMismatchRatio: number;
   averageUnchangedMae: number;
   layoutStabilityVerdict: "VERIFIED" | "PARTIAL" | "FAILED";
@@ -60,6 +74,10 @@ export function auditLayoutStability(
   const minInspectedRatio = options?.minInspectedRatio ?? 0.05;
   const pageResults: PageLayoutStabilityResult[] = [];
   let regressionsCount = 0;
+  let insufficientCoverageCount = 0;
+  let dimensionMismatchCount = 0;
+  let missingEvidenceCount = 0;
+  let stablePagesCount = 0;
   let totalMismatchSum = 0;
   let totalMaeSum = 0;
 
@@ -71,6 +89,10 @@ export function auditLayoutStability(
       sectionCountPreserved,
       totalEditedObjects: editedBoxes.length,
       unintendedRegressionsCount: 1,
+      insufficientCoverageCount: 0,
+      dimensionMismatchCount: 0,
+      missingEvidenceCount: 0,
+      stablePagesCount: 0,
       averageUnchangedMismatchRatio: 1.0,
       averageUnchangedMae: 255,
       layoutStabilityVerdict: "FAILED",
@@ -86,6 +108,7 @@ export function auditLayoutStability(
     if (!fs.existsSync(beforePngPath) || !fs.existsSync(afterPngPath)) {
       pageResults.push({
         pageNumber: p,
+        status: "MISSING_RENDER_EVIDENCE",
         hasEdits: false,
         editedObjectsCount: 0,
         totalPixelsChecked: 0,
@@ -103,6 +126,7 @@ export function auditLayoutStability(
         diagnostics: `Missing PNG file for page ${pStr}`,
       });
       regressionsCount++;
+      missingEvidenceCount++;
       continue;
     }
 
@@ -114,6 +138,7 @@ export function auditLayoutStability(
     if (beforeImg.width !== afterImg.width || beforeImg.height !== afterImg.height) {
       pageResults.push({
         pageNumber: p,
+        status: "IMAGE_DIMENSION_MISMATCH",
         hasEdits: false,
         editedObjectsCount: 0,
         totalPixelsChecked: beforeImg.width * beforeImg.height,
@@ -131,6 +156,7 @@ export function auditLayoutStability(
         diagnostics: `Image dimension mismatch: Before ${beforeImg.width}x${beforeImg.height} vs After ${afterImg.width}x${afterImg.height}`,
       });
       regressionsCount++;
+      dimensionMismatchCount++;
       continue;
     }
 
@@ -177,6 +203,7 @@ export function auditLayoutStability(
     if (inspectedPixels === 0 || inspectedRatio < minInspectedRatio) {
       pageResults.push({
         pageNumber: p,
+        status: "INSUFFICIENT_INSPECTION_COVERAGE",
         hasEdits,
         editedObjectsCount: pageBoxes.length,
         totalPixelsChecked: totalPixels,
@@ -191,9 +218,10 @@ export function auditLayoutStability(
         unchangedRegionMae: 255,
         unmaskedMae: 255,
         isStable: false,
-        diagnostics: `Insufficient inspected pixels: ${inspectedPixels}/${totalPixels} (inspectedRatio ${(inspectedRatio * 100).toFixed(2)}% below minimum ${(minInspectedRatio * 100).toFixed(2)}%)`,
+        diagnostics: `INSUFFICIENT_INSPECTION_COVERAGE: Insufficient inspected pixels: ${inspectedPixels}/${totalPixels} (inspectedRatio ${(inspectedRatio * 100).toFixed(2)}% below minimum ${(minInspectedRatio * 100).toFixed(2)}%). Mask covers entire or vast majority of page.`,
       });
       regressionsCount++;
+      insufficientCoverageCount++;
       continue;
     }
 
@@ -239,6 +267,7 @@ export function auditLayoutStability(
     if (!Number.isFinite(mismatchRatio) || !Number.isFinite(mae)) {
       pageResults.push({
         pageNumber: p,
+        status: "UNVERIFIED",
         hasEdits,
         editedObjectsCount: pageBoxes.length,
         totalPixelsChecked: totalPixels,
@@ -261,8 +290,12 @@ export function auditLayoutStability(
 
     // A page is stable if unchanged regions experience less than 0.1% unintended alteration
     const isStable = mismatchRatio < 0.001;
+    let pageStatus: PageStabilityStatus = "STABLE";
     if (!isStable) {
       regressionsCount++;
+      pageStatus = "LAYOUT_REGRESSION_DETECTED";
+    } else {
+      stablePagesCount++;
     }
 
     totalMismatchSum += mismatchRatio;
@@ -270,6 +303,7 @@ export function auditLayoutStability(
 
     pageResults.push({
       pageNumber: p,
+      status: pageStatus,
       hasEdits,
       editedObjectsCount: pageBoxes.length,
       totalPixelsChecked: totalPixels,
@@ -286,7 +320,7 @@ export function auditLayoutStability(
       isStable,
       diagnostics: isStable
         ? `Page ${pStr} stable (mismatch: ${(mismatchRatio * 100).toFixed(3)}%, MAE: ${mae})`
-        : `Page ${pStr} UNSTABLE: unintended regression detected outside edited mask (mismatch: ${(mismatchRatio * 100).toFixed(3)}%)`,
+        : `Page ${pStr} UNSTABLE: unintended regression detected outside edited mask (mismatch: ${(mismatchRatio * 100).toFixed(3)}%). Root cause: ROOT_CAUSE_UNVERIFIED (suspect inline overflow or collateral re-flow).`,
     });
   }
 
@@ -311,6 +345,10 @@ export function auditLayoutStability(
     sectionCountPreserved,
     totalEditedObjects: editedBoxes.length,
     unintendedRegressionsCount: regressionsCount,
+    insufficientCoverageCount,
+    dimensionMismatchCount,
+    missingEvidenceCount,
+    stablePagesCount,
     averageUnchangedMismatchRatio: avgMismatch,
     averageUnchangedMae: avgMae,
     layoutStabilityVerdict: verdict,

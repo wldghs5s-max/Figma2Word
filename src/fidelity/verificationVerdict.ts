@@ -6,6 +6,29 @@ export type VerificationStatus =
   | "SKIPPED"
   | "BLOCKED";
 
+export type ExecutionMode =
+  | "PRODUCTION_QUALITY_AUDIT"
+  | "CONVERSION_PIPELINE"
+  | "CUSTOM";
+
+export const REQUIRED_GATES_BY_MODE: Record<ExecutionMode, readonly string[]> = {
+  PRODUCTION_QUALITY_AUDIT: [
+    "GATE_PROVENANCE",
+    "GATE_MEASUREMENT_INTEGRITY",
+    "GATE_OBJECT_TRACEABILITY",
+    "GATE_SECTION_PAGE_MAPPING",
+    "GATE_EDITABILITY",
+    "GATE_MEDIA_RELATIONSHIPS",
+    "GATE_LAYOUT_STABILITY",
+    "GATE_WORD_EDIT_PERSISTENCE",
+    "GATE_VISUAL_FIDELITY",
+  ],
+  CONVERSION_PIPELINE: [
+    "GATE_DOCX_GENERATION",
+  ],
+  CUSTOM: [],
+};
+
 export interface GateResult {
   gateId: string;
   name: string;
@@ -27,6 +50,8 @@ export interface FinalVerdictEvaluationOptions {
   runId: string;
   requiredGates: GateResult[];
   optionalGates?: GateResult[];
+  executionMode?: ExecutionMode;
+  expectedRequiredGateIds?: string[];
   evidenceManifest?: {
     files: EvidenceFileEntry[];
   };
@@ -51,12 +76,19 @@ export interface FinalVerdictResult {
 
 /**
  * Evaluates the single, canonical final verdict across all required and optional gates.
- * Fails closed on any non-PASSED required gate, missing files, or empty gate sets.
+ * Fails closed on any non-PASSED required gate, missing files, duplicate gates, or incomplete gate sets.
  */
 export function evaluateFinalVerdict(
   options: FinalVerdictEvaluationOptions
 ): FinalVerdictResult {
-  const { runId, requiredGates, optionalGates = [], evidenceManifest } = options;
+  const {
+    runId,
+    requiredGates,
+    optionalGates = [],
+    executionMode,
+    expectedRequiredGateIds,
+    evidenceManifest,
+  } = options;
   const failureReasons: string[] = [];
 
   const gateResults: Record<string, GateResult> = {};
@@ -70,7 +102,28 @@ export function evaluateFinalVerdict(
     failureReasons.push("FATAL_POLICY_VIOLATION: No required gates supplied; empty gate set cannot be approved.");
   }
 
+  // Check expected required gates completeness if defined
+  const expectedGateIds =
+    expectedRequiredGateIds ||
+    (executionMode && REQUIRED_GATES_BY_MODE[executionMode]
+      ? [...REQUIRED_GATES_BY_MODE[executionMode]]
+      : undefined);
+
+  const seenGateIds = new Set<string>();
+
   for (const gate of requiredGates || []) {
+    if (!gate || !gate.gateId) {
+      failedCount++;
+      failureReasons.push("FATAL_GATE_ERROR: Gate without a valid gateId detected.");
+      continue;
+    }
+
+    if (seenGateIds.has(gate.gateId)) {
+      failedCount++;
+      failureReasons.push(`DUPLICATE_GATE_ID: Duplicate gateId '${gate.gateId}' detected in requiredGates.`);
+    }
+    seenGateIds.add(gate.gateId);
+
     gateResults[gate.gateId] = gate;
 
     switch (gate.status) {
@@ -110,6 +163,16 @@ export function evaluateFinalVerdict(
     }
   }
 
+  // Verify completeness against expected required gate set
+  if (expectedGateIds && expectedGateIds.length > 0) {
+    for (const expectedId of expectedGateIds) {
+      if (!seenGateIds.has(expectedId)) {
+        failedCount++;
+        failureReasons.push(`MISSING_REQUIRED_GATE: Required gate '${expectedId}' was not supplied in requiredGates.`);
+      }
+    }
+  }
+
   for (const gate of optionalGates) {
     gateResults[gate.gateId] = gate;
   }
@@ -128,13 +191,17 @@ export function evaluateFinalVerdict(
 
   if (!requiredGates || requiredGates.length === 0) {
     overallStatus = "FAILED";
-  } else if (failedCount > 0 || skippedCount > 0 || failureReasons.some((r) => r.includes("Evidence file missing"))) {
+  } else if (
+    failedCount > 0 ||
+    skippedCount > 0 ||
+    failureReasons.some((r) => r.includes("Evidence file missing") || r.includes("MISSING_REQUIRED_GATE") || r.includes("DUPLICATE_GATE_ID"))
+  ) {
     overallStatus = "FAILED";
   } else if (unverifiedCount > 0) {
     overallStatus = "UNVERIFIED";
   } else if (partialCount > 0) {
     overallStatus = "PARTIAL";
-  } else if (passedCount !== requiredGates.length) {
+  } else if (passedCount !== (expectedGateIds ? expectedGateIds.length : requiredGates.length)) {
     overallStatus = "FAILED";
   }
 

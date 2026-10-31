@@ -48,6 +48,11 @@ export interface ProvenanceGateResult {
   record?: ProvenanceRecord;
 }
 
+export type BenchmarkComparisonMode =
+  | "ABSOLUTE_FIGMA_TO_WORD"
+  | "INDEPENDENT_BASELINE_VS_CANDIDATE"
+  | "NOT_COMPARABLE";
+
 export interface PageMeasurement {
   pageNumber: number;
   nodeId: string;
@@ -72,10 +77,11 @@ export interface PageMeasurement {
 
 export interface MeasurementBundle {
   mode: "real" | "synthetic";
+  comparisonMode?: BenchmarkComparisonMode;
   inputJsonSha256: string;
-  baselineDocxSha256: string;
+  baselineDocxSha256?: string;
   improvedDocxSha256: string;
-  baselinePdfSha256: string;
+  baselinePdfSha256?: string;
   improvedPdfSha256: string;
   wordAutomationSucceeded: boolean;
   computedAt: string;
@@ -184,6 +190,28 @@ export function evaluateProvenanceGate(
         const p = record.wordPngPaths[i];
         if (!fs.existsSync(p)) {
           violations.push(`PROVENANCE_FAIL: Word PNG path does not exist on disk: ${p}`);
+        } else if (record.wordPngSha256List && record.wordPngSha256List[i]) {
+          const actualHash = computeFileSha256(p);
+          if (actualHash !== record.wordPngSha256List[i]) {
+            violations.push(
+              `PROVENANCE_FAIL: Word PNG SHA-256 mismatch for ${p}: declared ${record.wordPngSha256List[i]} vs actual ${actualHash}`
+            );
+          }
+        }
+      }
+    }
+    if (record.refPngPaths) {
+      for (let i = 0; i < record.refPngPaths.length; i++) {
+        const p = record.refPngPaths[i];
+        if (!fs.existsSync(p)) {
+          violations.push(`PROVENANCE_FAIL: Reference PNG path does not exist on disk: ${p}`);
+        } else if (record.refPngSha256List && record.refPngSha256List[i]) {
+          const actualHash = computeFileSha256(p);
+          if (actualHash !== record.refPngSha256List[i]) {
+            violations.push(
+              `PROVENANCE_FAIL: Reference PNG SHA-256 mismatch for ${p}: declared ${record.refPngSha256List[i]} vs actual ${actualHash}`
+            );
+          }
         }
       }
     }
@@ -237,26 +265,23 @@ export function evaluateMeasurementIntegrity(
 
   // Check 4: DOCX hashes
   checksCount++;
-  if (
-    !bundle.baselineDocxSha256 ||
-    bundle.baselineDocxSha256.length !== 64 ||
-    !bundle.improvedDocxSha256 ||
-    bundle.improvedDocxSha256.length !== 64
-  ) {
-    violations.push("INTEGRITY_FAIL_04: Missing or invalid Baseline or Improved DOCX SHA-256 hash.");
+  const isAbsolute = bundle.comparisonMode === "ABSOLUTE_FIGMA_TO_WORD";
+  if (!bundle.improvedDocxSha256 || bundle.improvedDocxSha256.length !== 64) {
+    violations.push("INTEGRITY_FAIL_04: Missing or invalid Improved DOCX SHA-256 hash.");
+  } else if (!isAbsolute && (!bundle.baselineDocxSha256 || bundle.baselineDocxSha256.length !== 64)) {
+    violations.push("INTEGRITY_FAIL_04: Missing or invalid Baseline DOCX SHA-256 hash in comparative benchmark.");
+  } else if (!isAbsolute && bundle.baselineDocxSha256 === bundle.improvedDocxSha256 && !options?.allowIdenticalDeltasWithEvidence) {
+    violations.push("INTEGRITY_FAIL_04: Candidate DOCX hash was duplicated into Baseline DOCX hash.");
   } else {
     passedChecksCount++;
   }
 
   // Check 5: PDF hashes
   checksCount++;
-  if (
-    !bundle.baselinePdfSha256 ||
-    bundle.baselinePdfSha256.length !== 64 ||
-    !bundle.improvedPdfSha256 ||
-    bundle.improvedPdfSha256.length !== 64
-  ) {
-    violations.push("INTEGRITY_FAIL_05: Missing or invalid Baseline or Improved PDF SHA-256 hash.");
+  if (!bundle.improvedPdfSha256 || bundle.improvedPdfSha256.length !== 64) {
+    violations.push("INTEGRITY_FAIL_05: Missing or invalid Improved PDF SHA-256 hash.");
+  } else if (!isAbsolute && (!bundle.baselinePdfSha256 || bundle.baselinePdfSha256.length !== 64)) {
+    violations.push("INTEGRITY_FAIL_05: Missing or invalid Baseline PDF SHA-256 hash in comparative benchmark.");
   } else {
     passedChecksCount++;
   }
@@ -391,17 +416,56 @@ export function evaluateMeasurementIntegrity(
         break;
       }
 
+      // Check delta policy for comparison mode
+      if (isAbsolute && p.ssimDelta !== null) {
+        violations.push(`INTEGRITY_FAIL_ARTIFICIAL_DELTA: Frame ${p.nodeId} populates artificial baseline ssimDelta in absolute benchmark mode.`);
+        frameCheckPassed = false;
+        break;
+      }
+
       // Strict disk verification
       if (options?.verifyDiskFiles) {
-        if (!fs.existsSync(p.baselinePngPath)) {
-          violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} baseline PNG does not exist on disk: ${p.baselinePngPath}`);
-          frameCheckPassed = false;
-          break;
+        if (p.baselinePngPath) {
+          if (!fs.existsSync(p.baselinePngPath)) {
+            violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} baseline PNG does not exist on disk: ${p.baselinePngPath}`);
+            frameCheckPassed = false;
+            break;
+          } else if (p.baselinePngSha256) {
+            const actual = computeFileSha256(p.baselinePngPath);
+            if (actual !== p.baselinePngSha256) {
+              violations.push(`INTEGRITY_FAIL_PNG_HASH_MISMATCH: Frame ${p.nodeId} baseline PNG SHA-256 mismatch: declared ${p.baselinePngSha256} vs actual ${actual}`);
+              frameCheckPassed = false;
+              break;
+            }
+          }
         }
-        if (!fs.existsSync(p.improvedPngPath)) {
-          violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} improved PNG does not exist on disk: ${p.improvedPngPath}`);
-          frameCheckPassed = false;
-          break;
+        if (p.improvedPngPath) {
+          if (!fs.existsSync(p.improvedPngPath)) {
+            violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} improved PNG does not exist on disk: ${p.improvedPngPath}`);
+            frameCheckPassed = false;
+            break;
+          } else if (p.improvedPngSha256) {
+            const actual = computeFileSha256(p.improvedPngPath);
+            if (actual !== p.improvedPngSha256) {
+              violations.push(`INTEGRITY_FAIL_PNG_HASH_MISMATCH: Frame ${p.nodeId} improved PNG SHA-256 mismatch: declared ${p.improvedPngSha256} vs actual ${actual}`);
+              frameCheckPassed = false;
+              break;
+            }
+          }
+        }
+        if (p.referencePngPath) {
+          if (!fs.existsSync(p.referencePngPath)) {
+            violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} reference PNG does not exist on disk: ${p.referencePngPath}`);
+            frameCheckPassed = false;
+            break;
+          } else if (p.referencePngSha256) {
+            const actual = computeFileSha256(p.referencePngPath);
+            if (actual !== p.referencePngSha256) {
+              violations.push(`INTEGRITY_FAIL_PNG_HASH_MISMATCH: Frame ${p.nodeId} reference PNG SHA-256 mismatch: declared ${p.referencePngSha256} vs actual ${actual}`);
+              frameCheckPassed = false;
+              break;
+            }
+          }
         }
       }
     }

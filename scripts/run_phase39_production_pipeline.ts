@@ -534,7 +534,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_OBJECT_TRACEABILITY",
       name: "Source-to-Word Object Traceability Gate",
       status: traceabilityReport.summary.traceabilityVerdict === "VERIFIED" ? "PASSED" : traceabilityReport.summary.traceabilityVerdict,
-      summary: `Resolved ${traceabilityReport.summary.docxObjectsResolved}/${traceabilityReport.summary.sourceObjectsFound} objects, content verified ${traceabilityReport.summary.contentVerifiedCount}`,
+      summary: traceabilityReport.summary.traceabilityVerdict === "VERIFIED"
+        ? `All ${traceabilityReport.summary.sourceObjectsFound} source objects resolved with verified content.`
+        : `Traceability failed: ${traceabilityReport.summary.unresolvedInDocxCount} unresolved in DOCX, content verified ${traceabilityReport.summary.contentVerifiedCount}/${traceabilityReport.summary.sourceObjectsFound}`,
       failureReasons: traceabilityReport.summary.unresolvedInDocxCount > 0
         ? [`${traceabilityReport.summary.unresolvedInDocxCount} objects exist in IR but failed to resolve into DOCX XML`]
         : undefined,
@@ -543,7 +545,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_SECTION_PAGE_MAPPING",
       name: "Section-to-Rendered Page Correspondence Gate",
       status: mappingReport.mappingVerdict === "VERIFIED" ? "PASSED" : mappingReport.mappingVerdict,
-      summary: `Verified ${mappingReport.verifiedMappingsCount}/${mappingReport.totalTargetFrames} 1:1 correspondences`,
+      summary: mappingReport.mappingVerdict === "VERIFIED"
+        ? `Verified ${mappingReport.verifiedMappingsCount}/${mappingReport.totalTargetFrames} 1:1 correspondences`
+        : `Section mapping failed: ${mappingReport.unverifiedMappingsCount}/${mappingReport.totalTargetFrames} pages could not be verified 1:1`,
       failureReasons: mappingReport.unverifiedMappingsCount > 0
         ? [`${mappingReport.unverifiedMappingsCount} pages could not be verified 1:1`]
         : undefined,
@@ -552,7 +556,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_EDITABILITY",
       name: "DOCX Native Editability Gate",
       status: editabilityAudit.globalSummary.overallVerdict === "PASSED" ? "PASSED" : "FAILED",
-      summary: `Average score ${editabilityAudit.globalSummary.averageEditabilityScore}/100, verdict ${editabilityAudit.globalSummary.overallVerdict}`,
+      summary: editabilityAudit.globalSummary.overallVerdict === "PASSED"
+        ? `Verified native DOCX editability, average score ${editabilityAudit.globalSummary.averageEditabilityScore}/100`
+        : `Editability audit failed: average score ${editabilityAudit.globalSummary.averageEditabilityScore}/100, verdict ${editabilityAudit.globalSummary.overallVerdict}`,
       failureReasons: editabilityAudit.globalSummary.overallVerdict !== "PASSED"
         ? [`Editability audit flagged: ${editabilityAudit.globalSummary.overallVerdict}`]
         : undefined,
@@ -561,7 +567,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_MEDIA_RELATIONSHIPS",
       name: "DOCX Media Relationships & Integrity Gate",
       status: mediaAudit.brokenRelationshipsCount === 0 ? "PASSED" : "FAILED",
-      summary: `Verified ${mediaAudit.totalImageRelationships} relationships, broken count: ${mediaAudit.brokenRelationshipsCount}`,
+      summary: mediaAudit.brokenRelationshipsCount === 0
+        ? `Verified ${mediaAudit.totalImageRelationships} image relationships without errors`
+        : `Media integrity failed: ${mediaAudit.brokenRelationshipsCount} broken relationships detected`,
       failureReasons: mediaAudit.brokenRelationshipsCount > 0
         ? [`${mediaAudit.brokenRelationshipsCount} broken relationships detected`]
         : undefined,
@@ -570,7 +578,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_LAYOUT_STABILITY",
       name: "Masked Layout Stability Gate",
       status: layoutStabilityReport.layoutStabilityVerdict === "VERIFIED" ? "PASSED" : layoutStabilityReport.layoutStabilityVerdict,
-      summary: `Zero regressions on unedited document regions (avg mismatch ${(layoutStabilityReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%)`,
+      summary: layoutStabilityReport.layoutStabilityVerdict === "VERIFIED"
+        ? `Zero regressions on unedited document regions (avg mismatch ${(layoutStabilityReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%)`
+        : `Layout stability failed: ${layoutStabilityReport.unintendedRegressionsCount} non-stable pages (coverage: ${layoutStabilityReport.insufficientCoverageCount}, regressions: ${layoutStabilityReport.unintendedRegressionsCount - layoutStabilityReport.insufficientCoverageCount})`,
       failureReasons: layoutStabilityReport.unintendedRegressionsCount > 0
         ? [`${layoutStabilityReport.unintendedRegressionsCount} page regressions detected outside edited bounding box`]
         : undefined,
@@ -579,9 +589,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_WORD_EDIT_PERSISTENCE",
       name: "Word Native Edit Persistence Gate",
       status: wordEditSucceeded ? "PASSED" : (editResult?.editStatistics?.persisted > 0 ? "PARTIAL" : "FAILED"),
-      summary: editResult
+      summary: wordEditSucceeded
         ? `Persisted ${editResult.editStatistics?.persisted}/${editResult.editStatistics?.successful} native Word edits across reopen`
-        : "Word edit automation could not be confirmed",
+        : `Word edit persistence incomplete or failed: persisted ${editResult?.editStatistics?.persisted || 0}/${editResult?.editStatistics?.successful || 0}`,
       failureReasons: !wordEditSucceeded
         ? [`Word edit persistence check returned non-success (${editResult?.verdict || "UNKNOWN"})`]
         : undefined,
@@ -590,7 +600,9 @@ export async function runPhase39Pipeline() {
       gateId: "GATE_VISUAL_FIDELITY",
       name: "Visual Fidelity Benchmark Gate",
       status: validCount >= 16 ? "PASSED" : "PARTIAL",
-      summary: `Evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim}`,
+      summary: validCount >= 16
+        ? `Evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim}`
+        : `Visual fidelity incomplete: evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim}`,
       failureReasons: validCount < 16
         ? [`Evaluated only ${validCount}/16 target reference frames`]
         : undefined,
@@ -605,6 +617,7 @@ export async function runPhase39Pipeline() {
 
   const finalVerdict = evaluateFinalVerdict({
     runId,
+    executionMode: "PRODUCTION_QUALITY_AUDIT",
     requiredGates,
     evidenceManifest: { files: evidenceFiles },
     measurements: {
@@ -719,6 +732,10 @@ export async function runPhase39Pipeline() {
   );
 
   log(`\nDerived 100% of metrics, CSV, manifests, and 12 reports from Run ID: ${runId}`);
+
+  // Enforce OS process exit code
+  process.exitCode = finalVerdict.exitCode;
+
   return {
     runManifest,
     finalVerdict,
