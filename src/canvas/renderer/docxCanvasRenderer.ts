@@ -647,7 +647,7 @@ export class DocxCanvasRenderer {
           imgBoxW = height * arImg;
           imgX = x + (width - imgBoxW) / 2;
         }
-      } else if (imgW > 0 && imgH > 0 && width > 0 && height > 0) {
+      } else if (elem.imageScaleMode !== "STRETCH" && imgW > 0 && imgH > 0 && width > 0 && height > 0) {
         const arImg = imgW / imgH;
         const arBox = width / height;
         if (arImg < arBox * 0.99) {

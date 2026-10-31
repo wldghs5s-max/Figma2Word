@@ -74,8 +74,15 @@ export interface MeasurementBundle {
   };
 }
 
+export type CoverageStatus =
+  | "NO_VALID_COMPARISONS"
+  | "PARTIAL_VALID_COMPARISONS"
+  | "EXPECTED_REFERENCE_COVERAGE_MET"
+  | "MEASUREMENT_FAILED";
+
 export interface IntegrityGateResult {
   passed: boolean;
+  coverageStatus: CoverageStatus;
   violations: string[];
   checksCount: number;
   passedChecksCount: number;
@@ -125,7 +132,10 @@ export function evaluateProvenanceGate(record: ProvenanceRecord): ProvenanceGate
  * Validates the mathematical and operational integrity of benchmark measurements.
  * Detects 12 classes of benchmark falsification and inconsistency.
  */
-export function evaluateMeasurementIntegrity(bundle: MeasurementBundle): IntegrityGateResult {
+export function evaluateMeasurementIntegrity(
+  bundle: MeasurementBundle,
+  expectedCoverage?: number
+): IntegrityGateResult {
   const violations: string[] = [];
   let checksCount = 0;
   let passedChecksCount = 0;
@@ -253,8 +263,43 @@ export function evaluateMeasurementIntegrity(bundle: MeasurementBundle): Integri
     passedChecksCount++;
   }
 
+  // Check 10: Zero valid comparisons check (B-03 fix)
+  checksCount++;
+  if (validPages.length === 0) {
+    violations.push("INTEGRITY_FAIL_10: NO_VALID_COMPARISONS - Zero valid benchmark comparisons evaluated.");
+  } else {
+    passedChecksCount++;
+  }
+
+  // Check 11: Expected reference coverage check (if requested)
+  if (expectedCoverage !== undefined) {
+    checksCount++;
+    if (validPages.length < expectedCoverage) {
+      violations.push(
+        `INTEGRITY_FAIL_11: PARTIAL_VALID_COMPARISONS - Evaluated only ${validPages.length} valid comparisons, expected ${expectedCoverage}.`
+      );
+    } else {
+      passedChecksCount++;
+    }
+  }
+
+  // Compute coverage status
+  let coverageStatus: CoverageStatus;
+  if (!bundle.wordAutomationSucceeded || violations.some((v) => v.includes("INTEGRITY_FAIL_02"))) {
+    coverageStatus = "MEASUREMENT_FAILED";
+  } else if (validPages.length === 0) {
+    coverageStatus = "NO_VALID_COMPARISONS";
+  } else if (expectedCoverage !== undefined && validPages.length < expectedCoverage) {
+    coverageStatus = "PARTIAL_VALID_COMPARISONS";
+  } else if (violations.length > 0) {
+    coverageStatus = "MEASUREMENT_FAILED";
+  } else {
+    coverageStatus = "EXPECTED_REFERENCE_COVERAGE_MET";
+  }
+
   return {
     passed: violations.length === 0,
+    coverageStatus,
     violations,
     checksCount,
     passedChecksCount,

@@ -968,6 +968,7 @@ export class FigmaCanvasParser {
     return {
       pageNumber,
       name: frame.name || `Page ${pageNumber}`,
+      frameId: frame.id,
       bounds: {
         x: 0,
         y: 0,

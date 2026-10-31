@@ -87,3 +87,8 @@ research/rea-document-engine/phase26-visual-fidelity/artifacts/
 phase35-fidelity-verification/evidence/word-renders/
 phase35-fidelity-verification/evidence/diff-heatmaps/
 
+# Phase 35.2 local fidelity artifacts & review packages
+local-fidelity-artifacts/
+phase35-2-gpt-review.zip
+
+

@@ -1,0 +1,79 @@
+================================================================================
+ Phase 35.2: Real 17-Frame Fidelity Recovery & Production Renderer Benchmark
+================================================================================
+[Config] Target JSON:      C:\Users\77\Documents\Figma2Word\펜테크 3차 디자인.json
+[Config] Output Directory: C:\Users\77\Documents\Figma2Word\phase35-2-real-fidelity
+[Config] Artifacts Dir:    C:\Users\77\Documents\Figma2Word\local-fidelity-artifacts
+[Config] Frames Spec:      C:\Users\77\Documents\Figma2Word\research\rea-document-engine\phase26-visual-fidelity\exact-17-frames.json
+[Config] Figma Refs Dir:   C:\Users\77\Documents\Figma2Word\debug\cache\figma_references\PQADsFQSbkiVHFWeJQavEf
+
+[Step 1] Real Figma JSON Validated:
+  File size: 186.52 MB (195582942 bytes)
+  SHA-256:   390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a
+
+[Step 2] Node-ID-Centric Frame Mapping & Tree Extraction:
+  Successfully mapped 17/17 target frames.
+  Target frames element breakdown:
+   - Total raw nodes: 2050
+   - Text nodes:      628
+   - Shape nodes:     341
+   - Image fills:     19
+
+[Step 3] Parsing into Canonical Canvas IR using production FigmaCanvasParser...
+  Parsed 17 Canvas IR page(s) in 28ms.
+  Canvas IR page mapping verified against all 17 target node IDs.
+  Total Canvas IR elements: 1321
+
+[Step 4] Independent Renderer Setup & DOCX Generation:
+  Baseline Renderer  (13df75f): SHA-256 = ad94099fb8bc8462a160370d977bdb62b8abba8acec1a1647da077b0948049db
+  Candidate Renderer (35.2 Opt): SHA-256 = a959231e6195df5e4eca273d9ceb61a868cfd862b281cff77f373b774f8479c0
+  Baseline DOCX:  C:\Users\77\Documents\Figma2Word\local-fidelity-artifacts\baseline\actual.docx (15363.6 KB, SHA-256: ff55cef637ebfe0bb7d168175fbc5a4725fad269827586b6124fe89fb42d1c00)
+  Candidate DOCX: C:\Users\77\Documents\Figma2Word\local-fidelity-artifacts\candidate\actual.docx (15364.7 KB, SHA-256: 3ff09094e53c28ebe2db84be2e4a88f4982a3ead3c3e45913351fc92aea01ee6)
+
+[Step 5] Executing Word Native COM Automation for Baseline DOCX (ScaleFactor 1.0)...
+  Baseline Word render: 17 page(s), PDF SHA-256: b1f9d4b1497ad91c06f9896a9d655b410b538f8b19090ac21718cf5d6e26732b
+
+[Step 6] Executing Word Native COM Automation for Candidate DOCX (ScaleFactor 1.0)...
+  Candidate Word render: 17 page(s), PDF SHA-256: b9d1e606bb819ee1b13918c6bc86b13799d2dbd408721e6b4461106127ba75a6
+
+[Step 7] Auditing DOCX Editability...
+  Editability audit: Score 94/100, Verdict: PASSED
+
+[Step 8] Calculating 1:1 Pixel Fidelity against Authentic Figma References:
+  Page  1 (763:5068): Base=0.9446 | Cand=0.9446 | Delta=+0.0000 | 디자인 시스템 1
+  Page  2 (766:256): Base=0.9586 | Cand=0.9586 | Delta=+0.0000 | 디자인 시스템 2
+  Page  3 (757:88): Base=0.9933 | Cand=0.9933 | Delta=+0.0000 | Desktop - 1
+  Page  4 (759:759): Base=0.7882 | Cand=0.7927 | Delta=+0.0045 | Desktop - 대시보드 (지도뷰)
+  Page  5 (757:92): Base=0.9797 | Cand=0.9797 | Delta=+0.0000 | Desktop - 2
+  Page  6 (757:142): Base=0.9643 | Cand=0.9643 | Delta=+0.0000 | 촬영계획
+  Page  7 (757:158): Base=0.9916 | Cand=0.9916 | Delta=+0.0000 | 촬영계획 - 건물을 선택시
+  Page  8 (759:911): Base=0.8412 | Cand=0.8491 | Delta=+0.0079 | 사업목록 선택된 화면
+  Page  9 (757:124): Base=0.9683 | Cand=0.9683 | Delta=+0.0000 | 필터 팝업
+  Page 10 (759:1076): Base=0.8924 | Cand=0.8927 | Delta=+0.0003 | 신규등록 - 1
+  Page 11 (766:2289): Base=0.9115 | Cand=0.9115 | Delta=+0.0000 | 필터
+  Page 12 (757:118): Base=0.9592 | Cand=0.9592 | Delta=+0.0000 | Frame 1
+  Page 13 (766:2942): Base=0.8629 | Cand=0.8629 | Delta=+0.0000 | 사업정보 수정
+  Page 14 (759:1314): Base=0.8969 | Cand=0.8966 | Delta=-0.0003 | 신규등록 - 2
+  Page 15 (759:1858): Base=0.9339 | Cand=0.9339 | Delta=+0.0000 | 사업목록 클릭 시
+  Page 16 (759:1533): [REFERENCE_MISSING] 사업목록 클릭 시 - 탭디자인1
+  Page 17 (768:3434): Base=0.7915 | Cand=0.7990 | Delta=+0.0075 | 사업목록 클릭 시
+
+================================================================================
+ Authentic Fidelity Summary (16/16 evaluated):
+   Baseline  Avg SSIM: 0.9174
+   Candidate Avg SSIM: 0.9186
+   SSIM Delta:         +0.0012
+   Baseline  Avg MAE:  3.63
+   Candidate Avg MAE:  3.58
+================================================================================
+
+[Step 9] Evaluating Provenance Gate...
+  Provenance Gate Result: PASSED
+
+[Step 10] Evaluating Measurement Integrity Gate (Expected 16 valid comparisons)...
+  Measurement Integrity Gate Result: PASSED
+  Coverage Status: EXPECTED_REFERENCE_COVERAGE_MET
+
+================================================================================
+ Pipeline execution status: PASSED
+================================================================================

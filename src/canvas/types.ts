@@ -108,8 +108,9 @@ export function resolveScale(
   // policy === 'fit-a4'
   // If frame aspect ratio is close to A4 (0.68 ~ 0.73), scale to fit exact A4 width/height
   const ratio = frameWidthPx / frameHeightPx;
-  const isA4Portrait = ratio >= 0.68 && ratio <= 0.73;
-  const isA4Landscape = ratio >= 1.37 && ratio <= 1.47;
+  const isDocScale = frameWidthPx <= 1250 && frameHeightPx <= 1250;
+  const isA4Portrait = isDocScale && ratio >= 0.68 && ratio <= 0.73;
+  const isA4Landscape = isDocScale && ratio >= 1.37 && ratio <= 1.47;
 
   if (isA4Portrait) {
     const scaleX = A4_WIDTH_PT / frameWidthPx;
@@ -250,6 +251,7 @@ export interface CanvasImageCrop {
 export interface CanvasElement {
   id: string;
   name?: string;
+  frameId?: string;
   type: CanvasElementType;
   bounds: CanvasBounds;
   zIndex: number;
@@ -267,7 +269,7 @@ export interface CanvasElement {
 
   // Image details
   imageRef?: string; // key into CanvasDocument.resources
-  imageScaleMode?: "FILL" | "FIT" | "CROP" | "TILE";
+  imageScaleMode?: "FILL" | "FIT" | "CROP" | "TILE" | "STRETCH";
   imageCrop?: CanvasImageCrop;
 
   // Vector Path details
@@ -293,6 +295,7 @@ export interface CanvasVectorSubpath {
 export interface CanvasPage {
   pageNumber: number; // 1-indexed
   name?: string;
+  frameId?: string;
   bounds: CanvasBounds; // e.g. { x: 0, y: 0, width: 595.28, height: 841.89 }
   backgroundColor?: string;
   elements: CanvasElement[]; // sorted by zIndex ascending
