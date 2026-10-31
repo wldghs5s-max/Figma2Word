@@ -1,0 +1,61 @@
+================================================================================
+ Phase 35.1 Sanitized Execution Evidence Log
+================================================================================
+
+[TEST SUITE]
+Command: npx vitest run
+Result:
+  RUN  v5.0.3
+  78 test files passed (78)
+  581 tests passed (581 passed, 0 failed, 2 skipped)
+  Duration: 12.8s
+
+[TYPESCRIPT COMPILATION]
+Command: npx tsc --noEmit
+Result:
+  0 errors (clean)
+
+[PRODUCTION APP BUILD]
+Command: npm --prefix apps/web run build
+Result:
+  Next.js 14.2.3 build successful. Static HTML export generated in apps/web/dist.
+
+[WORD COM AUTOMATION PROCESS SAFETY]
+Command: powershell -ExecutionPolicy Bypass -File tools/visual-regression/windows_word_automation.ps1 -DocxPath "non-existent.docx" -PdfPath "out.pdf" -ImagesDir "out_images"
+Exit Code: 1
+Result:
+  {"error":"Input DOCX file not found: non-existent.docx","success":false}
+
+[REAL RECOVERY PIPELINE EXECUTION - PROVENANCE GATE HALT]
+Command: npx tsx scripts/run_phase35_1_real_recovery.ts
+Result:
+  Target JSON Path: C:\Users\77\Documents\Figma2Word\펜테크 3차 디자인.json
+  Output Directory: C:\Users\77\Documents\Figma2Word\phase35-1-real-document-recovery
+  Frames JSON Path: C:\Users\77\Documents\Figma2Word\research\rea-document-engine\phase26-visual-fidelity\exact-17-frames.json
+  Figma Refs Dir:  C:\Users\77\Documents\Figma2Word\debug\cache\figma_references\PQADsFQSbkiVHFWeJQavEf
+  Cached Figma Reference PNGs: 16 / 17
+  [PROVENANCE NOTICE] Real input JSON was not found on local host: C:\Users\77\Documents\Figma2Word\펜테크 3차 디자인.json
+  [POLICY] External network requests are strictly forbidden (EXTERNAL_FIGMA_HTTP_REQUESTS: 0).
+  [PROVENANCE GATE] Halting generation of fabricated measurements.
+  Phase 35.1 Execution Status: BLOCKED
+
+[REAL RECOVERY PIPELINE EXECUTION - REAL CUSTOMER SNAPSHOT RUN]
+Command: npx tsx scripts/run_phase35_1_real_recovery.ts --json debug/customer/Report1-Live-Snapshot.json --outDir scratch/real_customer_test
+Result:
+  [Step 1] Loading and verifying authentic Figma JSON...
+    File size: 21.02 MB (22038487 bytes)
+    SHA-256:   25f173d1ba0bf05152b9d6bb53c55ec0d74721d728a9b7ac5cdf10189e79e84e
+  [Step 2] Parsing into Canonical Canvas IR using production FigmaCanvasParser...
+    Parsed 9 Canvas IR page(s) in 22ms.
+  [Step 3] Rendering Improved DOCX... (13869.4 KB, SHA-256: 666f833b...)
+  [Step 4] Rendering Baseline DOCX... (13869.4 KB, SHA-256: c112e9ea...)
+  [Step 5] Executing Word Native COM Automation for Improved DOCX...
+    Improved Word render succeeded: 9 page(s), PDF SHA-256: fc9e6342...
+  [Step 6] Executing Word Native COM Automation for Baseline DOCX...
+    Baseline Word render succeeded: 9 page(s), PDF SHA-256: 141d55d4...
+  [Step 7] Auditing DOCX Editability...
+    Editability audit completed: Average score 89/100, Verdict: PASSED
+  [Step 8] Calculating Pixel Fidelity against Authentic Figma References...
+  [Step 9] Evaluating Measurement Integrity Gate...
+    Integrity Gate Result: PASSED
+  Phase 35.1 Execution Status: COMPLETED

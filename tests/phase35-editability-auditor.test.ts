@@ -91,4 +91,18 @@ describe("Phase 35: DOCX Editability Auditor Suite", () => {
     expect(report.pages[0].hasFullPageCoverImage).toBe(false);
     expect(report.pages[0].classification).toBe("HYBRID_EDITABLE");
   });
+
+  it("4. Classifies completely empty section as EMPTY_PAGE rather than IMAGE_DOMINATED", async () => {
+    const emptyDocx = await createSyntheticDocx({
+      pageWidthPt: 612,
+      pageHeightPt: 792,
+      texts: [],
+      hasMedia: false,
+    });
+
+    const report = await auditDocxEditability(emptyDocx);
+    expect(report.pages[0].classification).toBe("EMPTY_PAGE");
+    expect(report.pages[0].editabilityScore).toBe(0);
+    expect(report.pages[0].findings[0]).toContain("Page is empty");
+  });
 });

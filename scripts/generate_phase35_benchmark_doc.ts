@@ -3,7 +3,21 @@ import * as path from "path";
 import { DocxCanvasRenderer } from "../src/canvas/renderer/docxCanvasRenderer.js";
 import { CanvasDocument, CanvasPage, CanvasElement } from "../src/canvas/types.js";
 
-export function createPhase35CanvasDocument(): CanvasDocument {
+/**
+ * SYNTHETIC FIXTURE GENERATOR ONLY
+ * 
+ * STRICT PROHIBITION: Per Phase 35.1 Part A Forbidden Rule #1, this generator
+ * MUST NEVER be used as a production or authentic document benchmark.
+ * It synthesizes archetype layout elements for unit/integration testing only.
+ */
+export const IS_SYNTHETIC_FIXTURE = true;
+
+export function createPhase35CanvasDocument(mode: "synthetic" = "synthetic"): CanvasDocument {
+  if (mode !== "synthetic") {
+    throw new Error(
+      "[FORBIDDEN] createPhase35CanvasDocument called in non-synthetic mode! Per Phase 35.1 Part A Rule #1, synthetic fixtures cannot represent real Figma documents."
+    );
+  }
   const framesJson = JSON.parse(
     fs.readFileSync(
       path.resolve(process.cwd(), "research/rea-document-engine/phase26-visual-fidelity/exact-17-frames.json"),
@@ -353,3 +367,4 @@ export function createPhase35CanvasDocument(): CanvasDocument {
     resources: {},
   };
 }
+

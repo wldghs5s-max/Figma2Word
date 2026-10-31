@@ -306,4 +306,8 @@ async function runPipeline() {
   console.log(`Page 16 (759:1533) verified as REFERENCE_MISSING_VERSION_UNVERIFIED.`);
 }
 
-runPipeline().catch(console.error);
+runPipeline().catch((err) => {
+  console.error("[FATAL ERROR in generate_phase35_full_artifacts]", err);
+  process.exitCode = 1;
+});
+

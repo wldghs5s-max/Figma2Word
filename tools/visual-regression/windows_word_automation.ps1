@@ -23,76 +23,88 @@ function Compute-Sha256($filePath) {
     return [BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
 }
 
-$resolvedDocx = (Resolve-Path $DocxPath).Path
-if (-not (Test-Path $resolvedDocx)) {
-    Output-JsonResult @{ success = $false; error = "Input DOCX file not found: $DocxPath" }
-    exit 0
-}
-
-$pdfDir = Split-Path $PdfPath
-if ($pdfDir -and -not (Test-Path $pdfDir)) {
-    New-Item -ItemType Directory -Path $pdfDir -Force | Out-Null
-}
-$resolvedPdf = [System.IO.Path]::GetFullPath($PdfPath)
-
-if (-not (Test-Path $ImagesDir)) {
-    New-Item -ItemType Directory -Path $ImagesDir -Force | Out-Null
-}
-$resolvedImagesDir = (Resolve-Path $ImagesDir).Path
-
-$wordWasRunning = (Get-Process -Name "WINWORD" -ErrorAction SilentlyContinue).Count -gt 0
 $word = $null
 $doc = $null
 
 try {
-    # 1. Open target DOCX safely in Microsoft Word
+    # 0. Validate input DOCX
+    $resolvedDocx = (Resolve-Path $DocxPath -ErrorAction SilentlyContinue)
+    if (-not $resolvedDocx -or -not (Test-Path $resolvedDocx.Path)) {
+        Output-JsonResult @{ success = $false; error = "Input DOCX file not found: $DocxPath" }
+        exit 1
+    }
+    $resolvedDocxPath = $resolvedDocx.Path
+
+    $pdfDir = Split-Path $PdfPath
+    if ($pdfDir -and -not (Test-Path $pdfDir)) {
+        New-Item -ItemType Directory -Path $pdfDir -Force | Out-Null
+    }
+    $resolvedPdf = [System.IO.Path]::GetFullPath($PdfPath)
+
+    if (-not (Test-Path $ImagesDir)) {
+        New-Item -ItemType Directory -Path $ImagesDir -Force | Out-Null
+    }
+    $resolvedImagesDir = (Resolve-Path $ImagesDir).Path
+
+    # 1. Open target DOCX safely in dedicated Microsoft Word instance
     $word = New-Object -ComObject Word.Application
     $word.Visible = $false
     $word.DisplayAlerts = 0 # wdAlertsNone
 
-    $doc = $word.Documents.Open($resolvedDocx, $false, $true) # ReadOnly: true
+    # Open document strictly ReadOnly so user files/state cannot be modified
+    $doc = $word.Documents.Open($resolvedDocxPath, $false, $true)
 
     # 2. Export to PDF (wdFormatPDF = 17)
     $wdFormatPDF = 17
     $doc.SaveAs([ref]$resolvedPdf, [ref]$wdFormatPDF)
+
+    # Validate exported PDF
+    if (-not (Test-Path $resolvedPdf) -or (Get-Item $resolvedPdf).Length -eq 0) {
+        throw "Exported PDF is missing or zero bytes: $resolvedPdf"
+    }
+
+    # Close document immediately
     $doc.Close([ref]$false)
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) | Out-Null
     $doc = $null
 
-    # If Word was not running originally, close the application
-    if (-not $wordWasRunning) {
-        $word.Quit([ref]$false)
-        $word = $null
+    # Quit application instance immediately
+    $word.Quit([ref]$false)
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
+    $word = $null
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+
+    # 3. Rasterize PDF pages using WinRT Windows.Data.Pdf
+    Add-Type -AssemblyName System.Runtime.WindowsRuntime
+    $asTaskGeneric = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { 
+        $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' 
+    }[0]
+    function Await($WinRtTask, $ResultType) {
+        $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
+        $netTask = $asTask.Invoke($null, @($WinRtTask))
+        $netTask.Wait(-1) | Out-Null
+        $netTask.Result
     }
-} catch {
-    if ($doc) { try { $doc.Close([ref]$false) } catch {} }
-    if (-not $wordWasRunning -and $word) { try { $word.Quit([ref]$false) } catch {} }
-    Output-JsonResult @{ success = $false; error = "Word automation failed: $_" }
-    exit 0
-}
 
-# 3. Rasterize PDF pages using WinRT Windows.Data.Pdf
-Add-Type -AssemblyName System.Runtime.WindowsRuntime
-$asTaskGeneric = [System.WindowsRuntimeSystemExtensions].GetMethods() | ? { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1' }[0]
-function Await($WinRtTask, $ResultType) {
-    $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
-    $netTask = $asTask.Invoke($null, @($WinRtTask))
-    $netTask.Wait(-1) | Out-Null
-    $netTask.Result
-}
+    $asTaskNoResult = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { 
+        $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncAction' 
+    }[0]
+    function AwaitAction($WinRtAction) {
+        $netTask = $asTaskNoResult.Invoke($null, @($WinRtAction))
+        $netTask.Wait(-1) | Out-Null
+    }
 
-$asTaskNoResult = [System.WindowsRuntimeSystemExtensions].GetMethods() | ? { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncAction' }[0]
-function AwaitAction($WinRtAction) {
-    $netTask = $asTaskNoResult.Invoke($null, @($WinRtAction))
-    $netTask.Wait(-1) | Out-Null
-}
-
-try {
     [Windows.Storage.StorageFile, Windows.Storage, ContentType = WindowsRuntime] | Out-Null
     [Windows.Data.Pdf.PdfDocument, Windows.Data.Pdf, ContentType = WindowsRuntime] | Out-Null
 
     $storageFile = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($resolvedPdf)) ([Windows.Storage.StorageFile])
     $pdfDoc = Await ([Windows.Data.Pdf.PdfDocument]::LoadFromFileAsync($storageFile)) ([Windows.Data.Pdf.PdfDocument])
     $pageCount = $pdfDoc.PageCount
+
+    if ($pageCount -le 0) {
+        throw "Loaded PDF document has 0 pages: $resolvedPdf"
+    }
 
     $renderedPages = @()
     $folder = Await ([Windows.Storage.StorageFolder]::GetFolderFromPathAsync($resolvedImagesDir)) ([Windows.Storage.StorageFolder])
@@ -120,6 +132,10 @@ try {
         $stream.Dispose()
         $page.Dispose()
 
+        if (-not (Test-Path $pngPath) -or (Get-Item $pngPath).Length -eq 0) {
+            throw "Rendered PNG page is missing or zero bytes: $pngPath"
+        }
+
         $sha256 = Compute-Sha256 $pngPath
         $renderedPages += @{
             pageNumber = $pageNum
@@ -130,18 +146,44 @@ try {
         }
     }
 
-    $docxSha256 = Compute-Sha256 $resolvedDocx
+    $docxSha256 = Compute-Sha256 $resolvedDocxPath
     $pdfSha256 = Compute-Sha256 $resolvedPdf
 
     Output-JsonResult @{
         success = $true
-        docxPath = $resolvedDocx
+        docxPath = $resolvedDocxPath
         docxSha256 = $docxSha256
         pdfPath = $resolvedPdf
         pdfSha256 = $pdfSha256
         pageCount = $pageCount
         renderedPages = $renderedPages
     }
+    exit 0
 } catch {
-    Output-JsonResult @{ success = $false; error = "PDF rasterization failed: $_" }
+    # Ensure cleanup of any COM references
+    if ($doc -ne $null) {
+        try { $doc.Close([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) | Out-Null } catch {}
+        $doc = $null
+    }
+    if ($word -ne $null) {
+        try { $word.Quit([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null } catch {}
+        $word = $null
+    }
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+
+    Output-JsonResult @{ success = $false; error = "$_" }
+    exit 1
+} finally {
+    # Redundant double-safety cleanup
+    if ($doc -ne $null) {
+        try { $doc.Close([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) | Out-Null } catch {}
+    }
+    if ($word -ne $null) {
+        try { $word.Quit([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null } catch {}
+    }
 }

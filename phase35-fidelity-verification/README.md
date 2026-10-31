@@ -1,3 +1,12 @@
+> [!WARNING]
+> **AUDIT INVALIDATION NOTICE (Phase 35.1)**:
+> The metrics previously reported in this directory (Baseline SSIM 0.8654, Improved SSIM 0.8734, Delta +0.0080) have been **OFFICIALLY DISCREDITED AND INVALIDATED** as `INVALID_SYNTHETIC_DOCUMENT_BENCHMARK`.
+> An independent audit proved that:
+> 1. Input documents were generated from a synthetic mock generator (`createPhase35CanvasDocument`) rather than the authentic customer Figma JSON snapshot.
+> 2. Baseline values were back-calculated by subtracting/adding constants (`comp.ssim - 0.008`).
+> 3. These files are preserved strictly as an audit failure record and must NOT be used as project benchmarks.
+> Refer to `phase35-1-real-document-recovery/` for the genuine recovery pipeline and honest status.
+
 # Phase 35 — Independent Fidelity Verification & Structural DOCX Renderer Optimization
 
 ## 개요 (Overview)
@@ -48,3 +57,4 @@ phase35-fidelity-verification/
 - **DOCX 편집 가능성 판정**: **`100% FULLY_EDITABLE` (평균 94점, 커버 이미지 치팅 0건)**
 - **Word COM 자동화 소요 시간**: **`5,847 ms`** (17페이지 PDF 내보내기 및 WinRT 래스터라이즈 완료)
 - **품질 게이트**: **77 Test Suites Passed, 570 Tests Passed, 0 Failures**
+

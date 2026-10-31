@@ -17,7 +17,7 @@ export interface PageEditabilityReport {
   hasFullPageCoverImage: boolean;
   coverImageDetails?: string;
   editabilityScore: number; // 0 to 100
-  classification: "FULLY_EDITABLE" | "HYBRID_EDITABLE" | "IMAGE_DOMINATED" | "FULL_PAGE_COVER_CHEAT";
+  classification: "FULLY_EDITABLE" | "HYBRID_EDITABLE" | "IMAGE_DOMINATED" | "FULL_PAGE_COVER_CHEAT" | "EMPTY_PAGE";
   findings: string[];
 }
 
@@ -63,19 +63,20 @@ export async function auditDocxEditability(
   const bodyMatch = docXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
   const bodyContent = bodyMatch ? bodyMatch[1] : docXml;
 
-  // Split content by w:sectPr
+  // Split content by w:sectPr using fast non-backtracking indexOf
   const rawSections: string[] = [];
-  const sectPrRegex = /<w:sectPr[\s\S]*?<\/w:sectPr>/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+  const sectPrClose = "</w:sectPr>";
+  let searchPos = 0;
 
-  while ((match = sectPrRegex.exec(bodyContent)) !== null) {
-    const chunk = bodyContent.substring(lastIndex, match.index + match[0].length);
-    rawSections.push(chunk);
-    lastIndex = match.index + match[0].length;
+  while (true) {
+    const endIdx = bodyContent.indexOf(sectPrClose, searchPos);
+    if (endIdx === -1) break;
+    const chunkEnd = endIdx + sectPrClose.length;
+    rawSections.push(bodyContent.substring(searchPos, chunkEnd));
+    searchPos = chunkEnd;
   }
-  if (lastIndex < bodyContent.length) {
-    const trailing = bodyContent.substring(lastIndex);
+  if (searchPos < bodyContent.length) {
+    const trailing = bodyContent.substring(searchPos);
     if (trailing.trim().length > 0) {
       rawSections.push(trailing);
     }
@@ -168,7 +169,11 @@ export async function auditDocxEditability(
     let classification: PageEditabilityReport["classification"] = "FULLY_EDITABLE";
     const findings: string[] = [];
 
-    if (hasFullPageCoverImage) {
+    if (textNodeCount === 0 && vmlShapeCount === 0 && mediaReferencesCount === 0 && drawingCount === 0) {
+      score = 0;
+      classification = "EMPTY_PAGE";
+      findings.push("Page is empty: contains 0 text nodes, 0 vector shapes, and 0 media references");
+    } else if (hasFullPageCoverImage) {
       score = 5;
       classification = "FULL_PAGE_COVER_CHEAT";
       findings.push("CRITICAL: Full-page raster image covers canvas, bypassing native typography");

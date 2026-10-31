@@ -1,0 +1,39 @@
+{
+  "docxPath": "debug/test-border-preservation.docx",
+  "docxSha256": "",
+  "totalSections": 1,
+  "globalSummary": {
+    "totalTextNodes": 14,
+    "totalParagraphs": 15,
+    "totalTables": 5,
+    "totalVmlShapes": 0,
+    "totalDrawings": 0,
+    "totalMediaImages": 0,
+    "fullPageCoverCheatCount": 0,
+    "averageEditabilityScore": 100,
+    "overallVerdict": "PASSED"
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "sectionIndex": 0,
+      "widthPt": 595.3,
+      "heightPt": 841.9,
+      "orientation": "portrait",
+      "textNodeCount": 14,
+      "totalTextLength": 392,
+      "paragraphCount": 15,
+      "tableCount": 5,
+      "vmlShapeCount": 0,
+      "vmlTextboxCount": 0,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 14 text nodes (392 chars)"
+      ]
+    }
+  ]
+}

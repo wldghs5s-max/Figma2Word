@@ -1,0 +1,15 @@
+{
+  "benchmarkVersion": "Phase 35.1 Honest Verification (BLOCKED by Provenance Gate)",
+  "timestamp": "2026-10-31T05:31:42.555Z",
+  "status": "BLOCKED",
+  "reason": "Real Figma JSON file not present on disk; zero network request policy enforced.",
+  "totalFrames": 17,
+  "evaluatedFramesCount": 0,
+  "averages": {
+    "ssim": null,
+    "mae": null,
+    "rmse": null,
+    "mismatchRatio": null
+  },
+  "pages": []
+}

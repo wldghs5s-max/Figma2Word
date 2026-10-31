@@ -1,0 +1,24 @@
+{
+  "pipelineVersion": "Phase 35.1 Real-Document Fidelity Recovery",
+  "timestamp": "2026-10-31T05:31:42.554Z",
+  "policy": {
+    "networkMode": "offline",
+    "externalFigmaHttpRequests": 0,
+    "syntheticDocumentForbidden": true
+  },
+  "realFigmaJsonInput": "BLOCKED",
+  "reason": "Target JSON file not found at: C:\\Users\\77\\Documents\\Figma2Word\\펜테크 3차 디자인.json. Git-ignored customer asset was not cloned to this workstation, and remote API downloading is prohibited.",
+  "targetFramesCount": 17,
+  "cachedFigmaReferencesCount": 16,
+  "missingNodeId": "759:1533",
+  "productionParserUsed": "YES (Verified & Available)",
+  "realCanvasIrCreated": "NO (Awaiting real JSON input)",
+  "realDocxCreated": "NO (Awaiting real JSON input)",
+  "wordNativeRendering": "NOT_VERIFIED",
+  "realFidelityBenchmark": "INVALID",
+  "measuredBaselineSsim": null,
+  "measuredImprovedSsim": null,
+  "measuredDelta": null,
+  "editabilityAudit": "INCONCLUSIVE",
+  "readyForPhase36": "NO"
+}
