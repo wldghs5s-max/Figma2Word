@@ -1,7 +1,7 @@
 ================================================================================
  Figma2Word — Phase 39: Trustworthy Verification Foundation Production Pipeline
- Run ID: run_phase39_1793453235008
- Started: 2026-10-31T13:27:15.008Z
+ Run ID: run_phase39_1793456496643
+ Started: 2026-10-31T14:21:36.643Z
 ================================================================================
 
 [Step 1] Verifying Real Customer Input JSON Integrity:
@@ -21,7 +21,7 @@
 
 [Step 5] Multi-Section Production DOCX Generation:
   Saved candidate DOCX: C:\Users\77\Documents\Figma2Word\debug\phase39-production\candidate_multi_page.docx
-  DOCX SHA-256: bfaf9bb6c4ec13bc0013aeb5c481289ef75cf15ec90393db9d91036f69b83a79
+  DOCX SHA-256: 021614098ce20d4cb6acb9585cb64fc8d243c43b79b4ec60ce73dea89fc1238e
 
 [Step 6] Microsoft Word Native Rendering Automation:
   Word rendered 17 pages to PDF and PNG.
@@ -31,7 +31,7 @@
   Source Found:           2033
   IR Mapped:              1312
   DOCX Resolved:          1312
-  Content Verified:       970
+  Content Verified:       974
   Unresolved in DOCX:     0
   Traceability Verdict:   VERIFIED
 
@@ -56,17 +56,18 @@
   Persisted Edits:        25 / 25
   Edit Verdict:           PASSED
 
-[Step 12] Masked Layout Stability Audit (A-04 Hardened):
+[Step 12] Masked Layout Stability Audit (D-01 Dynamic Layout Verification):
+  Layout Verification: Page count preserved=true, Section count preserved=true
   Unintended Regressions: 0
-  Avg Unchanged Mismatch: 0.0000%
+  Avg Unchanged Mismatch: 0.0030%
   Avg Unchanged MAE:      0
   Stability Verdict:      VERIFIED
 
 [Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):
   Valid Evaluations:      16 / 16 target frames
-  Mean Fidelity SSIM:     0.949
-  Mean Fidelity MAE:      2.55
-  Mean Fidelity RMSE:     14.83
+  Mean Fidelity SSIM:     0.9492
+  Mean Fidelity MAE:      2.53
+  Mean Fidelity RMSE:     14.78
 
 [Step 14] Fail-Closed Integrity Gates Evaluation (A-03 Hardened):
   Provenance Gate:        PASSED (REAL_DOCUMENT_BENCHMARK)

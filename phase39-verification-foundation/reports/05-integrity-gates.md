@@ -1,8 +1,8 @@
 # 05. Provenance & Measurement Integrity Gates Report
 
-- **Run ID**: `run_phase39_1793453235008`
+- **Run ID**: `run_phase39_1793456496643`
 - **Input SHA-256**: `390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a`
-- **Candidate DOCX SHA-256**: `bfaf9bb6c4ec13bc0013aeb5c481289ef75cf15ec90393db9d91036f69b83a79`
-- **Candidate PDF SHA-256**: `6933d658814720b3341b8e8555fd65aa932db8a22e242a819fc3858dc65d645c`
+- **Candidate DOCX SHA-256**: `021614098ce20d4cb6acb9585cb64fc8d243c43b79b4ec60ce73dea89fc1238e`
+- **Candidate PDF SHA-256**: `3a13331e2f4ecf401a5c8caefa56b1635309aebd7c8706e131e2c796251d4d6e`
 - **Provenance Status**: `PASSED`
 - **Measurement Integrity Status**: `PASSED`

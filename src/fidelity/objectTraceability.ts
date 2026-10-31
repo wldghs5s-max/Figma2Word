@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { CanvasDocument, CanvasElement } from "../canvas/types.js";
+import { CanvasDocument, CanvasElement, GeometryProvenance } from "../canvas/types.js";
 import { extractTopLevelSections } from "./sectionPageMapper.js";
 
 export type SourceElementKind = "TEXT" | "SHAPE" | "IMAGE" | "CONTAINER";
@@ -45,6 +45,14 @@ export interface UnresolvedBreakdown {
   stillUnresolvedCount: number;
 }
 
+export interface ProvenanceBreakdown {
+  sourceGeometryCount: number;
+  locallyRecoveredCount: number;
+  semanticApproximationCount: number;
+  geometricFallbackCount: number;
+  unresolvedCount: number;
+}
+
 export interface TraceableObjectMapping {
   sourceDocumentSha256: string;
   sourceFrameNodeId: string;
@@ -55,6 +63,7 @@ export interface TraceableObjectMapping {
 
   canonicalIrElementId?: string;
   canonicalIrElementType?: string;
+  geometryProvenance?: GeometryProvenance;
 
   docxPart?: string;
   docxObjectId?: string;
@@ -89,6 +98,7 @@ export interface TraceabilitySummary {
   unresolvedInDocxCount: number;
 
   unresolvedBreakdown?: UnresolvedBreakdown;
+  provenanceBreakdown?: ProvenanceBreakdown;
 
   sourceTextsCount: number;
   sourceShapesCount: number;
@@ -136,11 +146,18 @@ export function unescapeXml(str: string): string {
 
 export function extractTextFromWordSnippet(snippet: string): string {
   if (!snippet) return "";
-  const regex = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g;
+  // Extract text runs and line break tags (<w:t>, <w:br/>, <w:cr/>, <w:tab/>)
+  const regex = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:br\b[^>]*\/?>|<w:cr\b[^>]*\/?>|<w:tab\b[^>]*\/?>/g;
   let match: RegExpExecArray | null;
   const parts: string[] = [];
   while ((match = regex.exec(snippet)) !== null) {
-    parts.push(match[1]);
+    if (match[1] !== undefined) {
+      parts.push(unescapeXml(match[1]));
+    } else if (match[0].includes("tab")) {
+      parts.push("\t");
+    } else {
+      parts.push(" ");
+    }
   }
   return normalizeText(parts.join(""));
 }
@@ -584,6 +601,7 @@ export function buildObjectTraceability(
 
         canonicalIrElementId: primaryCanvasElem?.id,
         canonicalIrElementType: primaryCanvasElem?.type,
+        geometryProvenance: primaryCanvasElem?.geometryProvenance,
 
         docxPart: primaryDocxShape ? "word/document.xml" : undefined,
         docxObjectId: primaryDocxShape?.id,
@@ -656,6 +674,18 @@ export function buildObjectTraceability(
     stillUnresolvedCount: mappings.filter((m) => m.unresolvedCategory === "UNRESOLVED").length,
   };
 
+  const provenanceBreakdown: ProvenanceBreakdown = {
+    sourceGeometryCount: mappings.filter((m) => m.geometryProvenance === "SOURCE_GEOMETRY").length,
+    locallyRecoveredCount: mappings.filter((m) => m.geometryProvenance === "LOCALLY_RECOVERED_GEOMETRY").length,
+    semanticApproximationCount: mappings.filter((m) => m.geometryProvenance === "SEMANTIC_APPROXIMATION").length,
+    geometricFallbackCount: mappings.filter((m) => m.geometryProvenance === "GEOMETRIC_FALLBACK").length,
+    unresolvedCount: mappings.filter(
+      (m) =>
+        (m.sourceElementKind === "SHAPE" || m.sourceNodeType === "VECTOR") &&
+        (!m.geometryProvenance || m.geometryProvenance === "UNRESOLVED" || m.conversionStatus === "UNRESOLVED")
+    ).length,
+  };
+
   const summary: TraceabilitySummary = {
     timestamp: new Date().toISOString(),
     sourceDocumentSha256: jsonSha256,
@@ -669,6 +699,7 @@ export function buildObjectTraceability(
     contentVerifiedCount,
     unresolvedInDocxCount,
     unresolvedBreakdown,
+    provenanceBreakdown,
 
     sourceTextsCount: sourceTexts,
     sourceShapesCount: sourceShapes,

@@ -3,7 +3,8 @@ param(
     [string]$DocxSourcePath,
     [Parameter(Mandatory=$true)]
     [string]$WorkDir,
-    [int]$MaxEdits = 25
+    [int]$MaxEdits = 25,
+    [string]$EditMode = "Normal" # "Normal" or "Stress"
 )
 
 $ErrorActionPreference = "Stop"
@@ -77,6 +78,7 @@ try {
     $editedBoundingBoxes = @()
     $attemptedEdits = 0
     $successfulEdits = 0
+    $largeForegroundCount = 0
 
     # Distribute edits across multiple distinct categories:
     # Cat 1: VML_TEXTBOX_TEXT (Shape TextFrame text modification)
@@ -102,10 +104,15 @@ try {
             try { $shapeName = $shape.Name } catch { $shapeName = "" }
             try { $shapeTitle = $shape.Title } catch { $shapeTitle = "" }
 
-            # Ignore full-page background canvas rectangles (e.g. bg_*, or width > 500 && height > 500)
-            # Full-page backgrounds are structural canvas fills and masking them blanks the entire page!
-            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or ($widthPt -gt 500 -and $heightPt -gt 500))
+            # Only ignore full-page background canvas rectangles (both portrait and landscape)
+            # Shapes with both width > 500 and height > 500 cover the entire page canvas, leaving <5% unmasked inspection area.
+            # Large foreground objects (e.g. wide cards width 500+ with height <= 500, or tall sidebars) remain eligible and tested!
+            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*") -or ($widthPt -gt 500 -and $heightPt -gt 500)
             if ($isFullPageBg) { continue }
+
+            if ($widthPt -gt 300 -or $heightPt -gt 300) {
+                $largeForegroundCount++
+            }
 
             $shapePage = 1
             try {
@@ -123,7 +130,18 @@ try {
                 if ($origText -and $origText.Trim().Length -gt 0) {
                     $attemptedEdits++
                     $origLen = $origText.Trim().Length
-                    $targetMarker = if ($origLen -le 4) { "[E$attemptedEdits]" } else { "[EDIT_$attemptedEdits]" }
+                    if ($EditMode -eq "Stress") {
+                        $targetMarker = "[STRESS_OVERFLOW_TEST_긴_문자열_줄바꿈_추가_테스트_$attemptedEdits]"
+                    } else {
+                        # Normal Edit: proportional realistic replacement text preserving layout
+                        $targetMarker = if ($origLen -le 4) {
+                            "[E$attemptedEdits]"
+                        } elseif ($origLen -le 10) {
+                            "수정확인 [E$attemptedEdits]"
+                        } else {
+                            "실사용 텍스트 수정 [EDIT_$attemptedEdits]"
+                        }
+                    }
                     $textRange.Text = $targetMarker
 
                     $successfulEdits++
@@ -520,6 +538,8 @@ try {
     $result = @{
         success = $overallSuccess
         verdict = $editVerdict
+        editMode = $EditMode
+        largeForegroundTested = $largeForegroundCount
         sourceSha256 = $sourceSha
         savedDocxSha256 = $savedDocxSha
         beforePdfSha256 = (Compute-Sha256 $beforePdf)

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-31T13:27:27.852Z",
+  "timestamp": "2026-10-31T14:21:49.182Z",
   "sourceDocumentSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "totalSourceNodes": 2033,
   "totalTraceableNodes": 2033,
@@ -7,7 +7,7 @@
   "sourceObjectsFound": 2033,
   "irObjectsMapped": 1312,
   "docxObjectsResolved": 1312,
-  "contentVerifiedCount": 970,
+  "contentVerifiedCount": 974,
   "unresolvedInDocxCount": 0,
   "unresolvedBreakdown": {
     "actualMissingCount": 0,
@@ -18,14 +18,21 @@
     "unsupportedTypeCount": 0,
     "stillUnresolvedCount": 0
   },
+  "provenanceBreakdown": {
+    "sourceGeometryCount": 0,
+    "locallyRecoveredCount": 175,
+    "semanticApproximationCount": 60,
+    "geometricFallbackCount": 3,
+    "unresolvedCount": 89
+  },
   "sourceTextsCount": 628,
   "sourceShapesCount": 327,
   "sourceImagesCount": 19,
   "sourceContainersCount": 1059,
-  "preservedTextsCount": 624,
+  "preservedTextsCount": 628,
   "preservedShapesCount": 327,
   "preservedImagesCount": 19,
-  "textPreservationRate": 0.9936,
+  "textPreservationRate": 1,
   "shapePreservationRate": 1,
   "imagePreservationRate": 1,
   "convertedCount": 1312,

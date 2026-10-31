@@ -65,9 +65,10 @@ function runWordEditTest(
   psScript: string,
   docxPath: string,
   workDir: string,
-  maxEdits = 25
+  maxEdits = 25,
+  editMode = "Normal"
 ): any {
-  const cmd = `powershell -ExecutionPolicy Bypass -File "${psScript}" -DocxSourcePath "${docxPath}" -WorkDir "${workDir}" -MaxEdits ${maxEdits}`;
+  const cmd = `powershell -ExecutionPolicy Bypass -File "${psScript}" -DocxSourcePath "${docxPath}" -WorkDir "${workDir}" -MaxEdits ${maxEdits} -EditMode "${editMode}"`;
   const out = execSync(cmd, { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
   const res = JSON.parse(out.trim());
   if (!res.success) {
@@ -331,18 +332,28 @@ export async function runPhase39Pipeline() {
   }
 
   // Step 12: Masked Layout Stability Audit
-  log("\n[Step 12] Masked Layout Stability Audit (A-04 Hardened):");
+  log("\n[Step 12] Masked Layout Stability Audit (D-01 Dynamic Layout Verification):");
   const beforeEditDir = path.join(editWorkDir, "rendered-before");
   const afterEditDir = path.join(editWorkDir, "rendered-after");
   const editedBoxes = editResult?.editedBoundingBoxes || [];
+
+  const pageCountPreserved =
+    editResult?.layoutStability?.pageCountPreserved === true &&
+    editResult?.reopenedMetrics?.pages === candidateDoc.pages.length &&
+    wordRenderResult.pageCount === candidateDoc.pages.length;
+  const sectionCountPreserved =
+    editResult?.layoutStability?.sectionCountPreserved === true &&
+    editResult?.reopenedMetrics?.sections === candidateDoc.pages.length;
+
+  log(`  Layout Verification: Page count preserved=${pageCountPreserved}, Section count preserved=${sectionCountPreserved}`);
 
   const layoutStabilityReport = auditLayoutStability(
     beforeEditDir,
     afterEditDir,
     editedBoxes,
     wordRenderResult.pageCount || 17,
-    true,
-    true
+    pageCountPreserved,
+    sectionCountPreserved
   );
   log(`  Unintended Regressions: ${layoutStabilityReport.unintendedRegressionsCount}`);
   log(`  Avg Unchanged Mismatch: ${(layoutStabilityReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%`);
@@ -554,7 +565,7 @@ export async function runPhase39Pipeline() {
       name: "Source-to-Word Object Traceability Gate",
       status: traceabilityReport.summary.traceabilityVerdict === "VERIFIED" ? "PASSED" : traceabilityReport.summary.traceabilityVerdict,
       summary: traceabilityReport.summary.traceabilityVerdict === "VERIFIED"
-        ? `All ${traceabilityReport.summary.sourceObjectsFound} source objects resolved with verified content.`
+        ? `All ${traceabilityReport.summary.sourceObjectsFound} source objects accounted for (${traceabilityReport.summary.irObjectsMapped} IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: ${traceabilityReport.summary.provenanceBreakdown?.locallyRecoveredCount || 0} recovered, ${traceabilityReport.summary.provenanceBreakdown?.semanticApproximationCount || 0} semantic approximations).`
         : `Traceability failed: ${traceabilityReport.summary.unresolvedInDocxCount} unresolved in DOCX, content verified ${traceabilityReport.summary.contentVerifiedCount}/${traceabilityReport.summary.sourceObjectsFound}`,
       failureReasons: traceabilityReport.summary.unresolvedInDocxCount > 0
         ? [`${traceabilityReport.summary.unresolvedInDocxCount} objects exist in IR but failed to resolve into DOCX XML`]

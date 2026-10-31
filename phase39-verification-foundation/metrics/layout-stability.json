@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-31T13:27:58.770Z",
+  "timestamp": "2026-10-31T14:22:20.755Z",
   "totalPages": 17,
   "pageCountPreserved": true,
   "sectionCountPreserved": true,
@@ -9,7 +9,7 @@
   "dimensionMismatchCount": 0,
   "missingEvidenceCount": 0,
   "stablePagesCount": 17,
-  "averageUnchangedMismatchRatio": 0,
+  "averageUnchangedMismatchRatio": 0.00003,
   "averageUnchangedMae": 0,
   "layoutStabilityVerdict": "VERIFIED",
   "pages": [
@@ -24,13 +24,13 @@
       "inspectedPixels": 2027947,
       "inspectedRatio": 0.978,
       "unchangedPixelsCount": 2027947,
-      "unchangedRegionMismatchCount": 0,
-      "unchangedRegionMismatchRatio": 0,
-      "unmaskedMismatchRatio": 0,
-      "unchangedRegionMae": 0,
-      "unmaskedMae": 0,
+      "unchangedRegionMismatchCount": 891,
+      "unchangedRegionMismatchRatio": 0.00044,
+      "unmaskedMismatchRatio": 0.00044,
+      "unchangedRegionMae": 0.07,
+      "unmaskedMae": 0.07,
       "isStable": true,
-      "diagnostics": "Page 001 stable (mismatch: 0.000%, MAE: 0)"
+      "diagnostics": "Page 001 stable (mismatch: 0.044%, MAE: 0.07)"
     },
     {
       "pageNumber": 2,
@@ -43,13 +43,13 @@
       "inspectedPixels": 2028649,
       "inspectedRatio": 0.9783,
       "unchangedPixelsCount": 2028649,
-      "unchangedRegionMismatchCount": 0,
-      "unchangedRegionMismatchRatio": 0,
-      "unmaskedMismatchRatio": 0,
-      "unchangedRegionMae": 0,
-      "unmaskedMae": 0,
+      "unchangedRegionMismatchCount": 167,
+      "unchangedRegionMismatchRatio": 0.00008,
+      "unmaskedMismatchRatio": 0.00008,
+      "unchangedRegionMae": 0.01,
+      "unmaskedMae": 0.01,
       "isStable": true,
-      "diagnostics": "Page 002 stable (mismatch: 0.000%, MAE: 0)"
+      "diagnostics": "Page 002 stable (mismatch: 0.008%, MAE: 0.01)"
     },
     {
       "pageNumber": 3,

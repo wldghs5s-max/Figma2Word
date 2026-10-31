@@ -248,6 +248,13 @@ export interface CanvasImageCrop {
   right: number;
 }
 
+export type GeometryProvenance =
+  | "SOURCE_GEOMETRY"
+  | "LOCALLY_RECOVERED_GEOMETRY"
+  | "SEMANTIC_APPROXIMATION"
+  | "GEOMETRIC_FALLBACK"
+  | "UNRESOLVED";
+
 export interface CanvasElement {
   id: string;
   name?: string;
@@ -277,6 +284,7 @@ export interface CanvasElement {
   rawSvgPath?: string; // Original SVG path string
   vectorPoints?: { x: number; y: number }[]; // Sampled polygon points for HWPX (<hp:polygon>)
   vectorSubpaths?: CanvasVectorSubpath[]; // Discrete subpaths for HWPX to avoid spurious connecting lines
+  geometryProvenance?: GeometryProvenance;
 
   // Structured Table details
   tableData?: CanvasTableData;
