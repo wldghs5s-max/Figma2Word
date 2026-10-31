@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-31T15:13:39.515Z",
+  "timestamp": "2026-10-31T21:10:21.919Z",
   "sourceDocumentSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "totalSourceNodes": 2033,
   "totalTraceableNodes": 2033,
@@ -25,6 +25,14 @@
     "geometricFallbackCount": 3,
     "primitiveShapeCount": 1074,
     "unresolvedCount": 0
+  },
+  "contentStateBreakdown": {
+    "contentVerifiedCount": 736,
+    "approximateGeometryCount": 238,
+    "objectPresentCount": 338,
+    "contentMismatchCount": 0,
+    "contentUnverifiedCount": 0,
+    "intentionalOmissionCount": 721
   },
   "sourceTextsCount": 628,
   "sourceShapesCount": 327,

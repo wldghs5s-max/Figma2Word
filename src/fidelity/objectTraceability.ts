@@ -1,8 +1,20 @@
 import crypto from "crypto";
-import { CanvasDocument, CanvasElement, GeometryProvenance } from "../canvas/types.js";
+import {
+  CanvasDocument,
+  CanvasElement,
+  GeometryProvenance,
+} from "../canvas/types.js";
 import { extractTopLevelSections } from "./sectionPageMapper.js";
 
 export type SourceElementKind = "TEXT" | "SHAPE" | "IMAGE" | "CONTAINER";
+
+export type DetailedContentState =
+  | "CONTENT_VERIFIED"
+  | "APPROXIMATE_GEOMETRY"
+  | "OBJECT_PRESENT"
+  | "CONTENT_MISMATCH"
+  | "CONTENT_UNVERIFIED"
+  | "INTENTIONAL_OMISSION";
 
 export type ConversionStatus =
   | "CONVERTED"
@@ -54,6 +66,15 @@ export interface ProvenanceBreakdown {
   unresolvedCount: number;
 }
 
+export interface ContentStateBreakdown {
+  contentVerifiedCount: number;
+  approximateGeometryCount: number;
+  objectPresentCount: number;
+  contentMismatchCount: number;
+  contentUnverifiedCount: number;
+  intentionalOmissionCount: number;
+}
+
 export interface TraceableObjectMapping {
   sourceDocumentSha256: string;
   sourceFrameNodeId: string;
@@ -76,6 +97,7 @@ export interface TraceableObjectMapping {
 
   outputContentHash?: string;
   contentVerified?: boolean;
+  contentState?: DetailedContentState;
 
   conversionStatus: ConversionStatus;
   mappingRelation: MappingRelation;
@@ -100,6 +122,7 @@ export interface TraceabilitySummary {
 
   unresolvedBreakdown?: UnresolvedBreakdown;
   provenanceBreakdown?: ProvenanceBreakdown;
+  contentStateBreakdown?: ContentStateBreakdown;
 
   sourceTextsCount: number;
   sourceShapesCount: number;
@@ -142,13 +165,16 @@ export function unescapeXml(str: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
     .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    );
 }
 
 export function extractTextFromWordSnippet(snippet: string): string {
   if (!snippet) return "";
   // Extract text runs and line break tags (<w:t>, <w:br/>, <w:cr/>, <w:tab/>)
-  const regex = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:br\b[^>]*\/?>|<w:cr\b[^>]*\/?>|<w:tab\b[^>]*\/?>/g;
+  const regex =
+    /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:br\b[^>]*\/?>|<w:cr\b[^>]*\/?>|<w:tab\b[^>]*\/?>/g;
   let match: RegExpExecArray | null;
   const parts: string[] = [];
   while ((match = regex.exec(snippet)) !== null) {
@@ -169,7 +195,11 @@ export function normalizeText(str: string): string {
 }
 
 function hashString(val: string): string {
-  return crypto.createHash("sha256").update(val, "utf8").digest("hex").slice(0, 16);
+  return crypto
+    .createHash("sha256")
+    .update(val, "utf8")
+    .digest("hex")
+    .slice(0, 16);
 }
 
 /**
@@ -182,7 +212,7 @@ export function buildObjectTraceability(
   canvasDoc: CanvasDocument,
   docxXmlContent: string,
   jsonSha256: string,
-  options?: BuildObjectTraceabilityOptions
+  options?: BuildObjectTraceabilityOptions,
 ): ObjectTraceabilityReport {
   const mappings: TraceableObjectMapping[] = [];
 
@@ -233,9 +263,10 @@ export function buildObjectTraceability(
 
       // Extract full snippet up to closing tag </v:${tag}> or next shape
       const shapeEndIdx = sectXml.indexOf(`</v:${tag}>`, match.index);
-      const fullShapeSnippet = shapeEndIdx !== -1
-        ? sectXml.substring(match.index, shapeEndIdx + tag.length + 4)
-        : match[0];
+      const fullShapeSnippet =
+        shapeEndIdx !== -1
+          ? sectXml.substring(match.index, shapeEndIdx + tag.length + 4)
+          : match[0];
 
       const entry: DocxShapeEntry = {
         tag,
@@ -383,6 +414,8 @@ export function buildObjectTraceability(
           sourceElementKind: elementKind,
           sourceContentHash,
           expectedPageIndex: expectedPage,
+          contentVerified: false,
+          contentState: "INTENTIONAL_OMISSION",
           conversionStatus: "INTENTIONALLY_OMITTED",
           mappingRelation: "INTENTIONALLY_OMITTED",
           editabilityStatus: "NOT_APPLICABLE",
@@ -414,6 +447,8 @@ export function buildObjectTraceability(
           sourceElementKind: elementKind,
           sourceContentHash,
           expectedPageIndex: expectedPage,
+          contentVerified: false,
+          contentState: "INTENTIONAL_OMISSION",
           conversionStatus: "INTENTIONALLY_OMITTED",
           mappingRelation: "INTENTIONALLY_OMITTED",
           editabilityStatus: "NOT_APPLICABLE",
@@ -432,6 +467,8 @@ export function buildObjectTraceability(
       // Look up corresponding Canvas IR elements and DOCX OpenXML shapes
       const matchedCanvasElems = canvasElementsBySourceId.get(nodeId) || [];
       const matchedDocxShapes = docxShapesByAlt.get(nodeId) || [];
+      const primaryCanvasElem = matchedCanvasElems[0];
+      const primaryDocxShape = matchedDocxShapes[0];
 
       const inIr = matchedCanvasElems.length > 0;
       const inDocx = matchedDocxShapes.length > 0;
@@ -442,6 +479,7 @@ export function buildObjectTraceability(
       let mappingRelation: MappingRelation = "ONE_TO_ONE";
       let editabilityStatus: EditabilityStatus = "STRUCTURALLY_EDITABLE";
       let contentVerified = false;
+      let contentState: DetailedContentState = "OBJECT_PRESENT";
 
       if (!inIr && !inDocx) {
         // Did not convert to either IR or DOCX
@@ -449,11 +487,13 @@ export function buildObjectTraceability(
           conversionStatus = "INTENTIONALLY_OMITTED";
           mappingRelation = "INTENTIONALLY_OMITTED";
           editabilityStatus = "NOT_APPLICABLE";
+          contentState = "INTENTIONAL_OMISSION";
           omittedCount++;
         } else {
           conversionStatus = "MISSING";
           mappingRelation = "MISSING";
           editabilityStatus = "UNSUPPORTED";
+          contentState = "CONTENT_UNVERIFIED";
           missingCount++;
         }
       } else if (inIr && !inDocx) {
@@ -462,6 +502,7 @@ export function buildObjectTraceability(
         conversionStatus = "UNRESOLVED";
         mappingRelation = "MISSING";
         editabilityStatus = "UNSUPPORTED";
+        contentState = "CONTENT_UNVERIFIED";
         unresolvedInDocxCount++;
       } else {
         // inDocx is true! Actually resolved into Word document!
@@ -485,6 +526,7 @@ export function buildObjectTraceability(
 
           if (normSource.length === 0) {
             contentVerified = true;
+            contentState = "CONTENT_VERIFIED";
             contentVerifiedCount++;
             preservedTexts++;
           } else {
@@ -492,14 +534,20 @@ export function buildObjectTraceability(
             // Partial slice matches (e.g. first 20 chars) are strictly prohibited
             const matches =
               combinedDocxText.length > 0 &&
-              (combinedDocxText === normSource || combinedDocxText.includes(normSource));
+              (combinedDocxText === normSource ||
+                combinedDocxText.includes(normSource));
 
             if (matches) {
               contentVerified = true;
+              contentState = "CONTENT_VERIFIED";
               contentVerifiedCount++;
               preservedTexts++;
             } else {
               contentVerified = false;
+              contentState =
+                combinedDocxText.length > 0
+                  ? "CONTENT_MISMATCH"
+                  : "CONTENT_UNVERIFIED";
               conversionStatus = "PARTIALLY_CONVERTED";
             }
           }
@@ -510,28 +558,41 @@ export function buildObjectTraceability(
             !!primaryDocxShape &&
             !!primaryDocxShape.id &&
             !!primaryDocxShape.tag &&
-            (
-              // Standard primitive tag with style/geometry
-              ["rect", "oval", "line", "roundrect", "v:rect", "v:oval", "v:line", "v:roundrect"].includes(primaryDocxShape.tag.toLowerCase()) ||
+            // Standard primitive tag with style/geometry
+            (["rect", "oval", "line", "roundrect", "v:rect", "v:oval", "v:line", "v:roundrect"].includes(
+              primaryDocxShape.tag.toLowerCase(),
+            ) ||
               // Vector shape with valid path attribute or child
               /path="[^"]{3,}"/i.test(snippet) ||
               /<v:path\b/i.test(snippet) ||
               // Or explicit stroked/filled visual styling
               /strokecolor="/i.test(snippet) ||
-              /fillcolor="/i.test(snippet)
-            );
+              /fillcolor="/i.test(snippet));
 
           if (hasValidGeometry) {
             contentVerified = true;
+            const prov = primaryCanvasElem?.geometryProvenance;
+            if (
+              prov === "LOCALLY_RECOVERED_GEOMETRY" ||
+              prov === "SEMANTIC_APPROXIMATION" ||
+              prov === "GEOMETRIC_FALLBACK"
+            ) {
+              contentState = "APPROXIMATE_GEOMETRY";
+            } else {
+              contentState = "CONTENT_VERIFIED";
+            }
             contentVerifiedCount++;
             preservedShapes++;
           } else {
             contentVerified = false;
+            contentState = "CONTENT_UNVERIFIED";
             conversionStatus = "PARTIALLY_CONVERTED";
           }
         } else if (elementKind === "IMAGE") {
           const primarySnippet = matchedDocxShapes[0]?.rawSnippet || "";
-          const rIdMatch = /r:id="([^"]+)"/.exec(primarySnippet) || /r:embed="([^"]+)"/.exec(primarySnippet);
+          const rIdMatch =
+            /r:id="([^"]+)"/.exec(primarySnippet) ||
+            /r:embed="([^"]+)"/.exec(primarySnippet);
           const actualRId = rIdMatch ? rIdMatch[1] : undefined;
 
           // Evidence-based image verification: requires actual relationship ID, rels XML, and authentic media file
@@ -539,24 +600,32 @@ export function buildObjectTraceability(
             const target = relIdToTarget.get(actualRId);
             if (target) {
               const mediaInfo = options.mediaFilesMap.get(target);
-              if (mediaInfo && !mediaInfo.isPlaceholder && mediaInfo.size > 100) {
+              if (
+                mediaInfo &&
+                !mediaInfo.isPlaceholder &&
+                mediaInfo.size > 100
+              ) {
                 // Confirmed non-placeholder media bytes with authentic relationship
                 contentVerified = true;
+                contentState = "CONTENT_VERIFIED";
                 contentVerifiedCount++;
                 preservedImages++;
               } else {
                 // Placeholder dummy image or empty bytes
                 contentVerified = false;
+                contentState = "CONTENT_MISMATCH";
                 conversionStatus = "PARTIALLY_CONVERTED";
               }
             } else {
               // Broken relationship target
               contentVerified = false;
+              contentState = "CONTENT_UNVERIFIED";
               conversionStatus = "PARTIALLY_CONVERTED";
             }
           } else {
             // Unverified image: missing rels XML, missing media map, or missing r:id
             contentVerified = false;
+            contentState = "CONTENT_UNVERIFIED";
             conversionStatus = "UNRESOLVED";
           }
         }
@@ -576,13 +645,12 @@ export function buildObjectTraceability(
         }
       }
 
-      const primaryDocxShape = matchedDocxShapes[0];
-      const primaryCanvasElem = matchedCanvasElems[0];
-
       // Extract genuine relationship ID if present (never synthesize rId_${imageRef})
       let resolvedRelationshipId: string | undefined;
       if (elementKind === "IMAGE" && primaryDocxShape) {
-        const rMatch = /r:id="([^"]+)"/.exec(primaryDocxShape.rawSnippet) || /r:embed="([^"]+)"/.exec(primaryDocxShape.rawSnippet);
+        const rMatch =
+          /r:id="([^"]+)"/.exec(primaryDocxShape.rawSnippet) ||
+          /r:embed="([^"]+)"/.exec(primaryDocxShape.rawSnippet);
         if (rMatch) resolvedRelationshipId = rMatch[1];
       }
 
@@ -591,12 +659,21 @@ export function buildObjectTraceability(
       if (conversionStatus === "INTENTIONALLY_OMITTED") {
         unresolvedCategory = "INTENTIONAL_OMISSION";
       } else if (
-        ["BOOLEAN_OPERATION", "SLICE", "CANVAS", "CONNECTOR", "WIDGET", "EMBED", "LINK_UNFURL"].includes(
-          nodeType
-        )
+        [
+          "BOOLEAN_OPERATION",
+          "SLICE",
+          "CANVAS",
+          "CONNECTOR",
+          "WIDGET",
+          "EMBED",
+          "LINK_UNFURL",
+        ].includes(nodeType)
       ) {
         unresolvedCategory = "UNSUPPORTED_TYPE";
-      } else if (conversionStatus === "UNRESOLVED" || conversionStatus === "MISSING") {
+      } else if (
+        conversionStatus === "UNRESOLVED" ||
+        conversionStatus === "MISSING"
+      ) {
         if (matchedDocxShapes.length > 1) {
           unresolvedCategory = "MULTI_OBJECT_DECOMPOSED";
         } else if (docxShapesById.has(nodeId)) {
@@ -627,8 +704,11 @@ export function buildObjectTraceability(
 
         expectedPageIndex: expectedPage,
         renderedPageIndex: primaryDocxShape?.pageIndex || expectedPage,
-        outputContentHash: primaryDocxShape ? hashString(primaryDocxShape.rawSnippet) : undefined,
+        outputContentHash: primaryDocxShape
+          ? hashString(primaryDocxShape.rawSnippet)
+          : undefined,
         contentVerified,
+        contentState,
 
         conversionStatus,
         mappingRelation,
@@ -638,8 +718,8 @@ export function buildObjectTraceability(
           conversionStatus === "INTENTIONALLY_OMITTED"
             ? "CONTAINER_TRANSPARENT_WRAPPER"
             : conversionStatus === "UNRESOLVED"
-            ? "IR_ELEMENT_NOT_RESOLVED_IN_DOCX_XML"
-            : undefined,
+              ? "IR_ELEMENT_NOT_RESOLVED_IN_DOCX_XML"
+              : undefined,
         confidenceLevel: "HIGH",
       });
 
@@ -657,15 +737,24 @@ export function buildObjectTraceability(
   const textPreservationRate =
     sourceTexts > 0 ? Number((preservedTexts / sourceTexts).toFixed(4)) : 1.0;
   const shapePreservationRate =
-    sourceShapes > 0 ? Number((preservedShapes / sourceShapes).toFixed(4)) : 1.0;
+    sourceShapes > 0
+      ? Number((preservedShapes / sourceShapes).toFixed(4))
+      : 1.0;
   const imagePreservationRate =
-    sourceImages > 0 ? Number((preservedImages / sourceImages).toFixed(4)) : 1.0;
+    sourceImages > 0
+      ? Number((preservedImages / sourceImages).toFixed(4))
+      : 1.0;
 
   const totalTraceableNodes = convertedCount + omittedCount;
   const overallTraceabilityRate =
-    totalSourceNodes > 0 ? Number((totalTraceableNodes / totalSourceNodes).toFixed(4)) : 1.0;
+    totalSourceNodes > 0
+      ? Number((totalTraceableNodes / totalSourceNodes).toFixed(4))
+      : 1.0;
 
   const isAllTextPreserved = sourceTexts === preservedTexts;
+  const isAllShapesPreserved = sourceShapes === preservedShapes;
+  const isAllImagesPreserved = sourceImages === preservedImages;
+
   let traceabilityVerdict: "VERIFIED" | "PARTIAL" | "FAILED" = "FAILED";
   if (totalSourceNodes === 0) {
     traceabilityVerdict = "FAILED";
@@ -673,35 +762,68 @@ export function buildObjectTraceability(
     missingCount === 0 &&
     unresolvedInDocxCount === 0 &&
     isAllTextPreserved &&
+    isAllShapesPreserved &&
+    isAllImagesPreserved &&
     overallTraceabilityRate >= 1.0
   ) {
     traceabilityVerdict = "VERIFIED";
-  } else if (missingCount + unresolvedInDocxCount <= 5 && textPreservationRate >= 0.95) {
+  } else if (
+    missingCount + unresolvedInDocxCount <= 5 &&
+    textPreservationRate >= 0.95
+  ) {
     traceabilityVerdict = "PARTIAL";
   } else {
     traceabilityVerdict = "FAILED";
   }
 
   const unresolvedBreakdown: UnresolvedBreakdown = {
-    actualMissingCount: mappings.filter((m) => m.unresolvedCategory === "ACTUAL_MISSING").length,
-    mappingFailureCount: mappings.filter((m) => m.unresolvedCategory === "MAPPING_FAILURE").length,
-    multiObjectDecomposedCount: mappings.filter((m) => m.unresolvedCategory === "MULTI_OBJECT_DECOMPOSED").length,
-    mergedIntoParentCount: mappings.filter((m) => m.unresolvedCategory === "MERGED_INTO_PARENT").length,
-    intentionalOmissionCount: mappings.filter((m) => m.unresolvedCategory === "INTENTIONAL_OMISSION").length,
-    unsupportedTypeCount: mappings.filter((m) => m.unresolvedCategory === "UNSUPPORTED_TYPE").length,
-    stillUnresolvedCount: mappings.filter((m) => m.unresolvedCategory === "UNRESOLVED").length,
+    actualMissingCount: mappings.filter(
+      (m) => m.unresolvedCategory === "ACTUAL_MISSING",
+    ).length,
+    mappingFailureCount: mappings.filter(
+      (m) => m.unresolvedCategory === "MAPPING_FAILURE",
+    ).length,
+    multiObjectDecomposedCount: mappings.filter(
+      (m) => m.unresolvedCategory === "MULTI_OBJECT_DECOMPOSED",
+    ).length,
+    mergedIntoParentCount: mappings.filter(
+      (m) => m.unresolvedCategory === "MERGED_INTO_PARENT",
+    ).length,
+    intentionalOmissionCount: mappings.filter(
+      (m) => m.unresolvedCategory === "INTENTIONAL_OMISSION",
+    ).length,
+    unsupportedTypeCount: mappings.filter(
+      (m) => m.unresolvedCategory === "UNSUPPORTED_TYPE",
+    ).length,
+    stillUnresolvedCount: mappings.filter(
+      (m) => m.unresolvedCategory === "UNRESOLVED",
+    ).length,
   };
 
   const provenanceBreakdown: ProvenanceBreakdown = {
-    sourceGeometryCount: mappings.filter((m) => m.geometryProvenance === "SOURCE_GEOMETRY").length,
-    locallyRecoveredCount: mappings.filter((m) => m.geometryProvenance === "LOCALLY_RECOVERED_GEOMETRY").length,
-    semanticApproximationCount: mappings.filter((m) => m.geometryProvenance === "SEMANTIC_APPROXIMATION").length,
-    geometricFallbackCount: mappings.filter((m) => m.geometryProvenance === "GEOMETRIC_FALLBACK").length,
-    primitiveShapeCount: mappings.filter((m) => m.geometryProvenance === "PRIMITIVE_SHAPE").length,
+    sourceGeometryCount: mappings.filter(
+      (m) => m.geometryProvenance === "SOURCE_GEOMETRY",
+    ).length,
+    locallyRecoveredCount: mappings.filter(
+      (m) => m.geometryProvenance === "LOCALLY_RECOVERED_GEOMETRY",
+    ).length,
+    semanticApproximationCount: mappings.filter(
+      (m) => m.geometryProvenance === "SEMANTIC_APPROXIMATION",
+    ).length,
+    geometricFallbackCount: mappings.filter(
+      (m) => m.geometryProvenance === "GEOMETRIC_FALLBACK",
+    ).length,
+    primitiveShapeCount: mappings.filter(
+      (m) => m.geometryProvenance === "PRIMITIVE_SHAPE",
+    ).length,
     unresolvedCount: mappings.filter(
       (m) =>
-        (m.sourceNodeType === "VECTOR" || m.sourceNodeType === "STAR" || m.sourceNodeType === "POLYGON") &&
-        (!m.geometryProvenance || m.geometryProvenance === "UNRESOLVED" || m.conversionStatus === "UNRESOLVED")
+        (m.sourceNodeType === "VECTOR" ||
+          m.sourceNodeType === "STAR" ||
+          m.sourceNodeType === "POLYGON") &&
+        (!m.geometryProvenance ||
+          m.geometryProvenance === "UNRESOLVED" ||
+          m.conversionStatus === "UNRESOLVED"),
     ).length,
   };
 
@@ -719,6 +841,26 @@ export function buildObjectTraceability(
     unresolvedInDocxCount,
     unresolvedBreakdown,
     provenanceBreakdown,
+    contentStateBreakdown: {
+      contentVerifiedCount: mappings.filter(
+        (m) => m.contentState === "CONTENT_VERIFIED",
+      ).length,
+      approximateGeometryCount: mappings.filter(
+        (m) => m.contentState === "APPROXIMATE_GEOMETRY",
+      ).length,
+      objectPresentCount: mappings.filter(
+        (m) => m.contentState === "OBJECT_PRESENT",
+      ).length,
+      contentMismatchCount: mappings.filter(
+        (m) => m.contentState === "CONTENT_MISMATCH",
+      ).length,
+      contentUnverifiedCount: mappings.filter(
+        (m) => m.contentState === "CONTENT_UNVERIFIED",
+      ).length,
+      intentionalOmissionCount: mappings.filter(
+        (m) => m.contentState === "INTENTIONAL_OMISSION",
+      ).length,
+    },
 
     sourceTextsCount: sourceTexts,
     sourceShapesCount: sourceShapes,

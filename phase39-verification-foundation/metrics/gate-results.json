@@ -41,7 +41,7 @@
     "gateId": "GATE_LAYOUT_STABILITY",
     "name": "Masked Layout Stability Gate",
     "status": "PASSED",
-    "summary": "Zero regressions on unedited document regions (avg mismatch 0.0030%)"
+    "summary": "Zero regressions on unedited document regions (avg mismatch 0.0000%)"
   },
   "GATE_WORD_EDIT_PERSISTENCE": {
     "gateId": "GATE_WORD_EDIT_PERSISTENCE",

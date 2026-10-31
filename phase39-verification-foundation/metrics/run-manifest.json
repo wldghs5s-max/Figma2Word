@@ -1,10 +1,10 @@
 {
-  "runId": "run_phase39_1793459606567",
+  "runId": "run_phase39_1793481009647",
   "runStatus": "PASSED",
   "isApproved": true,
-  "startedAt": "2026-10-31T15:13:26.567Z",
-  "finishedAt": "2026-10-31T15:14:44.261Z",
-  "gitCommit": "139c9990ac19fb66a80d16833f81732c8ebb4b91",
+  "startedAt": "2026-10-31T21:10:09.647Z",
+  "finishedAt": "2026-10-31T21:11:25.669Z",
+  "gitCommit": "22c0d1e2562aaebf988e5ab877208690be4da51c",
   "sourceFileSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "sourceFrameIds": [
     "763:5068",
@@ -25,8 +25,8 @@
     "759:1533",
     "768:3434"
   ],
-  "candidateDocxSha256": "6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359",
-  "candidatePdfSha256": "ed5cfeefdf8e1130b2e3299e1312ea92320d78dd59ba14168e543a1195d7997b",
+  "candidateDocxSha256": "1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58",
+  "candidatePdfSha256": "651abece7cdbf7431c547f7bba2a3ba6f45b0e2995d7e381b19997c50ae903e6",
   "candidatePngShaMap": {
     "763:5068": "d3bbd96e10df7f04f273468e52288625c74a2e07acb4b25c72a085269c9fcb99",
     "766:256": "21e08209a5addc57140257e6461815fbd94925f1fbb63b6502ab18404dc49a02",
@@ -114,7 +114,7 @@
       "gateId": "GATE_LAYOUT_STABILITY",
       "name": "Masked Layout Stability Gate",
       "status": "PASSED",
-      "summary": "Zero regressions on unedited document regions (avg mismatch 0.0030%)"
+      "summary": "Zero regressions on unedited document regions (avg mismatch 0.0000%)"
     },
     "GATE_WORD_EDIT_PERSISTENCE": {
       "gateId": "GATE_WORD_EDIT_PERSISTENCE",
@@ -149,7 +149,7 @@
     },
     "stability": {
       "unintendedRegressions": 0,
-      "mismatchRatio": 0.00003,
+      "mismatchRatio": 0,
       "mae": 0
     }
   },

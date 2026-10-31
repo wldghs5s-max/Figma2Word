@@ -1,4 +1,19 @@
 {
+  "reopenedMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346
+  },
+  "editMode": "Normal",
+  "untestedObjects": 1338,
+  "layoutStability": {
+    "verdict": "STABLE",
+    "sectionCountPreserved": true,
+    "pageCountPreserved": true
+  },
+  "largeForegroundTested": 5,
+  "afterPdfSha256": "ef7f7ecf05b694a77845bcccbb43b6069aad0820481aec8035d7f615aad8edea",
+  "savedDocxSha256": "95d096ffc859cf19f35c1ce337e827412eed6c59dab2eb6fd469561c350f0686",
   "editedObjectTypes": {
     "VML_SHAPE_DIMENSION": 6,
     "VML_SHAPE_STROKE_COLOR": 6,
@@ -6,9 +21,6 @@
     "VML_SHAPE_FILL_COLOR": 6,
     "VML_TEXTBOX_TEXT": 7
   },
-  "beforePdfSha256": "42ea01fce1a1f53e64baf412137d1e377535a25c3508f87ff5993aaa2b96a74d",
-  "editMode": "Normal",
-  "sourceSha256": "6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359",
   "editStatistics": {
     "persistenceRatePercent": 100,
     "attempted": 25,
@@ -16,255 +28,6 @@
     "successful": 25,
     "persisted": 25
   },
-  "layoutStability": {
-    "verdict": "STABLE",
-    "sectionCountPreserved": true,
-    "pageCountPreserved": true
-  },
-  "editedBoundingBoxes": [
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 79.5,
-      "marker": "[E1]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 4,
-      "widthPt": 72.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 79.5,
-      "marker": "[PHASE38_EDIT_STROKE_2]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 8,
-      "widthPt": 72.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 7.5,
-      "topPt": 80.6500015258789,
-      "marker": "[PHASE38_EDIT_FILL_3]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 15,
-      "widthPt": 4.5,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_DIMENSION_4]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 16,
-      "widthPt": 169.39999389648438,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 44.25,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_5]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 1,
-      "widthPt": 145.6999969482422,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 44.25,
-      "marker": "[PHASE38_EDIT_STROKE_6]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 2,
-      "widthPt": 127.69999694824219,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 24,
-      "topPt": 78.4000015258789,
-      "marker": "[PHASE38_EDIT_FILL_7]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 4,
-      "widthPt": 71.25,
-      "leftPt": 1008.4000244140625
-    },
-    {
-      "heightPt": 333.75,
-      "topPt": 851.25,
-      "marker": "[PHASE38_EDIT_DIMENSION_8]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 5,
-      "widthPt": 907.75,
-      "leftPt": 96.75
-    },
-    {
-      "heightPt": 41.5,
-      "topPt": 201.75,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_9]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 6,
-      "widthPt": 1086.75,
-      "leftPt": 221.25
-    },
-    {
-      "heightPt": 24,
-      "topPt": 78.4000015258789,
-      "marker": "[PHASE38_EDIT_STROKE_10]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 8,
-      "widthPt": 71.25,
-      "leftPt": 1008.4000244140625
-    },
-    {
-      "heightPt": 52.5,
-      "topPt": 286.8999938964844,
-      "marker": "[PHASE38_EDIT_FILL_11]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 9,
-      "widthPt": 70.5,
-      "leftPt": 370.1499938964844
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 81,
-      "marker": "[PHASE38_EDIT_DIMENSION_12]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 10,
-      "widthPt": 76.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 24,
-      "topPt": 12,
-      "marker": "[E13]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 11,
-      "widthPt": 30.049999237060547,
-      "leftPt": 24
-    },
-    {
-      "heightPt": 25.950000762939453,
-      "topPt": 36.75,
-      "marker": "[PHASE38_EDIT_STROKE_14]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 12,
-      "widthPt": 560.2999877929688,
-      "leftPt": 212.25
-    },
-    {
-      "heightPt": 24,
-      "topPt": 12,
-      "marker": "[PHASE38_EDIT_FILL_15]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 13,
-      "widthPt": 100.1500015258789,
-      "leftPt": 24
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 81,
-      "marker": "[PHASE38_EDIT_DIMENSION_16]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 14,
-      "widthPt": 76.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_17]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 15,
-      "widthPt": 165.4499969482422,
-      "leftPt": 295.5
-    },
-    {
-      "heightPt": 149.25,
-      "topPt": 109.1500015258789,
-      "marker": "[PHASE38_EDIT_STROKE_18]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 16,
-      "widthPt": 875.25,
-      "leftPt": 282.3999938964844
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_FILL_19]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 17,
-      "widthPt": 218.35000610351562,
-      "leftPt": 295.5
-    },
-    {
-      "heightPt": 17.549999237060547,
-      "topPt": 120.75,
-      "marker": "[PHASE38_EDIT_DIMENSION_20]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 1,
-      "widthPt": 146.3000030517578,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 17.549999237060547,
-      "topPt": 120.75,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_21]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 2,
-      "widthPt": 160.3000030517578,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 24.75,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_STROKE_22]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 4,
-      "widthPt": 56.099998474121094,
-      "leftPt": 1020
-    },
-    {
-      "heightPt": 20.75,
-      "topPt": 1074,
-      "marker": "[PHASE38_EDIT_FILL_23]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 5,
-      "widthPt": 225.10000610351562,
-      "leftPt": 716.25
-    },
-    {
-      "heightPt": 41.5,
-      "topPt": 391.5,
-      "marker": "[PHASE38_EDIT_DIMENSION_24]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 6,
-      "widthPt": 1090.75,
-      "leftPt": 156.75
-    },
-    {
-      "heightPt": 24.75,
-      "topPt": 78,
-      "marker": "?섏젙?뺤씤 [E25]",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 8,
-      "widthPt": 56.099998474121094,
-      "leftPt": 1020
-    }
-  ],
-  "initialMetrics": {
-    "pages": 17,
-    "sections": 17,
-    "shapes": 1346,
-    "paragraphs": 17,
-    "tables": 0
-  },
-  "savedDocxSha256": "8df343c9a9fd8aa1227a18f3b5ef373cc4f8805b5171533b7372996732a0f137",
-  "afterPdfSha256": "40f97b81a3539472fdd32728e1aab5feae6ce2ff3b93b075b456026650eda319",
-  "reopenedMetrics": {
-    "pages": 17,
-    "sections": 17,
-    "shapes": 1346
-  },
-  "success": true,
-  "untestedObjects": 1338,
-  "verdict": "PASSED",
   "verifiedEdits": [
     {
       "page": 4,
@@ -303,7 +66,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 5,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_5]",
+      "marker": "실사용 텍스트 수정 [EDIT_5]",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -335,7 +98,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 9,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_9]",
+      "marker": "실사용 텍스트 수정 [EDIT_9]",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -399,7 +162,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 17,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_17]",
+      "marker": "실사용 텍스트 수정 [EDIT_17]",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -431,7 +194,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 21,
-      "marker": "?ㅼ궗???띿뒪???섏젙 [EDIT_21]",
+      "marker": "실사용 텍스트 수정 [EDIT_21]",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -463,9 +226,552 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 25,
-      "marker": "?섏젙?뺤씤 [E25]",
+      "marker": "수정확인 [E25]",
       "category": "VML_TEXTBOX_TEXT"
     }
   ],
-  "largeForegroundTested": 0
+  "initialMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346,
+    "paragraphs": 17,
+    "tables": 0
+  },
+  "editedBoundingBoxes": [
+    {
+      "widthPt": 72.0999984741211,
+      "marker": "[E1]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 4,
+      "topPt": 79.5,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 40.900001525878906
+      }
+    },
+    {
+      "widthPt": 72.0999984741211,
+      "marker": "[PHASE38_EDIT_STROKE_2]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 8,
+      "topPt": 79.5,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      }
+    },
+    {
+      "widthPt": 4.5,
+      "marker": "[PHASE38_EDIT_FILL_3]",
+      "beforeBox": {
+        "heightPt": 7.5,
+        "leftPt": 282,
+        "topPt": 80.6500015258789,
+        "widthPt": 4.5
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 7.5,
+      "leftPt": 282,
+      "page": 15,
+      "topPt": 80.6500015258789,
+      "afterBox": {
+        "heightPt": 7.5,
+        "leftPt": 282,
+        "topPt": 80.6500015258789,
+        "widthPt": 4.5
+      }
+    },
+    {
+      "widthPt": 169.39999389648438,
+      "marker": "[PHASE38_EDIT_DIMENSION_4]",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 282,
+        "topPt": 78,
+        "widthPt": 165.39999389648438
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 13.649999618530273,
+      "leftPt": 282,
+      "page": 16,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 282,
+        "topPt": 78,
+        "widthPt": 169.39999389648438
+      }
+    },
+    {
+      "widthPt": 244.60000610351562,
+      "marker": "실사용 텍스트 수정 [EDIT_5]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 145.6999969482422
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 31.149999618530273,
+      "leftPt": 34.5,
+      "page": 1,
+      "topPt": 44.25,
+      "afterBox": {
+        "heightPt": 31.149999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 244.60000610351562
+      }
+    },
+    {
+      "widthPt": 127.69999694824219,
+      "marker": "[PHASE38_EDIT_STROKE_6]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 127.69999694824219
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 23.399999618530273,
+      "leftPt": 34.5,
+      "page": 2,
+      "topPt": 44.25,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 127.69999694824219
+      }
+    },
+    {
+      "widthPt": 71.25,
+      "marker": "[PHASE38_EDIT_FILL_7]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 24,
+      "leftPt": 1008.4000244140625,
+      "page": 4,
+      "topPt": 78.4000015258789,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      }
+    },
+    {
+      "widthPt": 907.75,
+      "marker": "[PHASE38_EDIT_DIMENSION_8]",
+      "beforeBox": {
+        "heightPt": 333.75,
+        "leftPt": 96.75,
+        "topPt": 851.25,
+        "widthPt": 903.75
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 333.75,
+      "leftPt": 96.75,
+      "page": 5,
+      "topPt": 851.25,
+      "afterBox": {
+        "heightPt": 333.75,
+        "leftPt": 96.75,
+        "topPt": 851.25,
+        "widthPt": 907.75
+      }
+    },
+    {
+      "widthPt": 1086.75,
+      "marker": "실사용 텍스트 수정 [EDIT_9]",
+      "beforeBox": {
+        "heightPt": 41.5,
+        "leftPt": 221.25,
+        "topPt": 201.75,
+        "widthPt": 1086.75
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 41.5,
+      "leftPt": 221.25,
+      "page": 6,
+      "topPt": 201.75,
+      "afterBox": {
+        "heightPt": 20.75,
+        "leftPt": 221.25,
+        "topPt": 201.75,
+        "widthPt": 155.4499969482422
+      }
+    },
+    {
+      "widthPt": 71.25,
+      "marker": "[PHASE38_EDIT_STROKE_10]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 24,
+      "leftPt": 1008.4000244140625,
+      "page": 8,
+      "topPt": 78.4000015258789,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      }
+    },
+    {
+      "widthPt": 70.5,
+      "marker": "[PHASE38_EDIT_FILL_11]",
+      "beforeBox": {
+        "heightPt": 52.5,
+        "leftPt": 370.1499938964844,
+        "topPt": 286.8999938964844,
+        "widthPt": 70.5
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 52.5,
+      "leftPt": 370.1499938964844,
+      "page": 9,
+      "topPt": 286.8999938964844,
+      "afterBox": {
+        "heightPt": 52.5,
+        "leftPt": 370.1499938964844,
+        "topPt": 286.8999938964844,
+        "widthPt": 70.5
+      }
+    },
+    {
+      "widthPt": 76.0999984741211,
+      "marker": "[PHASE38_EDIT_DIMENSION_12]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 10,
+      "topPt": 81,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 76.0999984741211
+      }
+    },
+    {
+      "widthPt": 43.04999923706055,
+      "marker": "[E13]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 30.049999237060547
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 24,
+      "leftPt": 24,
+      "page": 11,
+      "topPt": 12,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 43.04999923706055
+      }
+    },
+    {
+      "widthPt": 560.2999877929688,
+      "marker": "[PHASE38_EDIT_STROKE_14]",
+      "beforeBox": {
+        "heightPt": 25.950000762939453,
+        "leftPt": 212.25,
+        "topPt": 36.75,
+        "widthPt": 560.2999877929688
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 25.950000762939453,
+      "leftPt": 212.25,
+      "page": 12,
+      "topPt": 36.75,
+      "afterBox": {
+        "heightPt": 25.950000762939453,
+        "leftPt": 212.25,
+        "topPt": 36.75,
+        "widthPt": 560.2999877929688
+      }
+    },
+    {
+      "widthPt": 100.1500015258789,
+      "marker": "[PHASE38_EDIT_FILL_15]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 100.1500015258789
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 24,
+      "leftPt": 24,
+      "page": 13,
+      "topPt": 12,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 100.1500015258789
+      }
+    },
+    {
+      "widthPt": 76.0999984741211,
+      "marker": "[PHASE38_EDIT_DIMENSION_16]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 14,
+      "topPt": 81,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 76.0999984741211
+      }
+    },
+    {
+      "widthPt": 165.4499969482422,
+      "marker": "실사용 텍스트 수정 [EDIT_17]",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 165.4499969482422
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 18.149999618530273,
+      "leftPt": 295.5,
+      "page": 15,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 18.149999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 148.85000610351562
+      }
+    },
+    {
+      "widthPt": 875.25,
+      "marker": "[PHASE38_EDIT_STROKE_18]",
+      "beforeBox": {
+        "heightPt": 149.25,
+        "leftPt": 282.3999938964844,
+        "topPt": 109.1500015258789,
+        "widthPt": 875.25
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 149.25,
+      "leftPt": 282.3999938964844,
+      "page": 16,
+      "topPt": 109.1500015258789,
+      "afterBox": {
+        "heightPt": 149.25,
+        "leftPt": 282.3999938964844,
+        "topPt": 109.1500015258789,
+        "widthPt": 875.25
+      }
+    },
+    {
+      "widthPt": 218.35000610351562,
+      "marker": "[PHASE38_EDIT_FILL_19]",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 218.35000610351562
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 13.649999618530273,
+      "leftPt": 295.5,
+      "page": 17,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 218.35000610351562
+      }
+    },
+    {
+      "widthPt": 146.3000030517578,
+      "marker": "[PHASE38_EDIT_DIMENSION_20]",
+      "beforeBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 142.3000030517578
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 17.549999237060547,
+      "leftPt": 34.5,
+      "page": 1,
+      "topPt": 120.75,
+      "afterBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 146.3000030517578
+      }
+    },
+    {
+      "widthPt": 191.5,
+      "marker": "실사용 텍스트 수정 [EDIT_21]",
+      "beforeBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 160.3000030517578
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 23.350000381469727,
+      "leftPt": 34.5,
+      "page": 2,
+      "topPt": 120.75,
+      "afterBox": {
+        "heightPt": 23.350000381469727,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 191.5
+      }
+    },
+    {
+      "widthPt": 56.099998474121094,
+      "marker": "[PHASE38_EDIT_STROKE_22]",
+      "beforeBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 24.75,
+      "leftPt": 1020,
+      "page": 4,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      }
+    },
+    {
+      "widthPt": 225.10000610351562,
+      "marker": "[PHASE38_EDIT_FILL_23]",
+      "beforeBox": {
+        "heightPt": 20.75,
+        "leftPt": 716.25,
+        "topPt": 1074,
+        "widthPt": 225.10000610351562
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 20.75,
+      "leftPt": 716.25,
+      "page": 5,
+      "topPt": 1074,
+      "afterBox": {
+        "heightPt": 20.75,
+        "leftPt": 716.25,
+        "topPt": 1074,
+        "widthPt": 225.10000610351562
+      }
+    },
+    {
+      "widthPt": 1090.75,
+      "marker": "[PHASE38_EDIT_DIMENSION_24]",
+      "beforeBox": {
+        "heightPt": 41.5,
+        "leftPt": 156.75,
+        "topPt": 391.5,
+        "widthPt": 1086.75
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 41.5,
+      "leftPt": 156.75,
+      "page": 6,
+      "topPt": 391.5,
+      "afterBox": {
+        "heightPt": 41.5,
+        "leftPt": 156.75,
+        "topPt": 391.5,
+        "widthPt": 1090.75
+      }
+    },
+    {
+      "widthPt": 75.6500015258789,
+      "marker": "수정확인 [E25]",
+      "beforeBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 24.75,
+      "leftPt": 1020,
+      "page": 8,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 75.6500015258789
+      }
+    }
+  ],
+  "verdict": "PASSED",
+  "sourceSha256": "1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58",
+  "beforePdfSha256": "0bfdd7a05c3bf4b6670e53d54c564e322e3b26c177ff55b03a2a27e7fdd2787c",
+  "largeForegroundStatistics": {
+    "successfulCount": 5,
+    "persistedCount": 5,
+    "candidateCount": 7,
+    "attemptedCount": 5
+  },
+  "success": true
 }

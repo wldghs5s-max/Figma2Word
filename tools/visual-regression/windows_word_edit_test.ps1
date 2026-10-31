@@ -8,6 +8,32 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+function Get-KoreanText($type) {
+    if ($type -eq "Normal_Long") {
+        # "실사용 텍스트 수정"
+        return [System.Text.Encoding]::UTF8.GetString([byte[]]@(236,139,164,236,130,172,236,154,169,32,237,133,141,236,138,164,237,138,184,32,236,136,152,236,160,149))
+    }
+    if ($type -eq "Normal_Short") {
+        # "수정확인"
+        return [System.Text.Encoding]::UTF8.GetString([byte[]]@(236,136,152,236,160,149,237,153,149,236,157,184))
+    }
+    if ($type -eq "Stress_Line1") {
+        # "한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다."
+        return [System.Text.Encoding]::UTF8.GetString([byte[]]@(237,149,156,234,181,173,236,150,180,32,237,133,141,236,138,164,237,138,184,32,236,153,132,236,160,132,32,235,179,180,236,161,180,32,235,176,143,32,235,139,164,236,164,145,32,235,139,168,235,157,189,32,236,138,164,237,138,184,235,160,136,236,138,164,32,234,178,128,236,166,157,236,154,169,32,234,184,180,32,235,172,184,236,158,165,236,158,133,235,139,136,235,139,164,46))
+    }
+    if ($type -eq "Stress_Line2") {
+        # "두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다."
+        return [System.Text.Encoding]::UTF8.GetString([byte[]]@(235,145,144,32,235,178,136,236,167,184,32,235,139,168,235,157,189,58,32,237,138,185,236,136,152,235,172,184,236,158,144,236,153,128,32,234,179,181,235,176,177,32,235,176,143,32,234,176,156,237,150,137,32,235,172,184,236,158,144,234,176,128,32,236,160,149,236,131,129,236,160,129,236,156,188,235,161,156,32,236,156,160,236,167,128,235,144,152,235,138,148,236,167,128,32,237,153,149,236,157,184,237,149,169,235,139,136,235,139,164,46))
+    }
+    if ($type -eq "Stress_Line3") {
+        # "세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다."
+        return [System.Text.Encoding]::UTF8.GetString([byte[]]@(236,132,184,32,235,178,136,236,167,184,32,235,139,168,235,157,189,58,32,87,111,114,100,32,67,79,77,32,237,142,184,236,167,145,32,237,155,132,32,236,160,128,236,158,165,32,235,176,143,32,236,158,172,236,151,180,234,184,176,32,236,139,156,32,236,134,144,236,139,164,32,236,151,134,236,157,180,32,235,179,180,236,161,180,235,144,152,236,150,180,236,149,188,32,237,149,169,235,139,136,235,139,164,46))
+    }
+    return ""
+}
 
 function Output-JsonResult($obj) {
     Write-Output (ConvertTo-Json -Depth 6 -InputObject $obj)
@@ -23,9 +49,41 @@ function Compute-Sha256($filePath) {
     return [BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
 }
 
-$word = $null
+# Safe Word COM instance launcher tracking specific PID
+function Start-WordComSafe {
+    $beforePids = @(Get-Process -Name WINWORD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
+    $w = New-Object -ComObject Word.Application
+    $w.Visible = $false
+    $w.DisplayAlerts = 0
+    $afterPids = @(Get-Process -Name WINWORD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
+    $newPid = $afterPids | Where-Object { $beforePids -notcontains $_ } | Select-Object -First 1
+    return @{ Application = $w; ProcessId = $newPid }
+}
+
+# Safe Word COM instance cleanup terminating ONLY test's own PID if lingering
+function Stop-WordComSafe($bundle, $docObj) {
+    if ($docObj) {
+        try { $docObj.Close([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($docObj) | Out-Null } catch {}
+    }
+    if ($bundle -and $bundle.Application) {
+        try { $bundle.Application.Quit([ref]$false) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($bundle.Application) | Out-Null } catch {}
+    }
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+    if ($bundle -and $bundle.ProcessId) {
+        Start-Sleep -Milliseconds 200
+        $proc = Get-Process -Id $bundle.ProcessId -ErrorAction SilentlyContinue
+        if ($proc -and -not $proc.HasExited) {
+            try { Stop-Process -Id $bundle.ProcessId -Force -ErrorAction SilentlyContinue } catch {}
+        }
+    }
+}
+
+$com1 = $null
 $doc = $null
-$word2 = $null
+$com2 = $null
 $doc2 = $null
 
 try {
@@ -56,10 +114,9 @@ try {
 
     $sourceSha = Compute-Sha256 $origCopy
 
-    # 1. Open in Word COM
-    $word = New-Object -ComObject Word.Application
-    $word.Visible = $false
-    $word.DisplayAlerts = 0
+    # 1. Open in Word COM with isolated PID tracking
+    $com1 = Start-WordComSafe
+    $word = $com1.Application
 
     $doc = $word.Documents.Open($workingCopy, $false, $false)
 
@@ -78,15 +135,10 @@ try {
     $editedBoundingBoxes = @()
     $attemptedEdits = 0
     $successfulEdits = 0
-    $largeForegroundCount = 0
-
-    # Distribute edits across multiple distinct categories:
-    # Cat 1: VML_TEXTBOX_TEXT (Shape TextFrame text modification)
-    # Cat 2: VML_SHAPE_STROKE_COLOR (Line stroke color and weight modification)
-    # Cat 3: VML_SHAPE_FILL_COLOR (Shape fill color modification)
-    # Cat 4: VML_SHAPE_DIMENSION (Shape width expansion)
-    # Cat 5: NATIVE_PARAGRAPH_TEXT (Document body paragraph mutation)
-    # Cat 6: TABLE_CELL_TEXT (Table cell mutation if tables exist)
+    $largeForegroundCandidateCount = 0
+    $largeForegroundAttempted = 0
+    $largeForegroundSuccessful = 0
+    $largeForegroundPersisted = 0
 
     for ($i = 1; $i -le $initShapes; $i++) {
         if ($attemptedEdits -ge $MaxEdits) { break }
@@ -104,13 +156,12 @@ try {
             try { $shapeName = $shape.Name } catch { $shapeName = "" }
             try { $shapeTitle = $shape.Title } catch { $shapeTitle = "" }
 
-            # Only ignore full-page background canvas rectangles (both portrait and landscape)
-            # Shapes with both width > 500 and height > 500 cover the entire page canvas, leaving <5% unmasked inspection area.
-            # Large foreground objects (e.g. wide cards width 500+ with height <= 500, or tall sidebars) remain eligible and tested!
+            # Background canvas filter: only ignore full-page canvas rectangles
             $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or $altText -like "bg_*") -or ($widthPt -gt 500 -and $heightPt -gt 500)
             if ($isFullPageBg) { continue }
 
             $isLargeForeground = ($widthPt -gt 300 -or $heightPt -gt 300)
+            if ($isLargeForeground) { $largeForegroundCandidateCount++ }
 
             $shapePage = 1
             try {
@@ -127,24 +178,57 @@ try {
                 $origText = $textRange.Text
                 if ($origText -and $origText.Trim().Length -gt 0) {
                     $attemptedEdits++
+                    if ($isLargeForeground) { $largeForegroundAttempted++ }
                     $origLen = $origText.Trim().Length
+
+                    # Capture Before Dimensions
+                    $beforeLeft = $leftPt
+                    $beforeTop = $topPt
+                    $beforeWidth = $widthPt
+                    $beforeHeight = $heightPt
+
                     if ($EditMode -eq "Stress") {
-                        # F-03: Real multi-line newline with overflowing Korean text
-                        $targetMarker = "[STRESS_$attemptedEdits]`r`n줄바꿈 오버플로 검증용 긴 한글 텍스트`r`n세 번째 문단 레이아웃 확인"
+                        # Multi-line Korean stress text with genuine paragraph returns (\r\n)
+                        $expectedLines = @(
+                            "[STRESS_$attemptedEdits]",
+                            (Get-KoreanText "Stress_Line1"),
+                            (Get-KoreanText "Stress_Line2"),
+                            (Get-KoreanText "Stress_Line3")
+                        )
+                        $targetMarker = $expectedLines -join "`r`n"
                     } else {
-                        # Normal Edit: proportional realistic replacement text preserving layout
-                        $targetMarker = if ($origLen -le 4) {
-                            "[E$attemptedEdits]"
+                        # Normal proportional realistic replacement text
+                        $expectedLines = if ($origLen -le 4) {
+                            @("[E$attemptedEdits]")
                         } elseif ($origLen -le 10) {
-                            "수정확인 [E$attemptedEdits]"
+                            @((Get-KoreanText "Normal_Short") + " [E$attemptedEdits]")
                         } else {
-                            "실사용 텍스트 수정 [EDIT_$attemptedEdits]"
+                            @((Get-KoreanText "Normal_Long") + " [EDIT_$attemptedEdits]")
                         }
+                        $targetMarker = $expectedLines -join "`r`n"
                     }
                     $textRange.Text = $targetMarker
 
                     $successfulEdits++
-                    if ($isLargeForeground) { $largeForegroundTested++ }
+                    if ($isLargeForeground) { $largeForegroundSuccessful++ }
+
+                    # Measure actual After Dimensions
+                    $afterLeft = [double]$shape.Left
+                    $afterTop = [double]$shape.Top
+                    $afterWidth = [double]$shape.Width
+                    $afterHeight = [double]$shape.Height
+
+                    $unionLeft = [Math]::Min($beforeLeft, $afterLeft)
+                    $unionTop = [Math]::Min($beforeTop, $afterTop)
+                    $unionRight = [Math]::Max($beforeLeft + $beforeWidth, $afterLeft + $afterWidth)
+                    $unionBottom = [Math]::Max($beforeTop + $beforeHeight, $afterTop + $afterHeight)
+
+                    if ($EditMode -eq "Stress") {
+                        # 3-paragraph text expansion in Word typically reflows downwards by approx 36-48pt
+                        $unionBottom = [Math]::Max($unionBottom, $unionTop + $beforeHeight + 48.0)
+                        $unionRight = [Math]::Max($unionRight, $unionLeft + $beforeWidth + 8.0)
+                    }
+
                     $editOperations += @{
                         editIndex = $attemptedEdits
                         category = "VML_TEXTBOX_TEXT"
@@ -153,28 +237,51 @@ try {
                         shapeName = $shapeName
                         shapeTitle = $shapeTitle
                         marker = $targetMarker
+                        expectedLines = $expectedLines
                         page = $shapePage
+                        isLargeForeground = $isLargeForeground
                         appliedSuccessfully = $true
                     }
                     $editedBoundingBoxes += @{
                         page = $shapePage
-                        leftPt = $leftPt
-                        topPt = $topPt
-                        widthPt = $widthPt
-                        heightPt = $heightPt
+                        leftPt = $unionLeft
+                        topPt = $unionTop
+                        widthPt = [Math]::Max(1.0, $unionRight - $unionLeft)
+                        heightPt = [Math]::Max(1.0, $unionBottom - $unionTop)
                         category = "VML_TEXTBOX_TEXT"
                         marker = $targetMarker
+                        beforeBox = @{ leftPt = $beforeLeft; topPt = $beforeTop; widthPt = $beforeWidth; heightPt = $beforeHeight }
+                        afterBox = @{ leftPt = $afterLeft; topPt = $afterTop; widthPt = $afterWidth; heightPt = $afterHeight }
                     }
                 }
             } elseif ($catSelector -eq 1) {
                 # Category 2: VML_SHAPE_STROKE_COLOR
                 $attemptedEdits++
+                if ($isLargeForeground) { $largeForegroundAttempted++ }
                 $targetMarker = "[PHASE38_EDIT_STROKE_$attemptedEdits]"
+                $expectedLines = @($targetMarker)
+
+                $beforeLeft = $leftPt
+                $beforeTop = $topPt
+                $beforeWidth = $widthPt
+                $beforeHeight = $heightPt
+
                 $shape.Line.ForeColor.RGB = 0x0000FF # Pure Red in BGR
                 $shape.Line.Weight = if ($EditMode -eq "Stress") { 4.0 } else { 2.0 }
 
                 $successfulEdits++
-                if ($isLargeForeground) { $largeForegroundTested++ }
+                if ($isLargeForeground) { $largeForegroundSuccessful++ }
+
+                $afterLeft = [double]$shape.Left
+                $afterTop = [double]$shape.Top
+                $afterWidth = [double]$shape.Width
+                $afterHeight = [double]$shape.Height
+
+                $unionLeft = [Math]::Min($beforeLeft, $afterLeft)
+                $unionTop = [Math]::Min($beforeTop, $afterTop)
+                $unionRight = [Math]::Max($beforeLeft + $beforeWidth, $afterLeft + $afterWidth)
+                $unionBottom = [Math]::Max($beforeTop + $beforeHeight, $afterTop + $afterHeight)
+
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_STROKE_COLOR"
@@ -183,28 +290,50 @@ try {
                     shapeName = $shapeName
                     shapeTitle = $shapeTitle
                     marker = $targetMarker
+                    expectedLines = $expectedLines
                     page = $shapePage
+                    isLargeForeground = $isLargeForeground
                     appliedSuccessfully = $true
                 }
                 $editedBoundingBoxes += @{
                     page = $shapePage
-                    leftPt = $leftPt
-                    topPt = $topPt
-                    widthPt = $widthPt
-                    heightPt = $heightPt
+                    leftPt = $unionLeft
+                    topPt = $unionTop
+                    widthPt = [Math]::Max(1.0, $unionRight - $unionLeft)
+                    heightPt = [Math]::Max(1.0, $unionBottom - $unionTop)
                     category = "VML_SHAPE_STROKE_COLOR"
                     marker = $targetMarker
+                    beforeBox = @{ leftPt = $beforeLeft; topPt = $beforeTop; widthPt = $beforeWidth; heightPt = $beforeHeight }
+                    afterBox = @{ leftPt = $afterLeft; topPt = $afterTop; widthPt = $afterWidth; heightPt = $afterHeight }
                 }
             } elseif ($catSelector -eq 2) {
                 # Category 3: VML_SHAPE_FILL_COLOR
-                # Lines (width <= 1 or height <= 1) have no Fill property in Word! Skip lines for fill edits
                 if ($widthPt -le 1.0 -or $heightPt -le 1.0) { continue }
                 $attemptedEdits++
+                if ($isLargeForeground) { $largeForegroundAttempted++ }
                 $targetMarker = "[PHASE38_EDIT_FILL_$attemptedEdits]"
+                $expectedLines = @($targetMarker)
+
+                $beforeLeft = $leftPt
+                $beforeTop = $topPt
+                $beforeWidth = $widthPt
+                $beforeHeight = $heightPt
+
                 $shape.Fill.ForeColor.RGB = 0x00FF00 # Pure Green in BGR
 
                 $successfulEdits++
-                if ($isLargeForeground) { $largeForegroundTested++ }
+                if ($isLargeForeground) { $largeForegroundSuccessful++ }
+
+                $afterLeft = [double]$shape.Left
+                $afterTop = [double]$shape.Top
+                $afterWidth = [double]$shape.Width
+                $afterHeight = [double]$shape.Height
+
+                $unionLeft = [Math]::Min($beforeLeft, $afterLeft)
+                $unionTop = [Math]::Min($beforeTop, $afterTop)
+                $unionRight = [Math]::Max($beforeLeft + $beforeWidth, $afterLeft + $afterWidth)
+                $unionBottom = [Math]::Max($beforeTop + $beforeHeight, $afterTop + $afterHeight)
+
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_FILL_COLOR"
@@ -213,28 +342,51 @@ try {
                     shapeName = $shapeName
                     shapeTitle = $shapeTitle
                     marker = $targetMarker
+                    expectedLines = $expectedLines
                     page = $shapePage
+                    isLargeForeground = $isLargeForeground
                     appliedSuccessfully = $true
                 }
                 $editedBoundingBoxes += @{
                     page = $shapePage
-                    leftPt = $leftPt
-                    topPt = $topPt
-                    widthPt = $widthPt
-                    heightPt = $heightPt
+                    leftPt = $unionLeft
+                    topPt = $unionTop
+                    widthPt = [Math]::Max(1.0, $unionRight - $unionLeft)
+                    heightPt = [Math]::Max(1.0, $unionBottom - $unionTop)
                     category = "VML_SHAPE_FILL_COLOR"
                     marker = $targetMarker
+                    beforeBox = @{ leftPt = $beforeLeft; topPt = $beforeTop; widthPt = $beforeWidth; heightPt = $beforeHeight }
+                    afterBox = @{ leftPt = $afterLeft; topPt = $afterTop; widthPt = $afterWidth; heightPt = $afterHeight }
                 }
             } elseif ($catSelector -eq 3) {
                 # Category 4: VML_SHAPE_DIMENSION
                 if ($widthPt -le 1.0) { continue }
                 $attemptedEdits++
+                if ($isLargeForeground) { $largeForegroundAttempted++ }
                 $targetMarker = "[PHASE38_EDIT_DIMENSION_$attemptedEdits]"
+                $expectedLines = @($targetMarker)
+
                 $origWidth = $widthPt
+                $beforeLeft = $leftPt
+                $beforeTop = $topPt
+                $beforeWidth = $widthPt
+                $beforeHeight = $heightPt
+
                 $shape.Width = if ($EditMode -eq "Stress") { $widthPt * 1.3 } else { $widthPt + 4.0 }
 
                 $successfulEdits++
-                if ($isLargeForeground) { $largeForegroundTested++ }
+                if ($isLargeForeground) { $largeForegroundSuccessful++ }
+
+                $afterLeft = [double]$shape.Left
+                $afterTop = [double]$shape.Top
+                $afterWidth = [double]$shape.Width
+                $afterHeight = [double]$shape.Height
+
+                $unionLeft = [Math]::Min($beforeLeft, $afterLeft)
+                $unionTop = [Math]::Min($beforeTop, $afterTop)
+                $unionRight = [Math]::Max($beforeLeft + $beforeWidth, $afterLeft + $afterWidth)
+                $unionBottom = [Math]::Max($beforeTop + $beforeHeight, $afterTop + $afterHeight)
+
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_DIMENSION"
@@ -243,18 +395,22 @@ try {
                     shapeName = $shapeName
                     shapeTitle = $shapeTitle
                     marker = $targetMarker
+                    expectedLines = $expectedLines
                     page = $shapePage
                     origWidth = $origWidth
+                    isLargeForeground = $isLargeForeground
                     appliedSuccessfully = $true
                 }
                 $editedBoundingBoxes += @{
                     page = $shapePage
-                    leftPt = $leftPt
-                    topPt = $topPt
-                    widthPt = $widthPt + 4.0
-                    heightPt = $heightPt
+                    leftPt = $unionLeft
+                    topPt = $unionTop
+                    widthPt = [Math]::Max(1.0, $unionRight - $unionLeft)
+                    heightPt = [Math]::Max(1.0, $unionBottom - $unionTop)
                     category = "VML_SHAPE_DIMENSION"
                     marker = $targetMarker
+                    beforeBox = @{ leftPt = $beforeLeft; topPt = $beforeTop; widthPt = $beforeWidth; heightPt = $beforeHeight }
+                    afterBox = @{ leftPt = $afterLeft; topPt = $afterTop; widthPt = $afterWidth; heightPt = $afterHeight }
                 }
             }
         } catch {}
@@ -270,15 +426,17 @@ try {
                 $origCellText = $cell.Range.Text
                 $attemptedEdits++
                 $marker = "[PHASE38_EDIT_TABLE_$attemptedEdits]"
+                $expectedLines = @($marker)
                 $cell.Range.Text = $marker
                 $successfulEdits++
-                if ($isLargeForeground) { $largeForegroundTested++ }
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "TABLE_CELL_TEXT"
                     targetTableIndex = $t
                     marker = $marker
+                    expectedLines = $expectedLines
                     page = 1
+                    isLargeForeground = $false
                     appliedSuccessfully = $true
                 }
             } catch {}
@@ -289,23 +447,16 @@ try {
     $wdFormatXMLDocument = 12
     $doc.SaveAs([ref]$savedDocx, [ref]$wdFormatXMLDocument)
 
-    # Close first instance
-    $doc.Close([ref]$false)
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) | Out-Null
+    # Clean up first instance safely
+    Stop-WordComSafe $com1 $doc
+    $com1 = $null
     $doc = $null
-    $word.Quit([ref]$false)
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
-    $word = $null
-
-    [System.GC]::Collect()
-    [System.GC]::WaitForPendingFinalizers()
 
     $savedDocxSha = Compute-Sha256 $savedDocx
 
     # 4. Save-and-Reopen Persistence Verification in Fresh Word COM instance
-    $word2 = New-Object -ComObject Word.Application
-    $word2.Visible = $false
-    $word2.DisplayAlerts = 0
+    $com2 = Start-WordComSafe
+    $word2 = $com2.Application
 
     $doc2 = $word2.Documents.Open($savedDocx, $false, $true) # Open saved doc strictly ReadOnly
 
@@ -376,14 +527,33 @@ try {
                 $shape = Find-Shape $doc2 $op
                 if ($shape -and $shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
                     $currentText = $shape.TextFrame.TextRange.Text
-                    $firstLineMarker = ($marker -split "`r|`n")[0].Trim()
-                    $cleanCurrent = $currentText -replace "`r`n", "`n" -replace "`r", "`n"
-                    $cleanMarker = $marker -replace "`r`n", "`n" -replace "`r", "`n"
-                    if ($currentText -and ($currentText.Contains($firstLineMarker) -or $cleanCurrent.Contains($cleanMarker))) {
+                    # Normalize Word paragraph/line breaks (\r\n, \r, \v -> \n)
+                    $cleanCurrent = $currentText -replace "`r`n", "`n" -replace "`r", "`n" -replace "`v", "`n"
+                    
+                    # 1. Full content containment check: every single expected line must be present
+                    $allLinesPreserved = $true
+                    $missingLines = @()
+                    foreach ($line in $op.expectedLines) {
+                        $tLine = $line.Trim()
+                        if ($tLine.Length -gt 0 -and -not $cleanCurrent.Contains($tLine)) {
+                            $allLinesPreserved = $false
+                            $missingLines += $tLine
+                        }
+                    }
+
+                    # 2. Encoding corruption check: check for replacement chars or unexpected question marks
+                    $hasCorruptedChars = $cleanCurrent.Contains([char]0xFFFD) -or ($cleanCurrent -match "\?\?\?")
+
+                    if ($allLinesPreserved -and -not $hasCorruptedChars) {
                         $persisted = $true
                         $categoryCounts["VML_TEXTBOX_TEXT"]++
+                        if ($op.isLargeForeground) { $largeForegroundPersisted++ }
                     } else {
-                        $errorMsg = "Marker text missing in reopened shape"
+                        $errorMsg = if ($hasCorruptedChars) {
+                            "Korean encoding corruption detected in reopened text"
+                        } else {
+                            "Incomplete text preservation: missing lines: " + ($missingLines -join " | ")
+                        }
                     }
                 } else {
                     $errorMsg = "Target shape or textframe not found"
@@ -397,6 +567,7 @@ try {
                 if ($shape -and $shape.Line.ForeColor.RGB -eq 0x0000FF -and $shape.Line.Weight -ge 1.9) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_STROKE_COLOR"]++
+                    if ($op.isLargeForeground) { $largeForegroundPersisted++ }
                 } else {
                     $errorMsg = "Stroke color/weight mismatch on reopened shape"
                 }
@@ -409,6 +580,7 @@ try {
                 if ($shape -and $shape.Fill.ForeColor.RGB -eq 0x00FF00) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_FILL_COLOR"]++
+                    if ($op.isLargeForeground) { $largeForegroundPersisted++ }
                 } else {
                     $errorMsg = "Fill color mismatch on reopened shape"
                 }
@@ -421,6 +593,7 @@ try {
                 if ($shape -and $shape.Width -ge ($op.origWidth + 3.0)) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_DIMENSION"]++
+                    if ($op.isLargeForeground) { $largeForegroundPersisted++ }
                 } else {
                     $errorMsg = "Width dimension expansion not preserved"
                 }
@@ -461,15 +634,10 @@ try {
         }
     }
 
-    $doc2.Close([ref]$false)
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc2) | Out-Null
+    # Clean up second instance safely
+    Stop-WordComSafe $com2 $doc2
+    $com2 = $null
     $doc2 = $null
-    $word2.Quit([ref]$false)
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word2) | Out-Null
-    $word2 = $null
-
-    [System.GC]::Collect()
-    [System.GC]::WaitForPendingFinalizers()
 
     # 5. Check Layout Stability
     $pageCountStable = ($reopenedPages -eq $initPages)
@@ -538,8 +706,6 @@ try {
     }
 
     $untestedCount = [Math]::Max(0, ($initShapes + $initParagraphs) - $attemptedEdits)
-
-    $persistenceRate = if ($successfulEdits -gt 0) { [Math]::Round(($persistedCount / $successfulEdits) * 100, 2) } else { 0 }
     $allPersisted = ($persistedCount -eq $successfulEdits) -and ($successfulEdits -ge 1)
     $overallSuccess = $allPersisted -and $pageCountStable
     $editVerdict = if ($allPersisted -and $pageCountStable) { "PASSED" } elseif ($persistedCount -gt 0) { "PARTIAL" } else { "FAILED" }
@@ -548,7 +714,13 @@ try {
         success = $overallSuccess
         verdict = $editVerdict
         editMode = $EditMode
-        largeForegroundTested = $largeForegroundCount
+        largeForegroundTested = $largeForegroundPersisted
+        largeForegroundStatistics = @{
+            candidateCount = $largeForegroundCandidateCount
+            attemptedCount = $largeForegroundAttempted
+            successfulCount = $largeForegroundSuccessful
+            persistedCount = $largeForegroundPersisted
+        }
         sourceSha256 = $sourceSha
         savedDocxSha256 = $savedDocxSha
         beforePdfSha256 = (Compute-Sha256 $beforePdf)
@@ -583,19 +755,18 @@ try {
         verifiedEdits = $verifiedEdits
     }
 
-    # Write evidence summary
+    # Write evidence summary with explicit UTF-8
     $evidenceJson = Join-Path $evidenceDir "word-edit-test-summary.json"
-    $result | ConvertTo-Json -Depth 6 | Set-Content -Encoding utf8 $evidenceJson
+    $jsonContent = ConvertTo-Json -Depth 6 -InputObject $result
+    [System.IO.File]::WriteAllText($evidenceJson, $jsonContent, [System.Text.Encoding]::UTF8)
 
     Output-JsonResult $result
     if (-not $overallSuccess) {
         exit 1
     }
 } catch {
-    if ($doc) { try { $doc.Close([ref]$false) } catch {} }
-    if ($word) { try { $word.Quit([ref]$false) } catch {} }
-    if ($doc2) { try { $doc2.Close([ref]$false) } catch {} }
-    if ($word2) { try { $word2.Quit([ref]$false) } catch {} }
+    Stop-WordComSafe $com1 $doc
+    Stop-WordComSafe $com2 $doc2
     Output-JsonResult @{
         success = $false
         error = $_.Exception.Message

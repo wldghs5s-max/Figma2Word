@@ -1,4 +1,19 @@
 {
+  "reopenedMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346
+  },
+  "editMode": "Stress",
+  "untestedObjects": 1338,
+  "layoutStability": {
+    "verdict": "STABLE",
+    "sectionCountPreserved": true,
+    "pageCountPreserved": true
+  },
+  "largeForegroundTested": 5,
+  "afterPdfSha256": "2752cfd0cccf3e83f909172cf9e950b14996afee04582d62588b5db993fa2b54",
+  "savedDocxSha256": "57a2e05348723bdb897529af5905b1a1d1d1d35f7dc0ec5e0fae39ba161878c0",
   "editedObjectTypes": {
     "VML_SHAPE_DIMENSION": 6,
     "VML_SHAPE_STROKE_COLOR": 6,
@@ -6,9 +21,6 @@
     "VML_SHAPE_FILL_COLOR": 6,
     "VML_TEXTBOX_TEXT": 7
   },
-  "beforePdfSha256": "84c0db3abacbb703833ef70340246d76fc2cff55b9d547d21c14b86110094da1",
-  "editMode": "Stress",
-  "sourceSha256": "6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359",
   "editStatistics": {
     "persistenceRatePercent": 100,
     "attempted": 25,
@@ -16,262 +28,13 @@
     "successful": 25,
     "persisted": 25
   },
-  "layoutStability": {
-    "verdict": "STABLE",
-    "sectionCountPreserved": true,
-    "pageCountPreserved": true
-  },
-  "editedBoundingBoxes": [
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 79.5,
-      "marker": "[STRESS_1]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 4,
-      "widthPt": 72.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 79.5,
-      "marker": "[PHASE38_EDIT_STROKE_2]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 8,
-      "widthPt": 72.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 7.5,
-      "topPt": 80.6500015258789,
-      "marker": "[PHASE38_EDIT_FILL_3]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 15,
-      "widthPt": 4.5,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_DIMENSION_4]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 16,
-      "widthPt": 169.39999389648438,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 44.25,
-      "marker": "[STRESS_5]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 1,
-      "widthPt": 145.6999969482422,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 44.25,
-      "marker": "[PHASE38_EDIT_STROKE_6]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 2,
-      "widthPt": 127.69999694824219,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 24,
-      "topPt": 78.4000015258789,
-      "marker": "[PHASE38_EDIT_FILL_7]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 4,
-      "widthPt": 71.25,
-      "leftPt": 1008.4000244140625
-    },
-    {
-      "heightPt": 333.75,
-      "topPt": 851.25,
-      "marker": "[PHASE38_EDIT_DIMENSION_8]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 5,
-      "widthPt": 907.75,
-      "leftPt": 96.75
-    },
-    {
-      "heightPt": 41.5,
-      "topPt": 201.75,
-      "marker": "[STRESS_9]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 6,
-      "widthPt": 1086.75,
-      "leftPt": 221.25
-    },
-    {
-      "heightPt": 24,
-      "topPt": 78.4000015258789,
-      "marker": "[PHASE38_EDIT_STROKE_10]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 8,
-      "widthPt": 71.25,
-      "leftPt": 1008.4000244140625
-    },
-    {
-      "heightPt": 52.5,
-      "topPt": 286.8999938964844,
-      "marker": "[PHASE38_EDIT_FILL_11]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 9,
-      "widthPt": 70.5,
-      "leftPt": 370.1499938964844
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 81,
-      "marker": "[PHASE38_EDIT_DIMENSION_12]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 10,
-      "widthPt": 76.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 24,
-      "topPt": 12,
-      "marker": "[STRESS_13]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 11,
-      "widthPt": 30.049999237060547,
-      "leftPt": 24
-    },
-    {
-      "heightPt": 25.950000762939453,
-      "topPt": 36.75,
-      "marker": "[PHASE38_EDIT_STROKE_14]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 12,
-      "widthPt": 560.2999877929688,
-      "leftPt": 212.25
-    },
-    {
-      "heightPt": 24,
-      "topPt": 12,
-      "marker": "[PHASE38_EDIT_FILL_15]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 13,
-      "widthPt": 100.1500015258789,
-      "leftPt": 24
-    },
-    {
-      "heightPt": 23.399999618530273,
-      "topPt": 81,
-      "marker": "[PHASE38_EDIT_DIMENSION_16]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 14,
-      "widthPt": 76.0999984741211,
-      "leftPt": 282
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "[STRESS_17]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 15,
-      "widthPt": 165.4499969482422,
-      "leftPt": 295.5
-    },
-    {
-      "heightPt": 149.25,
-      "topPt": 109.1500015258789,
-      "marker": "[PHASE38_EDIT_STROKE_18]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 16,
-      "widthPt": 875.25,
-      "leftPt": 282.3999938964844
-    },
-    {
-      "heightPt": 13.649999618530273,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_FILL_19]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 17,
-      "widthPt": 218.35000610351562,
-      "leftPt": 295.5
-    },
-    {
-      "heightPt": 17.549999237060547,
-      "topPt": 120.75,
-      "marker": "[PHASE38_EDIT_DIMENSION_20]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 1,
-      "widthPt": 146.3000030517578,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 17.549999237060547,
-      "topPt": 120.75,
-      "marker": "[STRESS_21]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 2,
-      "widthPt": 160.3000030517578,
-      "leftPt": 34.5
-    },
-    {
-      "heightPt": 24.75,
-      "topPt": 78,
-      "marker": "[PHASE38_EDIT_STROKE_22]",
-      "category": "VML_SHAPE_STROKE_COLOR",
-      "page": 4,
-      "widthPt": 56.099998474121094,
-      "leftPt": 1020
-    },
-    {
-      "heightPt": 20.75,
-      "topPt": 1074,
-      "marker": "[PHASE38_EDIT_FILL_23]",
-      "category": "VML_SHAPE_FILL_COLOR",
-      "page": 5,
-      "widthPt": 225.10000610351562,
-      "leftPt": 716.25
-    },
-    {
-      "heightPt": 41.5,
-      "topPt": 391.5,
-      "marker": "[PHASE38_EDIT_DIMENSION_24]",
-      "category": "VML_SHAPE_DIMENSION",
-      "page": 6,
-      "widthPt": 1090.75,
-      "leftPt": 156.75
-    },
-    {
-      "heightPt": 24.75,
-      "topPt": 78,
-      "marker": "[STRESS_25]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
-      "category": "VML_TEXTBOX_TEXT",
-      "page": 8,
-      "widthPt": 56.099998474121094,
-      "leftPt": 1020
-    }
-  ],
-  "initialMetrics": {
-    "pages": 17,
-    "sections": 17,
-    "shapes": 1346,
-    "paragraphs": 17,
-    "tables": 0
-  },
-  "savedDocxSha256": "15679f9dd697dd7d3c6faf43da994c4d1a37bc32c7127ec70d8d4ae59b1f8754",
-  "afterPdfSha256": "6bb7c989b6fc988c8141293b960d15498556c3ac6ab440e111be8aa4fbc53a75",
-  "reopenedMetrics": {
-    "pages": 17,
-    "sections": 17,
-    "shapes": 1346
-  },
-  "success": true,
-  "untestedObjects": 1338,
-  "verdict": "PASSED",
   "verifiedEdits": [
     {
       "page": 4,
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 1,
-      "marker": "[STRESS_1]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_1]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -303,7 +66,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 5,
-      "marker": "[STRESS_5]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_5]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -335,7 +98,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 9,
-      "marker": "[STRESS_9]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_9]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -367,7 +130,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 13,
-      "marker": "[STRESS_13]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_13]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -399,7 +162,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 17,
-      "marker": "[STRESS_17]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_17]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -431,7 +194,7 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 21,
-      "marker": "[STRESS_21]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_21]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     },
     {
@@ -463,9 +226,552 @@
       "error": null,
       "persistedInReopenedDoc": true,
       "editIndex": 25,
-      "marker": "[STRESS_25]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "marker": "[STRESS_25]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
       "category": "VML_TEXTBOX_TEXT"
     }
   ],
-  "largeForegroundTested": 0
+  "initialMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346,
+    "paragraphs": 17,
+    "tables": 0
+  },
+  "editedBoundingBoxes": [
+    {
+      "widthPt": 669.5,
+      "marker": "[STRESS_1]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 116.80000305175781,
+      "leftPt": 282,
+      "page": 4,
+      "topPt": 79.5,
+      "afterBox": {
+        "heightPt": 116.80000305175781,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 669.5
+      }
+    },
+    {
+      "widthPt": 72.0999984741211,
+      "marker": "[PHASE38_EDIT_STROKE_2]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 8,
+      "topPt": 79.5,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 79.5,
+        "widthPt": 72.0999984741211
+      }
+    },
+    {
+      "widthPt": 4.5,
+      "marker": "[PHASE38_EDIT_FILL_3]",
+      "beforeBox": {
+        "heightPt": 7.5,
+        "leftPt": 282,
+        "topPt": 80.6500015258789,
+        "widthPt": 4.5
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 7.5,
+      "leftPt": 282,
+      "page": 15,
+      "topPt": 80.6500015258789,
+      "afterBox": {
+        "heightPt": 7.5,
+        "leftPt": 282,
+        "topPt": 80.6500015258789,
+        "widthPt": 4.5
+      }
+    },
+    {
+      "widthPt": 215,
+      "marker": "[PHASE38_EDIT_DIMENSION_4]",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 282,
+        "topPt": 78,
+        "widthPt": 165.39999389648438
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 13.649999618530273,
+      "leftPt": 282,
+      "page": 16,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 282,
+        "topPt": 78,
+        "widthPt": 215
+      }
+    },
+    {
+      "widthPt": 669.5,
+      "marker": "[STRESS_5]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 145.6999969482422
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 116.80000305175781,
+      "leftPt": 34.5,
+      "page": 1,
+      "topPt": 44.25,
+      "afterBox": {
+        "heightPt": 116.80000305175781,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 669.5
+      }
+    },
+    {
+      "widthPt": 127.69999694824219,
+      "marker": "[PHASE38_EDIT_STROKE_6]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 127.69999694824219
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 23.399999618530273,
+      "leftPt": 34.5,
+      "page": 2,
+      "topPt": 44.25,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 34.5,
+        "topPt": 44.25,
+        "widthPt": 127.69999694824219
+      }
+    },
+    {
+      "widthPt": 71.25,
+      "marker": "[PHASE38_EDIT_FILL_7]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 24,
+      "leftPt": 1008.4000244140625,
+      "page": 4,
+      "topPt": 78.4000015258789,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      }
+    },
+    {
+      "widthPt": 1174.9000244140625,
+      "marker": "[PHASE38_EDIT_DIMENSION_8]",
+      "beforeBox": {
+        "heightPt": 333.75,
+        "leftPt": 96.75,
+        "topPt": 851.25,
+        "widthPt": 903.75
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 333.75,
+      "leftPt": 96.75,
+      "page": 5,
+      "topPt": 851.25,
+      "afterBox": {
+        "heightPt": 333.75,
+        "leftPt": 96.75,
+        "topPt": 851.25,
+        "widthPt": 1174.9000244140625
+      }
+    },
+    {
+      "widthPt": 1094.75,
+      "marker": "[STRESS_9]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 41.5,
+        "leftPt": 221.25,
+        "topPt": 201.75,
+        "widthPt": 1086.75
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 89.5,
+      "leftPt": 221.25,
+      "page": 6,
+      "topPt": 201.75,
+      "afterBox": {
+        "heightPt": 83,
+        "leftPt": 221.25,
+        "topPt": 201.75,
+        "widthPt": 449.70001220703125
+      }
+    },
+    {
+      "widthPt": 71.25,
+      "marker": "[PHASE38_EDIT_STROKE_10]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 24,
+      "leftPt": 1008.4000244140625,
+      "page": 8,
+      "topPt": 78.4000015258789,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 1008.4000244140625,
+        "topPt": 78.4000015258789,
+        "widthPt": 71.25
+      }
+    },
+    {
+      "widthPt": 70.5,
+      "marker": "[PHASE38_EDIT_FILL_11]",
+      "beforeBox": {
+        "heightPt": 52.5,
+        "leftPt": 370.1499938964844,
+        "topPt": 286.8999938964844,
+        "widthPt": 70.5
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 52.5,
+      "leftPt": 370.1499938964844,
+      "page": 9,
+      "topPt": 286.8999938964844,
+      "afterBox": {
+        "heightPt": 52.5,
+        "leftPt": 370.1499938964844,
+        "topPt": 286.8999938964844,
+        "widthPt": 70.5
+      }
+    },
+    {
+      "widthPt": 93.75,
+      "marker": "[PHASE38_EDIT_DIMENSION_12]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 10,
+      "topPt": 81,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 93.75
+      }
+    },
+    {
+      "widthPt": 378,
+      "marker": "[STRESS_13]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 30.049999237060547
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 72,
+      "leftPt": 24,
+      "page": 11,
+      "topPt": 12,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 378
+      }
+    },
+    {
+      "widthPt": 560.2999877929688,
+      "marker": "[PHASE38_EDIT_STROKE_14]",
+      "beforeBox": {
+        "heightPt": 25.950000762939453,
+        "leftPt": 212.25,
+        "topPt": 36.75,
+        "widthPt": 560.2999877929688
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 25.950000762939453,
+      "leftPt": 212.25,
+      "page": 12,
+      "topPt": 36.75,
+      "afterBox": {
+        "heightPt": 25.950000762939453,
+        "leftPt": 212.25,
+        "topPt": 36.75,
+        "widthPt": 560.2999877929688
+      }
+    },
+    {
+      "widthPt": 100.1500015258789,
+      "marker": "[PHASE38_EDIT_FILL_15]",
+      "beforeBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 100.1500015258789
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 24,
+      "leftPt": 24,
+      "page": 13,
+      "topPt": 12,
+      "afterBox": {
+        "heightPt": 24,
+        "leftPt": 24,
+        "topPt": 12,
+        "widthPt": 100.1500015258789
+      }
+    },
+    {
+      "widthPt": 93.75,
+      "marker": "[PHASE38_EDIT_DIMENSION_16]",
+      "beforeBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 72.0999984741211
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 23.399999618530273,
+      "leftPt": 282,
+      "page": 14,
+      "topPt": 81,
+      "afterBox": {
+        "heightPt": 23.399999618530273,
+        "leftPt": 282,
+        "topPt": 81,
+        "widthPt": 93.75
+      }
+    },
+    {
+      "widthPt": 390.29998779296875,
+      "marker": "[STRESS_17]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 165.4499969482422
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 68.1500015258789,
+      "leftPt": 295.5,
+      "page": 15,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 68.1500015258789,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 390.29998779296875
+      }
+    },
+    {
+      "widthPt": 875.25,
+      "marker": "[PHASE38_EDIT_STROKE_18]",
+      "beforeBox": {
+        "heightPt": 149.25,
+        "leftPt": 282.3999938964844,
+        "topPt": 109.1500015258789,
+        "widthPt": 875.25
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 149.25,
+      "leftPt": 282.3999938964844,
+      "page": 16,
+      "topPt": 109.1500015258789,
+      "afterBox": {
+        "heightPt": 149.25,
+        "leftPt": 282.3999938964844,
+        "topPt": 109.1500015258789,
+        "widthPt": 875.25
+      }
+    },
+    {
+      "widthPt": 218.35000610351562,
+      "marker": "[PHASE38_EDIT_FILL_19]",
+      "beforeBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 218.35000610351562
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 13.649999618530273,
+      "leftPt": 295.5,
+      "page": 17,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 13.649999618530273,
+        "leftPt": 295.5,
+        "topPt": 78,
+        "widthPt": 218.35000610351562
+      }
+    },
+    {
+      "widthPt": 185,
+      "marker": "[PHASE38_EDIT_DIMENSION_20]",
+      "beforeBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 142.3000030517578
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 17.549999237060547,
+      "leftPt": 34.5,
+      "page": 1,
+      "topPt": 120.75,
+      "afterBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 185
+      }
+    },
+    {
+      "widthPt": 502.1000061035156,
+      "marker": "[STRESS_21]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 17.549999237060547,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 160.3000030517578
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 87.5999984741211,
+      "leftPt": 34.5,
+      "page": 2,
+      "topPt": 120.75,
+      "afterBox": {
+        "heightPt": 87.5999984741211,
+        "leftPt": 34.5,
+        "topPt": 120.75,
+        "widthPt": 502.1000061035156
+      }
+    },
+    {
+      "widthPt": 56.099998474121094,
+      "marker": "[PHASE38_EDIT_STROKE_22]",
+      "beforeBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      },
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "heightPt": 24.75,
+      "leftPt": 1020,
+      "page": 4,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      }
+    },
+    {
+      "widthPt": 225.10000610351562,
+      "marker": "[PHASE38_EDIT_FILL_23]",
+      "beforeBox": {
+        "heightPt": 20.75,
+        "leftPt": 716.25,
+        "topPt": 1074,
+        "widthPt": 225.10000610351562
+      },
+      "category": "VML_SHAPE_FILL_COLOR",
+      "heightPt": 20.75,
+      "leftPt": 716.25,
+      "page": 5,
+      "topPt": 1074,
+      "afterBox": {
+        "heightPt": 20.75,
+        "leftPt": 716.25,
+        "topPt": 1074,
+        "widthPt": 225.10000610351562
+      }
+    },
+    {
+      "widthPt": 1412.800048828125,
+      "marker": "[PHASE38_EDIT_DIMENSION_24]",
+      "beforeBox": {
+        "heightPt": 41.5,
+        "leftPt": 156.75,
+        "topPt": 391.5,
+        "widthPt": 1086.75
+      },
+      "category": "VML_SHAPE_DIMENSION",
+      "heightPt": 41.5,
+      "leftPt": 156.75,
+      "page": 6,
+      "topPt": 391.5,
+      "afterBox": {
+        "heightPt": 41.5,
+        "leftPt": 156.75,
+        "topPt": 391.5,
+        "widthPt": 1412.800048828125
+      }
+    },
+    {
+      "widthPt": 390.54998779296875,
+      "marker": "[STRESS_25]\r\n한국어 텍스트 완전 보존 및 다중 단락 스트레스 검증용 긴 문장입니다.\r\n두 번째 단락: 특수문자와 공백 및 개행 문자가 정상적으로 유지되는지 확인합니다.\r\n세 번째 단락: Word COM 편집 후 저장 및 재열기 시 손실 없이 보존되어야 합니다.",
+      "beforeBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 56.099998474121094
+      },
+      "category": "VML_TEXTBOX_TEXT",
+      "heightPt": 72.75,
+      "leftPt": 1020,
+      "page": 8,
+      "topPt": 78,
+      "afterBox": {
+        "heightPt": 24.75,
+        "leftPt": 1020,
+        "topPt": 78,
+        "widthPt": 390.54998779296875
+      }
+    }
+  ],
+  "verdict": "PASSED",
+  "sourceSha256": "1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58",
+  "beforePdfSha256": "d4ab7b1c26a7d64d3f306f7edb0e5c26b6fda90235c37d16e156da9a641efeff",
+  "largeForegroundStatistics": {
+    "successfulCount": 5,
+    "persistedCount": 5,
+    "candidateCount": 7,
+    "attemptedCount": 5
+  },
+  "success": true
 }
