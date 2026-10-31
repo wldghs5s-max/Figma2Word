@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*",
+    "scripts/run_phase39_production_pipeline.ts",
+    "scripts/package_phase39_review_zip.ts",
+    "scripts/run_phase38_production_pipeline.ts",
+    "scripts/run_phase37_production_pipeline.ts",
+    "tools/quality-audit/src/**/*",
+    "tools/visual-regression/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

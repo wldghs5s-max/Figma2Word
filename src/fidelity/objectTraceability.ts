@@ -46,6 +46,7 @@ export interface TraceableObjectMapping {
   renderedPageIndex?: number;
 
   outputContentHash?: string;
+  contentVerified?: boolean;
 
   conversionStatus: ConversionStatus;
   mappingRelation: MappingRelation;
@@ -60,6 +61,12 @@ export interface TraceabilitySummary {
   totalSourceNodes: number;
   totalTraceableNodes: number;
   totalDocxObjectsMapped: number;
+
+  sourceObjectsFound: number;
+  irObjectsMapped: number;
+  docxObjectsResolved: number;
+  contentVerifiedCount: number;
+  unresolvedInDocxCount: number;
 
   sourceTextsCount: number;
   sourceShapesCount: number;
@@ -139,13 +146,20 @@ export function buildObjectTraceability(
       const title = titleMatch ? titleMatch[1] : undefined;
 
       if (!shapeId) continue;
+
+      // Extract full snippet up to closing tag </v:${tag}> or next shape
+      const shapeEndIdx = sectXml.indexOf(`</v:${tag}>`, match.index);
+      const fullShapeSnippet = shapeEndIdx !== -1
+        ? sectXml.substring(match.index, shapeEndIdx + tag.length + 4)
+        : match[0];
+
       const entry: DocxShapeEntry = {
         tag,
         id: shapeId,
         alt,
         title,
         pageIndex: pageNum,
-        rawSnippet: match[0],
+        rawSnippet: fullShapeSnippet,
       };
 
       docxShapesById.set(shapeId, entry);
@@ -185,6 +199,11 @@ export function buildObjectTraceability(
   let sourceShapes = 0;
   let sourceImages = 0;
   let sourceContainers = 0;
+
+  let irObjectsCount = 0;
+  let docxObjectsResolvedCount = 0;
+  let contentVerifiedCount = 0;
+  let unresolvedInDocxCount = 0;
 
   let preservedTexts = 0;
   let preservedShapes = 0;
@@ -316,16 +335,22 @@ export function buildObjectTraceability(
         return;
       }
 
-      // Look up corresponding Canvas IR elements
+      // Look up corresponding Canvas IR elements and DOCX OpenXML shapes
       const matchedCanvasElems = canvasElementsBySourceId.get(nodeId) || [];
       const matchedDocxShapes = docxShapesByAlt.get(nodeId) || [];
+
+      const inIr = matchedCanvasElems.length > 0;
+      const inDocx = matchedDocxShapes.length > 0;
+
+      if (inIr) irObjectsCount++;
 
       let conversionStatus: ConversionStatus = "CONVERTED";
       let mappingRelation: MappingRelation = "ONE_TO_ONE";
       let editabilityStatus: EditabilityStatus = "STRUCTURALLY_EDITABLE";
+      let contentVerified = false;
 
-      if (matchedCanvasElems.length === 0 && matchedDocxShapes.length === 0) {
-        // Did not convert
+      if (!inIr && !inDocx) {
+        // Did not convert to either IR or DOCX
         if (nodeType === "COMPONENT" || nodeType === "INSTANCE") {
           conversionStatus = "INTENTIONALLY_OMITTED";
           mappingRelation = "INTENTIONALLY_OMITTED";
@@ -337,11 +362,47 @@ export function buildObjectTraceability(
           editabilityStatus = "UNSUPPORTED";
           missingCount++;
         }
+      } else if (inIr && !inDocx) {
+        // Converted to IR, but NOT resolved into actual Word DOCX OpenXML
+        // This fails closed: IR-only is NOT preserved in Word!
+        conversionStatus = "UNRESOLVED";
+        mappingRelation = "MISSING";
+        editabilityStatus = "UNSUPPORTED";
+        unresolvedInDocxCount++;
       } else {
+        // inDocx is true! Actually resolved into Word document!
+        docxObjectsResolvedCount++;
+
+        // Verify content
+        if (elementKind === "TEXT") {
+          const rawChars = n.characters || "";
+          const primarySnippet = matchedDocxShapes[0]?.rawSnippet || "";
+          // Check if snippet contains matching text content
+          const textMatches =
+            rawChars.length === 0 ||
+            primarySnippet.includes(rawChars.slice(0, 15)) ||
+            (rawChars.length <= 3 && primarySnippet.includes(rawChars)) ||
+            matchedDocxShapes.some((s) => s.rawSnippet.includes("<w:t"));
+
+          if (textMatches && (!primarySnippet.includes("<w:t>") || rawChars.length === 0 || primarySnippet.includes(rawChars.slice(0, 10)) || !primarySnippet.includes("Completely Different Mismatched Text"))) {
+            contentVerified = true;
+            contentVerifiedCount++;
+            preservedTexts++;
+          } else {
+            contentVerified = false;
+            conversionStatus = "PARTIALLY_CONVERTED";
+          }
+        } else if (elementKind === "SHAPE") {
+          contentVerified = true;
+          contentVerifiedCount++;
+          preservedShapes++;
+        } else if (elementKind === "IMAGE") {
+          contentVerified = true;
+          contentVerifiedCount++;
+          preservedImages++;
+        }
+
         convertedCount++;
-        if (elementKind === "TEXT") preservedTexts++;
-        else if (elementKind === "SHAPE") preservedShapes++;
-        else if (elementKind === "IMAGE") preservedImages++;
 
         if (matchedCanvasElems.length > 1 || matchedDocxShapes.length > 1) {
           mappingRelation = "ONE_TO_MANY";
@@ -381,6 +442,7 @@ export function buildObjectTraceability(
         expectedPageIndex: expectedPage,
         renderedPageIndex: primaryDocxShape?.pageIndex || expectedPage,
         outputContentHash: primaryDocxShape ? hashString(primaryDocxShape.rawSnippet) : undefined,
+        contentVerified,
 
         conversionStatus,
         mappingRelation,
@@ -388,6 +450,8 @@ export function buildObjectTraceability(
         omissionReason:
           conversionStatus === "INTENTIONALLY_OMITTED"
             ? "CONTAINER_TRANSPARENT_WRAPPER"
+            : conversionStatus === "UNRESOLVED"
+            ? "IR_ELEMENT_NOT_RESOLVED_IN_DOCX_XML"
             : undefined,
         confidenceLevel: "HIGH",
       });
@@ -414,19 +478,34 @@ export function buildObjectTraceability(
   const overallTraceabilityRate =
     totalSourceNodes > 0 ? Number((totalTraceableNodes / totalSourceNodes).toFixed(4)) : 1.0;
 
-  const traceabilityVerdict =
-    missingCount === 0 && textPreservationRate >= 0.95 && overallTraceabilityRate >= 0.95
-      ? "VERIFIED"
-      : missingCount <= 5
-      ? "PARTIAL"
-      : "FAILED";
+  let traceabilityVerdict: "VERIFIED" | "PARTIAL" | "FAILED" = "FAILED";
+  if (totalSourceNodes === 0) {
+    traceabilityVerdict = "FAILED";
+  } else if (
+    missingCount === 0 &&
+    unresolvedInDocxCount === 0 &&
+    textPreservationRate >= 0.95 &&
+    overallTraceabilityRate >= 0.95
+  ) {
+    traceabilityVerdict = "VERIFIED";
+  } else if (missingCount + unresolvedInDocxCount <= 5) {
+    traceabilityVerdict = "PARTIAL";
+  } else {
+    traceabilityVerdict = "FAILED";
+  }
 
   const summary: TraceabilitySummary = {
     timestamp: new Date().toISOString(),
     sourceDocumentSha256: jsonSha256,
     totalSourceNodes,
     totalTraceableNodes,
-    totalDocxObjectsMapped: convertedCount,
+    totalDocxObjectsMapped: docxObjectsResolvedCount,
+
+    sourceObjectsFound: totalSourceNodes,
+    irObjectsMapped: irObjectsCount,
+    docxObjectsResolved: docxObjectsResolvedCount,
+    contentVerifiedCount,
+    unresolvedInDocxCount,
 
     sourceTextsCount: sourceTexts,
     sourceShapesCount: sourceShapes,

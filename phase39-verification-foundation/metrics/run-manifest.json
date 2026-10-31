@@ -1,0 +1,168 @@
+{
+  "runId": "run_phase39_1793446968574",
+  "runStatus": "FAILED",
+  "isApproved": false,
+  "startedAt": "2026-10-31T11:42:48.574Z",
+  "finishedAt": "2026-10-31T11:43:33.671Z",
+  "gitCommit": "2cfed8bfb442fc7c186993e777a3e229ce41254b",
+  "sourceFileSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
+  "sourceFrameIds": [
+    "763:5068",
+    "766:256",
+    "757:88",
+    "759:759",
+    "757:92",
+    "757:142",
+    "757:158",
+    "759:911",
+    "757:124",
+    "759:1076",
+    "766:2289",
+    "757:118",
+    "766:2942",
+    "759:1314",
+    "759:1858",
+    "759:1533",
+    "768:3434"
+  ],
+  "candidateDocxSha256": "04936325a88e368a270bf25638df2ad27183340ec6e0cc65c2b6ee6ef128258a",
+  "candidatePdfSha256": "a5ab86913a583931ebcb20de9d01b2decc2b0fee888d72810aa137718e1ad00d",
+  "candidatePngShaMap": {
+    "763:5068": "d3bbd96e10df7f04f273468e52288625c74a2e07acb4b25c72a085269c9fcb99",
+    "766:256": "09fd69450123d57ef9b8ab7e442dd042cc7e597ef68f4c72dca16d9832ce4aa8",
+    "757:88": "ed673d3bb35c261d820d7a00afa3a4c9434035a629902b65429d8ab678a50390",
+    "759:759": "3e567eff853eef08556858df6629e9fe774893312ef91dfc2c9f114d30d5d094",
+    "757:92": "317bfec3f16e571ae9d2f5eba7d9c8e9adb41755ab65e2438bb42ebe3d355a95",
+    "757:142": "4fc0030f1b5d6d57ec6b1257157c6c4179d8dc8f623d59df73c2ffffbd5d1db9",
+    "757:158": "f844cd3e7d39eda04ef70504207d1397cfbefd07eb3adc1e3cb6c1e53f78ce4c",
+    "759:911": "78a5ca3593d7e05930099a50aac2e30302db20389b29c09bc1491ce8372ae729",
+    "757:124": "c75e30ed4473e05f339cbcd22a445b5bf4e15895952dd45f9896863168302f60",
+    "759:1076": "53525d8aa79b527015233495eb0ea2ea7dcb9c0818f63e4f2a4a9500bb253a2b",
+    "766:2289": "2b659711d0d22a79ce43b9bb4006cf4aff25e5b9c19511d7c93a5381c2056534",
+    "757:118": "429c575a8b43d93c809ddab05aae1b6043ab2dc11cb9dd10acae3a27aa3f0e61",
+    "766:2942": "7540cf73f3afd0f52060cc9cbe0b2e21fb880a571bd73e59063cae648580a22a",
+    "759:1314": "4b5b1ba2b19579d0ff5bcda6e6d6a5d626eb04e50535d5da95e1f54f425cb8a7",
+    "759:1858": "9ee9e571c3ca656ffe8fa4f2eabada1ac083eeb6da8050b0b8b56377f64c36f3",
+    "759:1533": "7b993970ca79a6f8bd714ea76f1409ce16d2fc1edced8c9c2a54dfd1c0e97b92",
+    "768:3434": "7ace1b7c52c3f5f214ebf9b330abc80a2a1d2776f1b259976b2a0dd4659a104a"
+  },
+  "referencePngShaMap": {
+    "763:5068": "1c90deef35c9dc8340e6c9264b8c9f77551ddfb1b10d293f641f68f91d93b47a",
+    "766:256": "63d5e5713051b24ba1919e42b6514ff7e32e500e7040595b49b1810f3678f199",
+    "757:88": "4f8a79bd21df14bf636f5cf7c9af7494f9d396adf12a6ef4e6b56d60817b0359",
+    "759:759": "6fb16eb9c38ac08c742e286edb1bc92e18f56cc0656fe1d8833a716aef8dcef4",
+    "757:92": "b55cf8667db71a008093b4e1518443468f9c2c0258410e6831330b3098bb1a31",
+    "757:142": "27a0b1a644ba786112ad9456d1037bd9084ea6478549936e448701ab12850f2f",
+    "757:158": "9995edc3df7e4717dbede0f00f8cdaa85321c9d2c61dfeeefcdb0e98587cecec",
+    "759:911": "f631cc648dc6364c7490753b764f4c609fb10882f1d234d992e2d9e8ba492b4b",
+    "757:124": "94c09686459f73cdc4f0d485d673e449a0c4f46b540c09f50f44e4e311b66a15",
+    "759:1076": "6e8b0efdac225d979b739aadf19599617a713fd7564f292277595250df6218c4",
+    "766:2289": "3fb6f3ea0c4e89239a038972145a7ad5caea6f28be210e34666b9b4a8b47a855",
+    "757:118": "6119112e4e4a36f7b83390663cc62cdf61c3ce676398eeeb59ef07531cfcefc1",
+    "766:2942": "3a90bc30c4d3a5c8328611b9fe24dfb8b64f3846e1541dd314ff41cba7c7262d",
+    "759:1314": "047573e9a12139cd82db5c3a1417ec8c1f14798ca539e185ccd7af42aac82c87",
+    "759:1858": "2d7a238c329799e7eb33c63e857f87a43c825eaf62a914e2e73f96aacc533626",
+    "768:3434": "3144e6a9cd6109e6917d8888d0a830029a480fc9dca032b080806d0fb4540710"
+  },
+  "measurementConfig": {
+    "dpi": 96,
+    "tolerance": 10,
+    "paddingPx": 30,
+    "targetFramesCount": 17,
+    "referenceFramesCount": 16
+  },
+  "verificationGates": {
+    "GATE_PROVENANCE": {
+      "gateId": "GATE_PROVENANCE",
+      "name": "Input & Artifact Provenance Gate",
+      "status": "PASSED",
+      "summary": "Verified 100% genuine customer input and disk artifact hashes",
+      "failureReasons": []
+    },
+    "GATE_MEASUREMENT_INTEGRITY": {
+      "gateId": "GATE_MEASUREMENT_INTEGRITY",
+      "name": "Measurement & Mathematical Integrity Gate",
+      "status": "PASSED",
+      "summary": "Verified finite numerical boundaries, non-negative errors, and arithmetic consistency",
+      "failureReasons": []
+    },
+    "GATE_OBJECT_TRACEABILITY": {
+      "gateId": "GATE_OBJECT_TRACEABILITY",
+      "name": "Source-to-Word Object Traceability Gate",
+      "status": "FAILED",
+      "summary": "Resolved 1074/2033 objects, content verified 768",
+      "failureReasons": [
+        "238 objects exist in IR but failed to resolve into DOCX XML"
+      ]
+    },
+    "GATE_SECTION_PAGE_MAPPING": {
+      "gateId": "GATE_SECTION_PAGE_MAPPING",
+      "name": "Section-to-Rendered Page Correspondence Gate",
+      "status": "PASSED",
+      "summary": "Verified 17/17 1:1 correspondences"
+    },
+    "GATE_EDITABILITY": {
+      "gateId": "GATE_EDITABILITY",
+      "name": "DOCX Native Editability Gate",
+      "status": "PASSED",
+      "summary": "Average score 88/100, verdict PASSED"
+    },
+    "GATE_MEDIA_RELATIONSHIPS": {
+      "gateId": "GATE_MEDIA_RELATIONSHIPS",
+      "name": "DOCX Media Relationships & Integrity Gate",
+      "status": "PASSED",
+      "summary": "Verified 11 relationships, broken count: 0"
+    },
+    "GATE_LAYOUT_STABILITY": {
+      "gateId": "GATE_LAYOUT_STABILITY",
+      "name": "Masked Layout Stability Gate",
+      "status": "FAILED",
+      "summary": "Zero regressions on unedited document regions (avg mismatch 0.0330%)",
+      "failureReasons": [
+        "4 page regressions detected outside edited bounding box"
+      ]
+    },
+    "GATE_WORD_EDIT_PERSISTENCE": {
+      "gateId": "GATE_WORD_EDIT_PERSISTENCE",
+      "name": "Word Native Edit Persistence Gate",
+      "status": "PASSED",
+      "summary": "Persisted 25/25 native Word edits across reopen"
+    },
+    "GATE_VISUAL_FIDELITY": {
+      "gateId": "GATE_VISUAL_FIDELITY",
+      "name": "Visual Fidelity Benchmark Gate",
+      "status": "PASSED",
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9484"
+    }
+  },
+  "metricsSummary": {
+    "fidelity": {
+      "evaluatedFrames": 16,
+      "meanSsim": 0.9484,
+      "meanMae": 2.56,
+      "meanRmse": 14.88
+    },
+    "traceability": {
+      "sourceNodes": 2033,
+      "docxObjectsResolved": 1074,
+      "contentVerified": 768,
+      "unresolved": 238
+    },
+    "editability": {
+      "textNodes": 664,
+      "vmlShapes": 1140,
+      "averageScore": 88
+    },
+    "stability": {
+      "unintendedRegressions": 4,
+      "mismatchRatio": 0.00033,
+      "mae": 0.05
+    }
+  },
+  "finalVerdict": "FAILED",
+  "failureReasons": [
+    "Gate 'GATE_OBJECT_TRACEABILITY' failed: 238 objects exist in IR but failed to resolve into DOCX XML",
+    "Gate 'GATE_LAYOUT_STABILITY' failed: 4 page regressions detected outside edited bounding box"
+  ],
+  "exitCode": 1
+}

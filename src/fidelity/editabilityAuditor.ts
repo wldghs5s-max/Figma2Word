@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { auditDocxMediaRelationships, DocumentMediaAuditResult } from "./mediaRelationshipAuditor.js";
+import { extractTopLevelSections } from "./sectionPageMapper.js";
 
 export interface SourceElementReference {
   pageNumber: number;
@@ -68,7 +69,7 @@ export interface DocumentEditabilityAudit {
     imageIntegrityVerdict: "PASSED" | "BROKEN_RELATIONSHIPS" | "UNREFERENCED_MEDIA";
     runtimeEditSuccessRate?: string;
     runtimePersistenceRate?: string;
-    layoutStabilityVerdict: "STABLE" | "UNSTABLE";
+    layoutStabilityVerdict: "STABLE" | "UNSTABLE" | "UNVERIFIED";
     averageEditabilityScore: number;
     overallVerdict: "PASSED" | "ISSUES_FOUND" | "IMAGE_CHEAT_DETECTED";
   };
@@ -96,62 +97,8 @@ export async function auditDocxEditability(
   // Run media relationships audit
   const mediaAudit = await auditDocxMediaRelationships(docxBuffer);
 
-  // Split document by sections
-  const bodyMatch = docXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
-  const bodyContent = bodyMatch ? bodyMatch[1] : docXml;
-
-  // Phase 38 Fix: Depth-aware splitting of sections/pages to prevent nested <w:p> inside <v:textbox>
-  // from falsely terminating top-level document sections and causing off-by-one page shifts.
-  let depth = 0;
-  const rawSections: string[] = [];
-  let currentSectionBuffer = "";
-  let curPStart = -1;
-  const pRegex = /<\/?w:p\b[^>]*>/g;
-  let lastIndex = 0;
-  let m: RegExpExecArray | null;
-
-  while ((m = pRegex.exec(bodyContent)) !== null) {
-    if (m[0].startsWith("</")) {
-      depth--;
-      if (depth === 0 && curPStart !== -1) {
-        const topLevelP = bodyContent.substring(curPStart, pRegex.lastIndex);
-        currentSectionBuffer += topLevelP;
-        curPStart = -1;
-        lastIndex = pRegex.lastIndex;
-
-        // Check if this top-level paragraph contained a section break (<w:sectPr)
-        if (topLevelP.includes("<w:sectPr")) {
-          rawSections.push(currentSectionBuffer);
-          currentSectionBuffer = "";
-        }
-      }
-    } else {
-      if (depth === 0) {
-        if (m.index > lastIndex) {
-          const intermediate = bodyContent.substring(lastIndex, m.index);
-          if (intermediate.includes("<w:sectPr")) {
-            currentSectionBuffer += intermediate;
-            rawSections.push(currentSectionBuffer);
-            currentSectionBuffer = "";
-          } else {
-            currentSectionBuffer += intermediate;
-          }
-        }
-        curPStart = m.index;
-      }
-      depth++;
-    }
-  }
-
-  const trailing = bodyContent.substring(lastIndex);
-  if (trailing.length > 0 || currentSectionBuffer.length > 0) {
-    currentSectionBuffer += trailing;
-    if (currentSectionBuffer.trim().length > 0) {
-      rawSections.push(currentSectionBuffer);
-    }
-  }
-
-  const sectionChunks = rawSections.length > 0 ? rawSections : [bodyContent];
+  // Unified section extraction across fidelity auditors (C-02)
+  const sectionChunks = extractTopLevelSections(docXml);
 
   const pageReports: PageEditabilityReport[] = [];
 
@@ -331,6 +278,22 @@ export async function auditDocxEditability(
       }
     }
 
+    // Fail-closed against low source element preservation:
+    // If source elements were declared, the score and classification MUST reflect source preservation!
+    if (sourceRef && (sourceRef.textCount > 0 || sourceRef.shapeCount > 0)) {
+      const tCoverage = sourceRef.textCount > 0 ? (textPreservationCoverage ?? 0) : 1.0;
+      const sCoverage = sourceRef.shapeCount > 0 ? (vectorShapePreservation ?? 0) : 1.0;
+      const combinedPreservation = tCoverage * 0.7 + sCoverage * 0.3;
+
+      score = Math.round(score * combinedPreservation);
+      if (combinedPreservation < 0.70) {
+        if (classification === "FULLY_EDITABLE") {
+          classification = combinedPreservation >= 0.3 ? "HYBRID_EDITABLE" : "IMAGE_DOMINATED";
+        }
+        findings.push(`Low source preservation (${(combinedPreservation * 100).toFixed(1)}%): penalized editability score to ${score}`);
+      }
+    }
+
     if (tableCount > 0) {
       findings.push(`Structured Word table: ${tableCount} native table(s)`);
     }
@@ -384,9 +347,7 @@ export async function auditDocxEditability(
   }
 
   const avgScore = sectionChunks.length > 0 ? Math.round(totalScoreSum / sectionChunks.length) : 0;
-  let overallVerdict: DocumentEditabilityAudit["globalSummary"]["overallVerdict"] = "PASSED";
-  if (coverCheats > 0) overallVerdict = "IMAGE_CHEAT_DETECTED";
-  else if (avgScore < 50) overallVerdict = "ISSUES_FOUND";
+  const globalTextPreservation = totalSourceTexts > 0 ? totalPreservedTexts / totalSourceTexts : 1.0;
 
   const imageIntegrityVerdict =
     mediaAudit.brokenRelationshipsCount > 0
@@ -394,6 +355,13 @@ export async function auditDocxEditability(
       : mediaAudit.unreferencedMediaCount > 0
       ? "UNREFERENCED_MEDIA"
       : "PASSED";
+
+  let overallVerdict: DocumentEditabilityAudit["globalSummary"]["overallVerdict"] = "PASSED";
+  if (coverCheats > 0) {
+    overallVerdict = "IMAGE_CHEAT_DETECTED";
+  } else if (avgScore < 70 || globalTextPreservation < 0.8 || imageIntegrityVerdict !== "PASSED") {
+    overallVerdict = "ISSUES_FOUND";
+  }
 
   return {
     docxPath,
@@ -413,7 +381,7 @@ export async function auditDocxEditability(
       textPreservationRate: totalSourceTexts > 0 ? Number((totalPreservedTexts / totalSourceTexts).toFixed(4)) : undefined,
       vectorShapePreservationRate: totalSourceShapes > 0 ? Number((totalPreservedShapes / totalSourceShapes).toFixed(4)) : undefined,
       imageIntegrityVerdict,
-      layoutStabilityVerdict: "STABLE",
+      layoutStabilityVerdict: "UNVERIFIED",
       averageEditabilityScore: avgScore,
       overallVerdict,
     },

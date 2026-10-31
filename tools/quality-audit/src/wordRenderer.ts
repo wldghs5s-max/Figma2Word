@@ -30,7 +30,8 @@ export class WordRenderer {
         }
       `;
       const { stdout } = await execFileAsync('powershell', ['-NoProfile', '-Command', psCommand], { timeout: 10000 });
-      return stdout.trim().includes('AVAILABLE');
+      const trimmed = stdout.trim();
+      return trimmed === 'AVAILABLE';
     } catch {
       return false;
     }

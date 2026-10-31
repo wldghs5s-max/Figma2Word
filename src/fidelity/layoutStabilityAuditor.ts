@@ -17,10 +17,16 @@ export interface PageLayoutStabilityResult {
   hasEdits: boolean;
   editedObjectsCount: number;
   totalPixelsChecked: number;
+  totalPixels: number;
+  maskedPixels: number;
+  inspectedPixels: number;
+  inspectedRatio: number;
   unchangedPixelsCount: number;
   unchangedRegionMismatchCount: number;
   unchangedRegionMismatchRatio: number;
+  unmaskedMismatchRatio: number;
   unchangedRegionMae: number;
+  unmaskedMae: number;
   isStable: boolean;
   diagnostics: string;
 }
@@ -48,12 +54,29 @@ export function auditLayoutStability(
   editedBoxes: EditedObjectBox[],
   totalPages: number = 17,
   pageCountPreserved: boolean = true,
-  sectionCountPreserved: boolean = true
+  sectionCountPreserved: boolean = true,
+  options?: { minInspectedRatio?: number }
 ): LayoutStabilityReport {
+  const minInspectedRatio = options?.minInspectedRatio ?? 0.05;
   const pageResults: PageLayoutStabilityResult[] = [];
   let regressionsCount = 0;
   let totalMismatchSum = 0;
   let totalMaeSum = 0;
+
+  if (totalPages <= 0) {
+    return {
+      timestamp: new Date().toISOString(),
+      totalPages: 0,
+      pageCountPreserved,
+      sectionCountPreserved,
+      totalEditedObjects: editedBoxes.length,
+      unintendedRegressionsCount: 1,
+      averageUnchangedMismatchRatio: 1.0,
+      averageUnchangedMae: 255,
+      layoutStabilityVerdict: "FAILED",
+      pages: [],
+    };
+  }
 
   for (let p = 1; p <= totalPages; p++) {
     const pStr = String(p).padStart(3, "0");
@@ -66,10 +89,16 @@ export function auditLayoutStability(
         hasEdits: false,
         editedObjectsCount: 0,
         totalPixelsChecked: 0,
+        totalPixels: 0,
+        maskedPixels: 0,
+        inspectedPixels: 0,
+        inspectedRatio: 0,
         unchangedPixelsCount: 0,
         unchangedRegionMismatchCount: 0,
         unchangedRegionMismatchRatio: 1.0,
+        unmaskedMismatchRatio: 1.0,
         unchangedRegionMae: 255,
+        unmaskedMae: 255,
         isStable: false,
         diagnostics: `Missing PNG file for page ${pStr}`,
       });
@@ -80,8 +109,34 @@ export function auditLayoutStability(
     const beforeImg = decodePng(fs.readFileSync(beforePngPath));
     const afterImg = decodePng(fs.readFileSync(afterPngPath));
 
-    const w = Math.min(beforeImg.width, afterImg.width);
-    const h = Math.min(beforeImg.height, afterImg.height);
+    // Stride & dimension mismatch check:
+    // Different widths or heights must fail stability, not be silently clipped!
+    if (beforeImg.width !== afterImg.width || beforeImg.height !== afterImg.height) {
+      pageResults.push({
+        pageNumber: p,
+        hasEdits: false,
+        editedObjectsCount: 0,
+        totalPixelsChecked: beforeImg.width * beforeImg.height,
+        totalPixels: beforeImg.width * beforeImg.height,
+        maskedPixels: 0,
+        inspectedPixels: 0,
+        inspectedRatio: 0,
+        unchangedPixelsCount: 0,
+        unchangedRegionMismatchCount: 0,
+        unchangedRegionMismatchRatio: 1.0,
+        unmaskedMismatchRatio: 1.0,
+        unchangedRegionMae: 255,
+        unmaskedMae: 255,
+        isStable: false,
+        diagnostics: `Image dimension mismatch: Before ${beforeImg.width}x${beforeImg.height} vs After ${afterImg.width}x${afterImg.height}`,
+      });
+      regressionsCount++;
+      continue;
+    }
+
+    const w = beforeImg.width;
+    const h = beforeImg.height;
+    const totalPixels = w * h;
 
     // Filter boxes on this page
     const pageBoxes = editedBoxes.filter((b) => b.page === p);
@@ -93,7 +148,7 @@ export function auditLayoutStability(
     const scaleY = 4 / 3;
 
     // Create mask (true = unchanged pixel to check, false = masked edited area)
-    const isUnchangedMask = new Uint8Array(w * h);
+    const isUnchangedMask = new Uint8Array(totalPixels);
     isUnchangedMask.fill(1); // default all checked
 
     const paddingPx = 30; // 30px padding buffer around edited bounding boxes
@@ -111,24 +166,61 @@ export function auditLayoutStability(
       }
     }
 
-    let unchangedPixels = 0;
+    let maskedPixels = 0;
+    for (let i = 0; i < totalPixels; i++) {
+      if (isUnchangedMask[i] === 0) maskedPixels++;
+    }
+    const inspectedPixels = totalPixels - maskedPixels;
+    const inspectedRatio = totalPixels > 0 ? Number((inspectedPixels / totalPixels).toFixed(4)) : 0;
+
+    // Full mask or insufficient inspected ratio check (fail-closed against 0 inspected pixels)
+    if (inspectedPixels === 0 || inspectedRatio < minInspectedRatio) {
+      pageResults.push({
+        pageNumber: p,
+        hasEdits,
+        editedObjectsCount: pageBoxes.length,
+        totalPixelsChecked: totalPixels,
+        totalPixels,
+        maskedPixels,
+        inspectedPixels,
+        inspectedRatio,
+        unchangedPixelsCount: inspectedPixels,
+        unchangedRegionMismatchCount: 0,
+        unchangedRegionMismatchRatio: 1.0,
+        unmaskedMismatchRatio: 1.0,
+        unchangedRegionMae: 255,
+        unmaskedMae: 255,
+        isStable: false,
+        diagnostics: `Insufficient inspected pixels: ${inspectedPixels}/${totalPixels} (inspectedRatio ${(inspectedRatio * 100).toFixed(2)}% below minimum ${(minInspectedRatio * 100).toFixed(2)}%)`,
+      });
+      regressionsCount++;
+      continue;
+    }
+
     let mismatchCount = 0;
     let diffSum = 0;
 
     const bData = beforeImg.data;
     const aData = afterImg.data;
 
+    // Individual stride accounting
+    const bStride = beforeImg.width * 4;
+    const aStride = afterImg.width * 4;
+
     for (let y = 0; y < h; y++) {
       const rowOffset = y * w;
+      const bRow = y * bStride;
+      const aRow = y * aStride;
       for (let x = 0; x < w; x++) {
         const maskIdx = rowOffset + x;
         if (isUnchangedMask[maskIdx] === 0) continue; // masked out
 
-        unchangedPixels++;
-        const pIdx = (y * beforeImg.width + x) * 4;
-        const dr = Math.abs(bData[pIdx] - aData[pIdx]);
-        const dg = Math.abs(bData[pIdx + 1] - aData[pIdx + 1]);
-        const db = Math.abs(bData[pIdx + 2] - aData[pIdx + 2]);
+        const bIdx = bRow + x * 4;
+        const aIdx = aRow + x * 4;
+
+        const dr = Math.abs(bData[bIdx] - aData[aIdx]);
+        const dg = Math.abs(bData[bIdx + 1] - aData[aIdx + 1]);
+        const db = Math.abs(bData[bIdx + 2] - aData[aIdx + 2]);
 
         const maxDiff = Math.max(dr, dg, db);
         diffSum += (dr + dg + db) / 3;
@@ -140,9 +232,32 @@ export function auditLayoutStability(
       }
     }
 
-    const mismatchRatio =
-      unchangedPixels > 0 ? Number((mismatchCount / unchangedPixels).toFixed(5)) : 0;
-    const mae = unchangedPixels > 0 ? Number((diffSum / unchangedPixels).toFixed(2)) : 0;
+    const mismatchRatio = Number((mismatchCount / inspectedPixels).toFixed(5));
+    const mae = Number((diffSum / inspectedPixels).toFixed(2));
+
+    // Finite sanity check
+    if (!Number.isFinite(mismatchRatio) || !Number.isFinite(mae)) {
+      pageResults.push({
+        pageNumber: p,
+        hasEdits,
+        editedObjectsCount: pageBoxes.length,
+        totalPixelsChecked: totalPixels,
+        totalPixels,
+        maskedPixels,
+        inspectedPixels,
+        inspectedRatio,
+        unchangedPixelsCount: inspectedPixels,
+        unchangedRegionMismatchCount: mismatchCount,
+        unchangedRegionMismatchRatio: 1.0,
+        unmaskedMismatchRatio: 1.0,
+        unchangedRegionMae: 255,
+        unmaskedMae: 255,
+        isStable: false,
+        diagnostics: `Non-finite MAE or mismatch ratio detected on page ${pStr}`,
+      });
+      regressionsCount++;
+      continue;
+    }
 
     // A page is stable if unchanged regions experience less than 0.1% unintended alteration
     const isStable = mismatchRatio < 0.001;
@@ -157,11 +272,17 @@ export function auditLayoutStability(
       pageNumber: p,
       hasEdits,
       editedObjectsCount: pageBoxes.length,
-      totalPixelsChecked: w * h,
-      unchangedPixelsCount: unchangedPixels,
+      totalPixelsChecked: totalPixels,
+      totalPixels,
+      maskedPixels,
+      inspectedPixels,
+      inspectedRatio,
+      unchangedPixelsCount: inspectedPixels,
       unchangedRegionMismatchCount: mismatchCount,
       unchangedRegionMismatchRatio: mismatchRatio,
+      unmaskedMismatchRatio: mismatchRatio,
       unchangedRegionMae: mae,
+      unmaskedMae: mae,
       isStable,
       diagnostics: isStable
         ? `Page ${pStr} stable (mismatch: ${(mismatchRatio * 100).toFixed(3)}%, MAE: ${mae})`
@@ -172,12 +293,16 @@ export function auditLayoutStability(
   const avgMismatch = totalPages > 0 ? Number((totalMismatchSum / totalPages).toFixed(5)) : 0;
   const avgMae = totalPages > 0 ? Number((totalMaeSum / totalPages).toFixed(2)) : 0;
 
-  const verdict =
-    pageCountPreserved && sectionCountPreserved && regressionsCount === 0
-      ? "VERIFIED"
-      : regressionsCount <= 1
-      ? "PARTIAL"
-      : "FAILED";
+  let verdict: "VERIFIED" | "PARTIAL" | "FAILED" = "FAILED";
+  if (totalPages <= 0) {
+    verdict = "FAILED";
+  } else if (pageCountPreserved && sectionCountPreserved && regressionsCount === 0) {
+    verdict = "VERIFIED";
+  } else if (regressionsCount < totalPages && regressionsCount <= 1 && totalPages >= 3) {
+    verdict = "PARTIAL";
+  } else {
+    verdict = "FAILED";
+  }
 
   return {
     timestamp: new Date().toISOString(),

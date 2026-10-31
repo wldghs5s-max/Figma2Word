@@ -186,11 +186,18 @@ export class QualityAuditRunner {
     }
 
     const structuralDiscrepancies = structureComparison?.structuralNotices.length || 0;
+    const totalEvaluatedPages = pageVisualComparisons.length || (generatedDocxResult?.pageCount ?? 0);
 
     let overallStatus: QualityAuditResult['summary']['status'] = 'PASS';
     let statusMessage = '모든 검증 항목이 기준 허용치 내에서 정상 통과되었습니다.';
 
-    if (generatedDocxResult?.skipped) {
+    if (totalEvaluatedPages === 0) {
+      overallStatus = 'FAIL';
+      statusMessage = '평가된 페이지가 0개입니다 (비교 대상 없음으로 인한 검증 실패).';
+    } else if (generatedDocxResult && !generatedDocxResult.success && !generatedDocxResult.skipped) {
+      overallStatus = 'FAIL';
+      statusMessage = `Word 렌더링 실패: ${generatedDocxResult.error || '알 수 없는 오류'}`;
+    } else if (generatedDocxResult?.skipped) {
       overallStatus = 'SKIPPED';
       statusMessage = `Word COM 렌더링이 건너뛰어졌습니다 (${generatedDocxResult.skipReason}). 구조 분석만 완료되었습니다.`;
     } else if (warningPages > 0 || structuralDiscrepancies > 0) {
@@ -208,7 +215,7 @@ export class QualityAuditRunner {
       pageVisualComparisons,
       structureComparison,
       summary: {
-        totalEvaluatedPages: pageVisualComparisons.length || (generatedDocxResult?.pageCount ?? 0),
+        totalEvaluatedPages,
         passedPages,
         warningPages,
         structuralDiscrepancies,

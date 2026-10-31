@@ -334,7 +334,7 @@ export async function runPhase38Pipeline() {
   );
   editabilityAudit.globalSummary.runtimeEditSuccessRate = `${editResult.editStatistics.successful}/${editResult.editStatistics.attempted}`;
   editabilityAudit.globalSummary.runtimePersistenceRate = `${editResult.editStatistics.persisted}/${editResult.editStatistics.successful}`;
-  editabilityAudit.globalSummary.layoutStabilityVerdict = layoutStabilityReport.layoutStabilityVerdict;
+  editabilityAudit.globalSummary.layoutStabilityVerdict = layoutStabilityReport.layoutStabilityVerdict === "VERIFIED" ? "STABLE" : "UNSTABLE";
 
   log(`  Total Text Nodes:       ${editabilityAudit.globalSummary.totalTextNodes}`);
   log(`  Total VML Shapes:       ${editabilityAudit.globalSummary.totalVmlShapes}`);
@@ -498,7 +498,7 @@ export async function runPhase38Pipeline() {
   // Step 14: Quality Gates Evaluation
   log(`\n[Step 14] Quality Gates Evaluation:`);
   const provRecord: ProvenanceRecord = {
-    inputJsonPath: jsonPath,
+    jsonPath,
     jsonSha256,
     jsonSizeBytes: jsonStat.size,
     nodeTreeExtracted: true,

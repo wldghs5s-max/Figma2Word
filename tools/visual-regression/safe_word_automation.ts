@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -225,7 +225,7 @@ export function captureWordState(): WordEnvironmentSnapshot {
       const docPaths = psOut ? psOut.split('|').filter(Boolean) : [];
       return {
         wordWasRunning: true,
-        initialDocumentNames: docPaths.map(p => path.basename(p)),
+        initialDocumentNames: docPaths.map((p: string) => path.basename(p)),
         initialDocumentPaths: docPaths,
         initialDocumentCount: docPaths.length,
         untitledDocumentsCount: 0,

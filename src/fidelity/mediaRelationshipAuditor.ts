@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { extractTopLevelSections } from "./sectionPageMapper.js";
 
 export type ImageRelationshipType =
   | "EMBEDDED_IMAGE"
@@ -15,6 +16,7 @@ export interface MediaRelationshipDetail {
   mediaType: ImageRelationshipType;
   fileName?: string;
   fileSizeBytes?: number;
+  isPlaceholder?: boolean;
   usageCount: number;
   referencingSections: number[];
 }
@@ -106,46 +108,8 @@ export async function auditDocxMediaRelationships(
     throw new Error("Invalid DOCX: missing word/document.xml");
   }
 
-  // Extract sections
-  const bodyMatch = docXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
-  const bodyContent = bodyMatch ? bodyMatch[1] : docXml;
-
-  const rawSections: string[] = [];
-  let searchPos = 0;
-  while (searchPos < bodyContent.length) {
-    const sectPrIdx = bodyContent.indexOf("<w:sectPr", searchPos);
-    if (sectPrIdx === -1) {
-      const trailing = bodyContent.substring(searchPos);
-      if (trailing.trim().length > 0) {
-        if (rawSections.length > 0) {
-          rawSections[rawSections.length - 1] += trailing;
-        } else {
-          rawSections.push(trailing);
-        }
-      }
-      break;
-    }
-    const sectPrCloseIdx = bodyContent.indexOf("</w:sectPr>", sectPrIdx);
-    if (sectPrCloseIdx === -1) break;
-    const sectPrEnd = sectPrCloseIdx + "</w:sectPr>".length;
-
-    const lastPBeforeSectPr = bodyContent.lastIndexOf("<w:p", sectPrIdx);
-    const lastPCloseBeforeSectPr = bodyContent.lastIndexOf("</w:p>", sectPrIdx);
-    const isInsideP =
-      lastPBeforeSectPr >= searchPos &&
-      (lastPCloseBeforeSectPr === -1 || lastPBeforeSectPr > lastPCloseBeforeSectPr);
-
-    let chunkEnd = sectPrEnd;
-    if (isInsideP) {
-      const pCloseIdx = bodyContent.indexOf("</w:p>", sectPrEnd);
-      if (pCloseIdx !== -1) {
-        chunkEnd = pCloseIdx + "</w:p>".length;
-      }
-    }
-    rawSections.push(bodyContent.substring(searchPos, chunkEnd));
-    searchPos = chunkEnd;
-  }
-  const sectionChunks = rawSections.length > 0 ? rawSections : [bodyContent];
+  // Unified section extraction across fidelity auditors (C-02)
+  const sectionChunks = extractTopLevelSections(docXml);
 
   // 4. Track usages per relationship and per section
   const relUsageMap = new Map<
@@ -255,6 +219,8 @@ export async function auditDocxMediaRelationships(
       duplicateUsageCount += usage.count - 1;
     }
 
+    const isPlaceholder = fileSizeBytes !== undefined && fileSizeBytes <= 70;
+
     relationshipDetails.push({
       relId: rId,
       target,
@@ -262,9 +228,28 @@ export async function auditDocxMediaRelationships(
       mediaType,
       fileName: target.split("/").pop(),
       fileSizeBytes,
+      isPlaceholder,
       usageCount: usage.count,
       referencingSections: Array.from(usage.sections).sort((a, b) => a - b),
     });
+  }
+
+  // Phase 39: Check for dangling rIds used in document XML but completely missing from .rels
+  for (const [rId, usage] of relUsageMap.entries()) {
+    if (!relMap.has(rId) && usage.count > 0) {
+      brokenCount++;
+      relationshipDetails.push({
+        relId: rId,
+        target: "MISSING_FROM_RELS",
+        targetMode: "Internal",
+        mediaType: "BROKEN_RELATIONSHIP",
+        fileName: undefined,
+        fileSizeBytes: undefined,
+        isPlaceholder: false,
+        usageCount: usage.count,
+        referencingSections: Array.from(usage.sections).sort((a, b) => a - b),
+      });
+    }
   }
 
   // Check unreferenced media files in word/media/

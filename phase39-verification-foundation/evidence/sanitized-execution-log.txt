@@ -1,0 +1,85 @@
+================================================================================
+ Figma2Word — Phase 39: Trustworthy Verification Foundation Production Pipeline
+ Run ID: run_phase39_1793446968574
+ Started: 2026-10-31T11:42:48.574Z
+================================================================================
+
+[Step 1] Verifying Real Customer Input JSON Integrity:
+  Path: 펜테크 3차 디자인.json
+  Size: 195582942 bytes (186.52 MB)
+  SHA-256: 390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a
+  Input integrity: GENUINE_CUSTOMER_DOCUMENT (SHA-256 verified)
+
+[Step 2] Extracting and Mapping 17 Target Frames:
+  Found: 17 / 17 target frames.
+
+[Step 3] Extracting Source Typography and Shape Statistics:
+  Source Totals: 628 Texts, 327 Shapes, 14 Images
+
+[Step 4] Canonical Canvas IR Parsing:
+  Parsed CanvasDocument with 17 pages and 11 image resources.
+
+[Step 5] Multi-Section Production DOCX Generation:
+  Saved candidate DOCX: C:\Users\77\Documents\Figma2Word\debug\phase39-production\candidate_multi_page.docx
+  DOCX SHA-256: 04936325a88e368a270bf25638df2ad27183340ec6e0cc65c2b6ee6ef128258a
+
+[Step 6] Microsoft Word Native Rendering Automation:
+  Word rendered 17 pages to PDF and PNG.
+
+[Step 7] Source-to-Word Object Traceability Audit (A-02 Hardened):
+  Total Source Nodes:     2033
+  Source Found:           2033
+  IR Mapped:              1312
+  DOCX Resolved:          1074
+  Content Verified:       768
+  Unresolved in DOCX:     238
+  Traceability Verdict:   FAILED
+
+[Step 8] Section-to-Rendered Page Mapping Audit (B-01 Hardened):
+  Verified Mappings:      17 / 17
+  Mapping Verdict:        VERIFIED
+
+[Step 9] DOCX Media Relationships Audit (B-04 Hardened):
+  Media Files in ZIP:     11
+  Image Relationships:    11
+  Broken Relationships:   0
+  Unreferenced Media:     0
+
+[Step 10] DOCX Editability Audit (B-03 Hardened):
+  Total Text Nodes:       664
+  Total VML Shapes:       1140
+  Average Editability:    88/100
+  Overall Verdict:        PASSED
+
+[Step 11] Word Native Edit Persistence Test (B-05 Hardened):
+  Attempted Edits:        25
+  Persisted Edits:        25 / 25
+  Edit Verdict:           PASSED
+
+[Step 12] Masked Layout Stability Audit (A-04 Hardened):
+  Unintended Regressions: 4
+  Avg Unchanged Mismatch: 0.0330%
+  Avg Unchanged MAE:      0.05
+  Stability Verdict:      FAILED
+
+[Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):
+  Valid Evaluations:      16 / 16 target frames
+  Mean Fidelity SSIM:     0.9484
+  Mean Fidelity MAE:      2.56
+  Mean Fidelity RMSE:     14.88
+
+[Step 14] Fail-Closed Integrity Gates Evaluation (A-03 Hardened):
+  Provenance Gate:        PASSED (REAL_DOCUMENT_BENCHMARK)
+  Measurement Gate:       PASSED (EXPECTED_REFERENCE_COVERAGE_MET)
+
+[Step 15] Canonical Single Final Verdict Assembly (A-01):
+================================================================================
+ FINAL VERDICT: FAILED (Approved: false)
+ Exit Code: 1
+ Required Gates: 7/9 PASSED
+ Failure Reasons:
+   - Gate 'GATE_OBJECT_TRACEABILITY' failed: 238 objects exist in IR but failed to resolve into DOCX XML
+   - Gate 'GATE_LAYOUT_STABILITY' failed: 4 page regressions detected outside edited bounding box
+================================================================================
+
+[Step 16] Deriving Single-Source Manifests, Metrics, and Reports (D-02):

@@ -77,6 +77,12 @@ function runWordEditTest(
 }
 
 export async function runPhase37Pipeline() {
+  if (!process.env.ALLOW_LEGACY_PHASE37_PIPELINE) {
+    console.error("[DEPRECATION_GATE] run_phase37_production_pipeline.ts is a legacy pipeline script deprecated in Phase 39.");
+    console.error("Please run the official unified production runner: scripts/run_phase39_production_pipeline.ts");
+    console.error("To execute Phase 37 legacy pipeline for historical verification, pass ALLOW_LEGACY_PHASE37_PIPELINE=1.");
+    process.exit(1);
+  }
   const rootDir = process.cwd();
   const jsonPath = path.resolve(rootDir, "펜테크 3차 디자인.json");
   const outDir = path.resolve(rootDir, "phase37-word-editability");
@@ -204,7 +210,7 @@ export async function runPhase37Pipeline() {
 
   const candidateParser = new FigmaCanvasParser({
     imageMap,
-    selectedFrameIds: TARGET_17_FRAME_IDS,
+    selectedFrameIds: [...TARGET_17_FRAME_IDS],
   });
 
   const candidateDoc = candidateParser.parse(raw);
@@ -407,7 +413,7 @@ export async function runPhase37Pipeline() {
   // Step 11: Evaluate Quality Gates
   log(`\n[Step 11] Quality Gates Evaluation:`);
   const provRecord: ProvenanceRecord = {
-    inputJsonPath: jsonPath,
+    jsonPath,
     jsonSha256,
     jsonSizeBytes: jsonStat.size,
     nodeTreeExtracted: true,

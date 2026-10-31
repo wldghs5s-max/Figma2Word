@@ -95,6 +95,13 @@ try {
             $widthPt = [double]$shape.Width
             $heightPt = [double]$shape.Height
             
+            $altText = ""
+            $shapeName = ""
+            $shapeTitle = ""
+            try { $altText = $shape.AlternativeText } catch { $altText = "" }
+            try { $shapeName = $shape.Name } catch { $shapeName = "" }
+            try { $shapeTitle = $shape.Title } catch { $shapeTitle = "" }
+
             $shapePage = 1
             try {
                 $shapePage = [int]$shape.Anchor.Information(3) # wdActiveEndPageNumber
@@ -118,6 +125,9 @@ try {
                         editIndex = $attemptedEdits
                         category = "VML_TEXTBOX_TEXT"
                         targetShapeIndex = $i
+                        altText = $altText
+                        shapeName = $shapeName
+                        shapeTitle = $shapeTitle
                         marker = $targetMarker
                         page = $shapePage
                         appliedSuccessfully = $true
@@ -144,6 +154,9 @@ try {
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_STROKE_COLOR"
                     targetShapeIndex = $i
+                    altText = $altText
+                    shapeName = $shapeName
+                    shapeTitle = $shapeTitle
                     marker = $targetMarker
                     page = $shapePage
                     appliedSuccessfully = $true
@@ -168,6 +181,9 @@ try {
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_FILL_COLOR"
                     targetShapeIndex = $i
+                    altText = $altText
+                    shapeName = $shapeName
+                    shapeTitle = $shapeTitle
                     marker = $targetMarker
                     page = $shapePage
                     appliedSuccessfully = $true
@@ -193,6 +209,9 @@ try {
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_DIMENSION"
                     targetShapeIndex = $i
+                    altText = $altText
+                    shapeName = $shapeName
+                    shapeTitle = $shapeTitle
                     marker = $targetMarker
                     page = $shapePage
                     origWidth = $origWidth
@@ -277,60 +296,119 @@ try {
         TABLE_CELL_TEXT = 0
     }
 
+    function Find-Shape($docObj, $op) {
+        # 1. Try match by persistent alternative text or name
+        if ($op.altText -and $op.altText.Length -gt 0) {
+            for ($k = 1; $k -le $docObj.Shapes.Count; $k++) {
+                try {
+                    $s = $docObj.Shapes.Item($k)
+                    if ($s.AlternativeText -eq $op.altText) { return $s }
+                } catch {}
+            }
+        }
+        if ($op.shapeName -and $op.shapeName.Length -gt 0) {
+            try {
+                $s = $docObj.Shapes.Item($op.shapeName)
+                if ($s) { return $s }
+            } catch {}
+        }
+        # 2. Try match by target marker in TextFrame
+        if ($op.marker -and $op.marker.Length -gt 0) {
+            for ($k = 1; $k -le $docObj.Shapes.Count; $k++) {
+                try {
+                    $s = $docObj.Shapes.Item($k)
+                    if ($s.TextFrame -and $s.TextFrame.HasText -ne 0) {
+                        if ($s.TextFrame.TextRange.Text.Contains($op.marker)) { return $s }
+                    }
+                } catch {}
+            }
+        }
+        # 3. Fallback to index if within bounds
+        if ($op.targetShapeIndex -ge 1 -and $op.targetShapeIndex -le $docObj.Shapes.Count) {
+            try {
+                return $docObj.Shapes.Item($op.targetShapeIndex)
+            } catch {}
+        }
+        return $null
+    }
+
     foreach ($op in $editOperations) {
         $marker = $op.marker
         $cat = $op.category
         $persisted = $false
+        $errorMsg = $null
 
         if ($cat -eq "VML_TEXTBOX_TEXT") {
-            $sIdx = $op.targetShapeIndex
             try {
-                $shape = $doc2.Shapes.Item($sIdx)
-                if ($shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
+                $shape = Find-Shape $doc2 $op
+                if ($shape -and $shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
                     $currentText = $shape.TextFrame.TextRange.Text
                     if ($currentText -and $currentText.Contains($marker)) {
                         $persisted = $true
                         $categoryCounts["VML_TEXTBOX_TEXT"]++
+                    } else {
+                        $errorMsg = "Marker text missing in reopened shape"
                     }
+                } else {
+                    $errorMsg = "Target shape or textframe not found"
                 }
-            } catch {}
+            } catch {
+                $errorMsg = $_.Exception.Message
+            }
         } elseif ($cat -eq "VML_SHAPE_STROKE_COLOR") {
-            $sIdx = $op.targetShapeIndex
             try {
-                $shape = $doc2.Shapes.Item($sIdx)
-                if ($shape.Line.ForeColor.RGB -eq 0x0000FF -and $shape.Line.Weight -ge 1.9) {
+                $shape = Find-Shape $doc2 $op
+                if ($shape -and $shape.Line.ForeColor.RGB -eq 0x0000FF -and $shape.Line.Weight -ge 1.9) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_STROKE_COLOR"]++
+                } else {
+                    $errorMsg = "Stroke color/weight mismatch on reopened shape"
                 }
-            } catch {}
+            } catch {
+                $errorMsg = $_.Exception.Message
+            }
         } elseif ($cat -eq "VML_SHAPE_FILL_COLOR") {
-            $sIdx = $op.targetShapeIndex
             try {
-                $shape = $doc2.Shapes.Item($sIdx)
-                if ($shape.Fill.ForeColor.RGB -eq 0x00FF00) {
+                $shape = Find-Shape $doc2 $op
+                if ($shape -and $shape.Fill.ForeColor.RGB -eq 0x00FF00) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_FILL_COLOR"]++
+                } else {
+                    $errorMsg = "Fill color mismatch on reopened shape"
                 }
-            } catch {}
+            } catch {
+                $errorMsg = $_.Exception.Message
+            }
         } elseif ($cat -eq "VML_SHAPE_DIMENSION") {
-            $sIdx = $op.targetShapeIndex
             try {
-                $shape = $doc2.Shapes.Item($sIdx)
-                if ($shape.Width -ge ($op.origWidth + 3.0)) {
+                $shape = Find-Shape $doc2 $op
+                if ($shape -and $shape.Width -ge ($op.origWidth + 3.0)) {
                     $persisted = $true
                     $categoryCounts["VML_SHAPE_DIMENSION"]++
+                } else {
+                    $errorMsg = "Width dimension expansion not preserved"
                 }
-            } catch {}
+            } catch {
+                $errorMsg = $_.Exception.Message
+            }
         } elseif ($cat -eq "TABLE_CELL_TEXT") {
             $tIdx = $op.targetTableIndex
             try {
-                $table = $doc2.Tables.Item($tIdx)
-                $cellText = $table.Cell(1, 1).Range.Text
-                if ($cellText -and $cellText.Contains($marker)) {
-                    $persisted = $true
-                    $categoryCounts["TABLE_CELL_TEXT"]++
+                if ($tIdx -ge 1 -and $tIdx -le $doc2.Tables.Count) {
+                    $table = $doc2.Tables.Item($tIdx)
+                    $cellText = $table.Cell(1, 1).Range.Text
+                    if ($cellText -and $cellText.Contains($marker)) {
+                        $persisted = $true
+                        $categoryCounts["TABLE_CELL_TEXT"]++
+                    } else {
+                        $errorMsg = "Table cell text missing marker"
+                    }
+                } else {
+                    $errorMsg = "Table index out of bounds"
                 }
-            } catch {}
+            } catch {
+                $errorMsg = $_.Exception.Message
+            }
         }
 
         if ($persisted) {
@@ -343,6 +421,7 @@ try {
             marker = $op.marker
             page = $op.page
             persistedInReopenedDoc = $persisted
+            error = $errorMsg
         }
     }
 
@@ -424,8 +503,14 @@ try {
 
     $untestedCount = [Math]::Max(0, ($initShapes + $initParagraphs) - $attemptedEdits)
 
+    $persistenceRate = if ($successfulEdits -gt 0) { [Math]::Round(($persistedCount / $successfulEdits) * 100, 2) } else { 0 }
+    $allPersisted = ($persistedCount -eq $successfulEdits) -and ($successfulEdits -ge 1)
+    $overallSuccess = $allPersisted -and $pageCountStable
+    $editVerdict = if ($allPersisted -and $pageCountStable) { "PASSED" } elseif ($persistedCount -gt 0) { "PARTIAL" } else { "FAILED" }
+
     $result = @{
-        success = $true
+        success = $overallSuccess
+        verdict = $editVerdict
         sourceSha256 = $sourceSha
         savedDocxSha256 = $savedDocxSha
         beforePdfSha256 = (Compute-Sha256 $beforePdf)
@@ -447,7 +532,7 @@ try {
             successful = $successfulEdits
             persisted = $persistedCount
             persistenceRatePercent = $persistenceRate
-            verdict = if ($persistedCount -eq $successfulEdits -and $successfulEdits -gt 0) { "PASSED" } else { "PARTIAL" }
+            verdict = $editVerdict
         }
         layoutStability = @{
             verdict = $layoutStability
@@ -465,6 +550,9 @@ try {
     $result | ConvertTo-Json -Depth 6 | Set-Content -Encoding utf8 $evidenceJson
 
     Output-JsonResult $result
+    if (-not $overallSuccess) {
+        exit 1
+    }
 } catch {
     if ($doc) { try { $doc.Close([ref]$false) } catch {} }
     if ($word) { try { $word.Quit([ref]$false) } catch {} }

@@ -17,6 +17,11 @@ function computeFileSha256(filePath: string): string {
 }
 
 async function runPipeline() {
+  if (!process.env.ALLOW_LEGACY_SYNTHETIC_PIPELINE) {
+    console.error("[DEPRECATION_GATE] generate_phase35_full_artifacts.ts is a legacy synthetic pipeline deprecated in Phase 39.");
+    console.error("To execute for historical comparison only, pass ALLOW_LEGACY_SYNTHETIC_PIPELINE=1.");
+    process.exit(1);
+  }
   const rootDir = process.cwd();
   const verifyDir = path.resolve(rootDir, "phase35-fidelity-verification");
   const metricsDir = path.join(verifyDir, "metrics");

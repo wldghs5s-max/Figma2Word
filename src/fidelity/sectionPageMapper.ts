@@ -98,13 +98,29 @@ export function auditSectionPageMapping(
   canvasDoc: CanvasDocument,
   docxXml: string,
   targetFrameIds: string[],
-  wordRenderedPageCount: number
+  wordRenderedPageCount: number,
+  options?: {
+    pageToFrameEvidence?: Map<number, string>;
+  }
 ): SectionPageMappingReport {
   const sections = extractTopLevelSections(docxXml);
   const pageEntries: PageMappingEntry[] = [];
 
   let verifiedCount = 0;
   let unverifiedCount = 0;
+
+  if (targetFrameIds.length === 0 || wordRenderedPageCount <= 0 || sections.length === 0) {
+    return {
+      totalTargetFrames: targetFrameIds.length,
+      totalCanvasPages: canvasDoc.pages?.length || 0,
+      totalDocxSections: sections.length,
+      totalWordRenderedPages: wordRenderedPageCount,
+      verifiedMappingsCount: 0,
+      unverifiedMappingsCount: targetFrameIds.length || 1,
+      mappingVerdict: "FAILED",
+      pages: [],
+    };
+  }
 
   const count = Math.max(targetFrameIds.length, canvasDoc.pages.length, sections.length);
 
@@ -128,10 +144,33 @@ export function auditSectionPageMapping(
     const orient = pgSzMatch && pgSzMatch[3] === "landscape" ? "landscape" : "portrait";
     const sectBreakType = (typeMatch ? typeMatch[1] : (idx === sections.length - 1 ? "bodyFinal" : "nextPage")) as PageMappingEntry["sectionBreakType"];
 
-    // A mapping is verified if frame, canvas page, docx section, and word rendered page align 1:1
+    // A mapping is verified if:
+    // 1. Frame ID aligns with canvas page (if frameId is declared on canvasPage)
+    // 2. Page is within Word rendered page count
+    // 3. Section break is NOT continuous (continuous breaks do not start a new page)
+    // 4. Has content
+    // 5. If runtime pageToFrameEvidence exists, it must match
     const frameMatches = !!canvasPage && (!canvasPage.frameId || canvasPage.frameId === figmaNodeId);
     const withinWordPages = pageNum <= wordRenderedPageCount;
-    const isVerified = frameMatches && withinWordPages && hasContent;
+    const notContinuous = sectBreakType !== "continuous";
+    const evidenceMatches = !options?.pageToFrameEvidence || options.pageToFrameEvidence.get(pageNum) === figmaNodeId;
+
+    const isVerified = frameMatches && withinWordPages && hasContent && notContinuous && evidenceMatches;
+
+    let diagnosticMsg: string;
+    if (!withinWordPages) {
+      diagnosticMsg = `Page ${pageNum} unverified: Truncated in Word rendering (only ${wordRenderedPageCount} pages rendered)`;
+    } else if (!frameMatches) {
+      diagnosticMsg = `Page ${pageNum} unverified: Canvas frameId mismatch (expected ${figmaNodeId}, got ${canvasPage?.frameId})`;
+    } else if (!hasContent) {
+      diagnosticMsg = `Page ${pageNum} unverified: Empty section without traceable text/shape/image content`;
+    } else if (!notContinuous) {
+      diagnosticMsg = `Page ${pageNum} unverified: Continuous section break does not create dedicated page`;
+    } else if (!evidenceMatches) {
+      diagnosticMsg = `Page ${pageNum} unverified: Word runtime evidence mapped to ${options?.pageToFrameEvidence?.get(pageNum)} instead of ${figmaNodeId}`;
+    } else {
+      diagnosticMsg = `Page ${pageNum} verified: Frame ${figmaNodeId} -> Section ${pageNum} -> Rendered Page ${pageNum}`;
+    }
 
     if (isVerified) {
       verifiedCount++;
@@ -157,16 +196,14 @@ export function auditSectionPageMapping(
         orientation: orient,
       },
       status: isVerified ? "PAGE_MAPPING_VERIFIED" : "PAGE_MAPPING_UNVERIFIED",
-      diagnostics: isVerified
-        ? `Page ${pageNum} verified: Frame ${figmaNodeId} -> Section ${pageNum} -> Rendered Page ${pageNum}`
-        : `Page ${pageNum} unverified: Frame alignment or rendered content mismatch`,
+      diagnostics: diagnosticMsg,
     });
   }
 
   const mappingVerdict =
-    unverifiedCount === 0 && verifiedCount === targetFrameIds.length
+    unverifiedCount === 0 && verifiedCount === targetFrameIds.length && sections.length === wordRenderedPageCount
       ? "VERIFIED"
-      : verifiedCount >= targetFrameIds.length - 1
+      : verifiedCount >= targetFrameIds.length - 1 && verifiedCount > 0
       ? "PARTIAL"
       : "FAILED";
 

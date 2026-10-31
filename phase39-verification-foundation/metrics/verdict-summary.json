@@ -1,0 +1,81 @@
+{
+  "runId": "run_phase39_1793446968574",
+  "evaluatedAt": "2026-10-31T11:43:33.670Z",
+  "overallStatus": "FAILED",
+  "isApproved": false,
+  "requiredGateCount": 9,
+  "passedGateCount": 7,
+  "failedGateCount": 2,
+  "partialGateCount": 0,
+  "unverifiedGateCount": 0,
+  "skippedGateCount": 0,
+  "gateResults": {
+    "GATE_PROVENANCE": {
+      "gateId": "GATE_PROVENANCE",
+      "name": "Input & Artifact Provenance Gate",
+      "status": "PASSED",
+      "summary": "Verified 100% genuine customer input and disk artifact hashes",
+      "failureReasons": []
+    },
+    "GATE_MEASUREMENT_INTEGRITY": {
+      "gateId": "GATE_MEASUREMENT_INTEGRITY",
+      "name": "Measurement & Mathematical Integrity Gate",
+      "status": "PASSED",
+      "summary": "Verified finite numerical boundaries, non-negative errors, and arithmetic consistency",
+      "failureReasons": []
+    },
+    "GATE_OBJECT_TRACEABILITY": {
+      "gateId": "GATE_OBJECT_TRACEABILITY",
+      "name": "Source-to-Word Object Traceability Gate",
+      "status": "FAILED",
+      "summary": "Resolved 1074/2033 objects, content verified 768",
+      "failureReasons": [
+        "238 objects exist in IR but failed to resolve into DOCX XML"
+      ]
+    },
+    "GATE_SECTION_PAGE_MAPPING": {
+      "gateId": "GATE_SECTION_PAGE_MAPPING",
+      "name": "Section-to-Rendered Page Correspondence Gate",
+      "status": "PASSED",
+      "summary": "Verified 17/17 1:1 correspondences"
+    },
+    "GATE_EDITABILITY": {
+      "gateId": "GATE_EDITABILITY",
+      "name": "DOCX Native Editability Gate",
+      "status": "PASSED",
+      "summary": "Average score 88/100, verdict PASSED"
+    },
+    "GATE_MEDIA_RELATIONSHIPS": {
+      "gateId": "GATE_MEDIA_RELATIONSHIPS",
+      "name": "DOCX Media Relationships & Integrity Gate",
+      "status": "PASSED",
+      "summary": "Verified 11 relationships, broken count: 0"
+    },
+    "GATE_LAYOUT_STABILITY": {
+      "gateId": "GATE_LAYOUT_STABILITY",
+      "name": "Masked Layout Stability Gate",
+      "status": "FAILED",
+      "summary": "Zero regressions on unedited document regions (avg mismatch 0.0330%)",
+      "failureReasons": [
+        "4 page regressions detected outside edited bounding box"
+      ]
+    },
+    "GATE_WORD_EDIT_PERSISTENCE": {
+      "gateId": "GATE_WORD_EDIT_PERSISTENCE",
+      "name": "Word Native Edit Persistence Gate",
+      "status": "PASSED",
+      "summary": "Persisted 25/25 native Word edits across reopen"
+    },
+    "GATE_VISUAL_FIDELITY": {
+      "gateId": "GATE_VISUAL_FIDELITY",
+      "name": "Visual Fidelity Benchmark Gate",
+      "status": "PASSED",
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9484"
+    }
+  },
+  "failureReasons": [
+    "Gate 'GATE_OBJECT_TRACEABILITY' failed: 238 objects exist in IR but failed to resolve into DOCX XML",
+    "Gate 'GATE_LAYOUT_STABILITY' failed: 4 page regressions detected outside edited bounding box"
+  ],
+  "exitCode": 1
+}
