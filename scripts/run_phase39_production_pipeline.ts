@@ -246,13 +246,34 @@ export async function runPhase39Pipeline() {
   log("\n[Step 7] Source-to-Word Object Traceability Audit (A-02 Hardened):");
   const zip = await JSZip.loadAsync(candidateDocxBuffer);
   const docxXml = (await zip.file("word/document.xml")?.async("text")) || "";
+  const relsXml = (await zip.file("word/_rels/document.xml.rels")?.async("text")) || "";
+
+  const mediaFilesMap = new Map<string, { size: number; isPlaceholder?: boolean }>();
+  for (const [filename, fileEntry] of Object.entries(zip.files)) {
+    if (filename.startsWith("word/media/") && !fileEntry.dir) {
+      const buf = await fileEntry.async("nodebuffer");
+      const relTarget = filename.replace(/^word\//, "");
+      mediaFilesMap.set(relTarget, {
+        size: buf.length,
+        isPlaceholder: buf.length < 100,
+      });
+      mediaFilesMap.set(path.basename(filename), {
+        size: buf.length,
+        isPlaceholder: buf.length < 100,
+      });
+    }
+  }
 
   const traceabilityReport = buildObjectTraceability(
     raw,
     [...TARGET_17_FRAME_IDS],
     candidateDoc,
     docxXml,
-    jsonSha256
+    jsonSha256,
+    {
+      docxRelsXml: relsXml,
+      mediaFilesMap,
+    }
   );
   log(`  Total Source Nodes:     ${traceabilityReport.summary.totalSourceNodes}`);
   log(`  Source Found:           ${traceabilityReport.summary.sourceObjectsFound}`);

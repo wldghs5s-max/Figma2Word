@@ -483,8 +483,9 @@ export class DocxCanvasRenderer {
       3
     )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;${wrapStyle}${rotStyle}`;
 
-    const altAttr = elem.id ? `alt="${escapeXml(elem.id)}"` : "";
-    const titleAttr = `o:title="${escapeXml(elem.name || elem.id || "")}"`;
+    const altId = elem.sourceNodeId || elem.id;
+    const altAttr = altId ? `alt="${escapeXml(altId)}"` : "";
+    const titleAttr = `o:title="${escapeXml(elem.name || elem.sourceNodeId || elem.id || "")}"`;
 
     // 1. Line
     if (elem.type === "line") {

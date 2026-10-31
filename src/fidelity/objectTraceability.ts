@@ -234,6 +234,14 @@ export function buildObjectTraceability(
           docxShapesByAlt.set(alt, []);
         }
         docxShapesByAlt.get(alt)!.push(entry);
+
+        const baseAlt = alt.replace(/_[btlr]$/, "");
+        if (baseAlt !== alt) {
+          if (!docxShapesByAlt.has(baseAlt)) {
+            docxShapesByAlt.set(baseAlt, []);
+          }
+          docxShapesByAlt.get(baseAlt)!.push(entry);
+        }
       }
     }
   }

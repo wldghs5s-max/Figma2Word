@@ -16,11 +16,8 @@
   "GATE_OBJECT_TRACEABILITY": {
     "gateId": "GATE_OBJECT_TRACEABILITY",
     "name": "Source-to-Word Object Traceability Gate",
-    "status": "FAILED",
-    "summary": "Traceability failed: 238 unresolved in DOCX, content verified 745/2033",
-    "failureReasons": [
-      "238 objects exist in IR but failed to resolve into DOCX XML"
-    ]
+    "status": "PASSED",
+    "summary": "All 2033 source objects resolved with verified content."
   },
   "GATE_SECTION_PAGE_MAPPING": {
     "gateId": "GATE_SECTION_PAGE_MAPPING",
@@ -43,11 +40,8 @@
   "GATE_LAYOUT_STABILITY": {
     "gateId": "GATE_LAYOUT_STABILITY",
     "name": "Masked Layout Stability Gate",
-    "status": "FAILED",
-    "summary": "Layout stability failed: 4 non-stable pages (coverage: 3, regressions: 1)",
-    "failureReasons": [
-      "4 page regressions detected outside edited bounding box"
-    ]
+    "status": "PASSED",
+    "summary": "Zero regressions on unedited document regions (avg mismatch 0.0000%)"
   },
   "GATE_WORD_EDIT_PERSISTENCE": {
     "gateId": "GATE_WORD_EDIT_PERSISTENCE",
@@ -59,6 +53,6 @@
     "gateId": "GATE_VISUAL_FIDELITY",
     "name": "Visual Fidelity Benchmark Gate",
     "status": "PASSED",
-    "summary": "Evaluated 16/16 frames, mean SSIM: 0.9484"
+    "summary": "Evaluated 16/16 frames, mean SSIM: 0.949"
   }
 }

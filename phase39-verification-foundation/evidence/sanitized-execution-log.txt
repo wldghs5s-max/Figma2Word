@@ -1,7 +1,7 @@
 ================================================================================
  Figma2Word — Phase 39: Trustworthy Verification Foundation Production Pipeline
- Run ID: run_phase39_1793451319136
- Started: 2026-10-31T12:55:19.136Z
+ Run ID: run_phase39_1793453235008
+ Started: 2026-10-31T13:27:15.008Z
 ================================================================================
 
 [Step 1] Verifying Real Customer Input JSON Integrity:
@@ -21,7 +21,7 @@
 
 [Step 5] Multi-Section Production DOCX Generation:
   Saved candidate DOCX: C:\Users\77\Documents\Figma2Word\debug\phase39-production\candidate_multi_page.docx
-  DOCX SHA-256: 373c7df1350a5057b5613a08c098ab98125c36e61b52365f6ea019f06ecd1784
+  DOCX SHA-256: bfaf9bb6c4ec13bc0013aeb5c481289ef75cf15ec90393db9d91036f69b83a79
 
 [Step 6] Microsoft Word Native Rendering Automation:
   Word rendered 17 pages to PDF and PNG.
@@ -30,10 +30,10 @@
   Total Source Nodes:     2033
   Source Found:           2033
   IR Mapped:              1312
-  DOCX Resolved:          1074
-  Content Verified:       745
-  Unresolved in DOCX:     238
-  Traceability Verdict:   FAILED
+  DOCX Resolved:          1312
+  Content Verified:       970
+  Unresolved in DOCX:     0
+  Traceability Verdict:   VERIFIED
 
 [Step 8] Section-to-Rendered Page Mapping Audit (B-01 Hardened):
   Verified Mappings:      17 / 17
@@ -47,7 +47,7 @@
 
 [Step 10] DOCX Editability Audit (B-03 Hardened):
   Total Text Nodes:       664
-  Total VML Shapes:       1140
+  Total VML Shapes:       1346
   Average Editability:    88/100
   Overall Verdict:        PASSED
 
@@ -57,16 +57,16 @@
   Edit Verdict:           PASSED
 
 [Step 12] Masked Layout Stability Audit (A-04 Hardened):
-  Unintended Regressions: 4
-  Avg Unchanged Mismatch: 0.0330%
-  Avg Unchanged MAE:      0.05
-  Stability Verdict:      FAILED
+  Unintended Regressions: 0
+  Avg Unchanged Mismatch: 0.0000%
+  Avg Unchanged MAE:      0
+  Stability Verdict:      VERIFIED
 
 [Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):
   Valid Evaluations:      16 / 16 target frames
-  Mean Fidelity SSIM:     0.9484
-  Mean Fidelity MAE:      2.56
-  Mean Fidelity RMSE:     14.88
+  Mean Fidelity SSIM:     0.949
+  Mean Fidelity MAE:      2.55
+  Mean Fidelity RMSE:     14.83
 
 [Step 14] Fail-Closed Integrity Gates Evaluation (A-03 Hardened):
   Provenance Gate:        PASSED (REAL_DOCUMENT_BENCHMARK)
@@ -74,12 +74,9 @@
 
 [Step 15] Canonical Single Final Verdict Assembly (A-01):
 ================================================================================
- FINAL VERDICT: FAILED (Approved: false)
- Exit Code: 1
- Required Gates: 7/9 PASSED
- Failure Reasons:
-   - Gate 'GATE_OBJECT_TRACEABILITY' failed: 238 objects exist in IR but failed to resolve into DOCX XML
-   - Gate 'GATE_LAYOUT_STABILITY' failed: 4 page regressions detected outside edited bounding box
+ FINAL VERDICT: PASSED (Approved: true)
+ Exit Code: 0
+ Required Gates: 9/9 PASSED
 ================================================================================
 
 [Step 16] Deriving Single-Source Manifests, Metrics, and Reports (D-02):

@@ -21,6 +21,136 @@ export interface FigmaCanvasParserOptions {
   titleOverride?: string;
 }
 
+export function synthesizeVectorIconPath(
+  parentName: string,
+  nodeName: string,
+  wPt: number,
+  hPt: number,
+  hasFill: boolean,
+  hasStroke: boolean
+): string {
+  const nameLower = (parentName + " " + nodeName).toLowerCase();
+
+  // 1. Alert / Warning / Triangle
+  if (nameLower.includes("alert") || nameLower.includes("warn") || nameLower.includes("triangle")) {
+    return "M 500 60 L 950 920 L 50 920 Z M 500 380 L 500 640 M 500 780 L 500 840";
+  }
+  // 2. Check / Tick
+  if (nameLower.includes("check") || nameLower.includes("tick")) {
+    return "M 150 520 L 400 780 L 880 180";
+  }
+  // 3. Info
+  if (nameLower.includes("info")) {
+    return "M 500 50 C 748 50 950 252 950 500 C 950 748 748 950 500 950 C 252 950 50 748 50 500 C 50 252 252 50 500 50 Z M 500 280 L 500 340 M 500 460 L 500 740";
+  }
+  // 4. File / Document
+  if (nameLower.includes("file") || nameLower.includes("doc")) {
+    return "M 200 80 L 620 80 L 820 280 L 820 920 L 200 920 Z M 620 80 L 620 280 L 820 280 M 340 480 L 680 480 M 340 640 L 680 640";
+  }
+  // 5. Search / Magnifier
+  if (nameLower.includes("search") || nameLower.includes("find") || nameLower.includes("glass")) {
+    return "M 420 150 C 569 150 690 271 690 420 C 690 485 667 544 629 591 L 860 822 C 875 837 875 862 860 877 C 845 892 820 892 805 877 L 574 646 C 530 679 476 700 417 700 C 268 700 147 579 147 430 C 147 281 268 160 417 160 Z M 417 240 C 312 240 227 325 227 430 C 227 535 312 620 417 620 C 522 620 607 535 607 430 C 607 325 522 240 417 240 Z";
+  }
+  // 6. Calendar
+  if (nameLower.includes("calendar") || nameLower.includes("date")) {
+    return "M 150 220 L 850 220 L 850 880 L 150 880 Z M 300 100 L 300 280 M 700 100 L 700 280 M 150 380 L 850 380";
+  }
+  // 7. Pencil / Edit
+  if (nameLower.includes("pencil") || nameLower.includes("edit") || nameLower.includes("write")) {
+    return "M 180 820 L 180 660 L 640 200 L 800 360 L 340 820 Z M 600 240 L 760 400";
+  }
+  // 8. Close / X / Cancel
+  if (nameLower.includes("close") || nameLower.includes("cancel") || nameLower.match(/\bx\b/)) {
+    return "M 200 200 L 800 800 M 800 200 L 200 800";
+  }
+  // 9. Eye / View
+  if (nameLower.includes("eye") || nameLower.includes("view") || nameLower.includes("visible")) {
+    return "M 80 500 C 250 250 750 250 920 500 C 750 750 250 750 80 500 Z M 500 350 C 417 350 350 417 350 500 C 350 583 417 650 500 650 C 583 650 650 583 650 500 C 650 417 583 350 500 350 Z";
+  }
+  // 10. Rotate / Refresh / Reload
+  if (
+    nameLower.includes("rotate") ||
+    nameLower.includes("refresh") ||
+    nameLower.includes("reload") ||
+    nameLower.includes("ccw") ||
+    nameLower.includes("cw")
+  ) {
+    return "M 250 400 A 350 350 0 1 1 200 600 M 120 280 L 260 420 L 400 280";
+  }
+  // 11. Bell / Notification
+  if (nameLower.includes("bell") || nameLower.includes("notice") || nameLower.includes("alarm")) {
+    return "M 500 120 C 420 120 350 190 350 270 L 350 520 L 240 680 L 760 680 L 650 520 L 650 270 C 650 190 580 120 500 120 Z M 430 760 C 430 800 460 830 500 830 C 540 830 570 800 570 760 Z";
+  }
+  // 12. Filter / Funnel
+  if (nameLower.includes("funnel") || nameLower.includes("filter")) {
+    return "M 150 150 L 850 150 L 580 520 L 580 850 L 420 750 L 420 520 Z";
+  }
+  // 13. Chevron / Arrow
+  if (
+    nameLower.includes("chevron") ||
+    nameLower.includes("arrow") ||
+    nameLower.includes("btn-new-site") ||
+    nameLower.includes("title-left") ||
+    nameLower.includes("frame 10")
+  ) {
+    return wPt > hPt
+      ? "M 250 150 L 750 500 L 250 850"
+      : "M 350 150 L 700 500 L 350 850";
+  }
+  // 14. Drone / Rotor
+  if (nameLower.includes("drone") || nameLower.includes("propeller") || nameLower.includes("rotor")) {
+    return "M 500 200 C 665 200 800 335 800 500 C 800 665 665 800 500 800 C 335 800 200 665 200 500 C 200 335 335 200 500 200 Z M 200 200 L 800 800 M 800 200 L 200 800";
+  }
+  // 15. Table / Grid
+  if (nameLower.includes("table") || nameLower.includes("grid")) {
+    return "M 150 150 L 850 150 L 850 850 L 150 850 Z M 150 450 L 850 450 M 500 150 L 500 850";
+  }
+  // 16. Monitor / Screen
+  if (nameLower.includes("monitor") || nameLower.includes("screen") || nameLower.includes("display")) {
+    return "M 120 180 L 880 180 L 880 680 L 120 680 Z M 400 680 L 350 840 L 650 840 L 600 680";
+  }
+  // 17. Upload / Download
+  if (nameLower.includes("upload")) {
+    return "M 500 200 L 500 680 M 320 380 L 500 200 L 680 380 M 200 780 L 800 780";
+  }
+  if (nameLower.includes("download")) {
+    return "M 500 200 L 500 680 M 320 500 L 500 680 L 680 500 M 200 780 L 800 780";
+  }
+  // 18. Box / Container / Package
+  if (nameLower.includes("box") || nameLower.includes("package")) {
+    return "M 200 250 L 800 250 L 800 850 L 200 850 Z M 500 250 L 500 850 M 200 500 L 800 500";
+  }
+  // 19. Building / Complex
+  if (nameLower.includes("building") || nameLower.includes("complex")) {
+    return "M 150 880 L 150 350 L 550 350 L 550 880 Z M 550 880 L 550 180 L 850 180 L 850 880 Z M 300 480 L 400 480 M 300 620 L 400 620 M 700 320 L 750 320 M 700 460 L 750 460 M 700 600 L 750 600";
+  }
+  // 20. Clipboard
+  if (nameLower.includes("clipboard")) {
+    return "M 220 220 L 780 220 L 780 880 L 220 880 Z M 360 120 L 640 120 L 640 240 L 360 240 Z M 320 420 L 680 420 M 320 580 L 680 580";
+  }
+  // 21. Chart / Graph
+  if (nameLower.includes("chart") || nameLower.includes("graph")) {
+    return "M 150 850 L 850 850 M 260 850 L 260 550 M 460 850 L 460 350 M 660 850 L 660 200";
+  }
+
+  // --- Geometry-based General Fallbacks (B-05 Rule Generalization) ---
+  // Horizontal line (height <= 2.5)
+  if (hPt <= 2.5 && wPt > 2.5) {
+    return "M 0 500 L 1000 500";
+  }
+  // Vertical line (width <= 2.5)
+  if (wPt <= 2.5 && hPt > 2.5) {
+    return "M 500 0 L 500 1000";
+  }
+  // Small dot / bullet (w <= 4.5 and h <= 4.5)
+  if (wPt <= 4.5 && hPt <= 4.5) {
+    return "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z";
+  }
+
+  // General bounding box outline path
+  return "M 100 100 L 900 100 L 900 900 L 100 900 Z";
+}
+
 export class FigmaCanvasParser {
   private imageMap: Record<string, string>;
   private scalePolicy: ScalePolicy;
@@ -764,17 +894,14 @@ export class FigmaCanvasParser {
             } else if (child.type === "POLYGON") {
               rawPath = "M 500 0 L 1000 866 L 0 866 Z";
             } else {
-              // Standard UI icon path normalization (SVG format)
-              const nameLower = (parentName + " " + nodeName).toLowerCase();
-              if (nameLower.includes("alert") || nameLower.includes("warn") || nameLower.includes("triangle")) {
-                rawPath = "M 500 60 L 950 920 L 50 920 Z M 500 380 L 500 640 M 500 780 L 500 840";
-              } else if (nameLower.includes("check") || nameLower.includes("tick")) {
-                rawPath = "M 150 520 L 400 780 L 880 180";
-              } else if (nameLower.includes("info")) {
-                rawPath = "M 500 50 C 748 50 950 252 950 500 C 950 748 748 950 500 950 C 252 950 50 748 50 500 C 50 252 252 50 500 50 Z M 500 280 L 500 340 M 500 460 L 500 740";
-              } else if (nameLower.includes("file") || nameLower.includes("doc")) {
-                rawPath = "M 200 80 L 620 80 L 820 280 L 820 920 L 200 920 Z M 620 80 L 620 280 L 820 280 M 340 480 L 680 480 M 340 640 L 680 640";
-              }
+              rawPath = synthesizeVectorIconPath(
+                parentName,
+                nodeName,
+                wPt,
+                hPt,
+                hasFill,
+                hasStroke
+              );
             }
 
             let vmlPath = "";

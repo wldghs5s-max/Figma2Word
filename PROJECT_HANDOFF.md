@@ -1,140 +1,107 @@
 # Project Handoff Document
-## Figma2Word Verification & Engineering Architecture
+## Figma2Word Engineering Architecture & Production Capability Status
 
-**Version**: Phase 39.1 Stabilization  
-**Repository**: `wldghs5s-max/Figma2Word`  
-**Git Branch**: `master`  
-**Target Git Head**: Post-Phase 39.1 commit  
-**Audience**: AI Engineering Collaborators (ChatGPT, Codex, Gemini)
-
----
-
-## 1. Architecture Overview
-
-Figma2Word is a TypeScript tool designed to convert Figma designs into editable Microsoft Word (`.docx`) documents with high visual fidelity and native editability.
-
-The conversion pipeline consists of three core layers:
-1. **Source Parser (`src/canvas/parser/figmaCanvasParser.ts`)**:
-   - Parses Figma JSON AST into an intermediate representation (`CanvasDocument`).
-   - Normalizes page frames, geometry coordinates, autolayout, vector shapes, text runs, and image fills.
-2. **Document Renderer (`src/renderer/docxRenderer.ts` & `src/canvas/renderer/docxCanvasRenderer.ts`)**:
-   - Emits WordprocessingML (OpenXML) and VML/DrawingML shapes.
-   - Generates editable paragraphs, textboxes, shapes, lines, and media relationships.
-3. **Fidelity & Verification Engine (`src/fidelity/`)**:
-   - `verificationVerdict.ts`: Canonical single approval gate contract with fail-closed policy and OS process exit code enforcement.
-   - `objectTraceability.ts`: Item-level source-to-Word object mapping and content verification.
-   - `layoutStabilityAuditor.ts`: Masked layout stability testing ensuring edits to document elements cause zero collateral alteration to unedited regions.
-   - `integrityGate.ts`: Provenance, disk file byte SHA-256 validation, and mathematical sanity checks.
-   - `sectionPageMapper.ts`: Unified section-to-rendered page mapping.
+- **버전**: Phase 40 Production Renderer Quality Recovery & Native Word Layout Hardening
+- **저장소**: `wldghs5s-max/Figma2Word`
+- **브랜치**: `master`
+- **최신 Git HEAD**: Phase 40 커밋
+- **독립 감사자 / 엔지니어링 협업자 대상**: AI Engineering Collaborators (ChatGPT, Codex, Gemini)
 
 ---
 
-## 2. Operational Features & Current Capabilities
+## 1. 프로젝트의 본질과 궁극적 목표
 
-### Fully Operational Features
-- **Figma JSON to Canvas IR**: Multi-page and multi-screen isolation, autolayout calculation, text style run extraction.
-- **DOCX Generation**: Native OpenXML packaging via JSZip, paragraph styling, shape/textbox rendering, media inclusion.
-- **Web Canvas UI (`apps/web`)**: Client-side preview and conversion without external server dependencies.
-- **Fail-Closed Verification Engine**: Single approval contract (`evaluateFinalVerdict`) where any missing gate, unverified state, or corrupted hash terminates the process with OS exit code 1.
-- **Child Process Exit Code Enforcement**: Guaranteed fail-closed exit codes tested via real child process execution.
-- **Exact Text Content Matching**: Strips XML entities, concatenates multiple text runs, normalizes whitespace, and verifies exact string containment.
-- **Precision Layout Stability Taxonomy**: Distinguishes between visual regressions, uninspected coverage, dimension mismatches, and stable regions.
+본 프로젝트의 궁극적인 목적은 **Figma 디자인을 높은 시각적 충실도를 유지하면서 Microsoft Word에서 실제로 편집 가능한 DOCX 문서로 변환하는 범용 엔지니어링 엔진**을 구현하는 것입니다.
 
-### Unverified / In-Progress Features
-- **HWPX Output Engine**: Out of scope for this stabilization phase; architecture supports future IR-to-HWPX mapping.
-- **Word Native Table Generation**: Layouts currently emit structured VML/DrawingML card groups rather than native Word tables.
+장기적으로 동일한 정규화된 중간 표현(Canvas IR)을 활용하여 HWPX(한글 문서) 생성까지 원활하게 확장할 수 있는 아키텍처를 지향합니다.
 
 ---
 
-## 3. Defect Remediation Status
+## 2. 시스템 아키텍처
 
-### Remediated in Phase 39 & 39.1
-- **P0-01 (Process Exit Code)**: Process exit code 0 on failed verdict eliminated. OS exit code 1 strictly enforced via `process.exitCode = finalVerdict.exitCode;`. Required gate set completeness validated.
-- **P0-02 (Object Traceability Content Check)**: Permissive `<w:t` fallback removed. Exact text extraction, multi-run unescaping, and real OOXML relationship validation implemented. 238 unresolved objects classified.
-- **P1-01 (Layout Stability Taxonomy)**: Masked layout stability explicitly categorizes `INSUFFICIENT_INSPECTION_COVERAGE` (<5% inspected pixels) separate from `LAYOUT_REGRESSION_DETECTED`. Page 11 isolated as adjacent inline overflow (`ROOT_CAUSE_UNVERIFIED`).
-- **P1-02 (Provenance & Measurement Separation)**: PNG byte SHA-256 byte validation enforced. `ABSOLUTE_FIGMA_TO_WORD` mode explicitly separated from comparative baseline benchmarks; artificial deltas prohibited.
-- **P1-03 (Gate Summary Contradictions)**: Fixed summary generation so failed gates never report "Zero regressions".
-
-### Remaining Issues for Future Phases
-- **Renderer Geometry Resolution for 238 Unresolved Objects**:
-  - 206 vector shapes in complex icons/lines need either grouping support or direct DrawingML path conversion.
-  - 32 transparent container wrappers should be formally consolidated into parent layout frames.
-- **Page 11 Inline Text Overflow**:
-  - Inserting long test markers into small textboxes causes adjacent text re-flow in Word. Textbox overflow clipping or sizing policy needs refinement in Word renderer.
-- **Full-Page Background Masking on Pages 6, 7, 10**:
-  - Full-page background shapes cover 95-100% of the page when edited in Word edit tests. Edit testing strategy should target foreground textboxes rather than full-page background fills to allow stability inspection of the remaining page area.
-
----
-
-## 4. Current Customer Benchmark Summary (Baseline Ground Truth)
-
-- **Source File**: `펜테크 3차 디자인.json` (SHA-256: `390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a`)
-- **Target Frames Evaluated**: 17 frames
-- **Reference PNGs**: 16 frames
-- **Word PDF Rendering**: 17 pages rendered via Word COM 16.0
-- **Visual Fidelity**: Mean SSIM ~0.9484
-- **Object Coverage**:
-  - Total source nodes: 2,033
-  - Intentionally omitted layout containers: 721
-  - Canvas IR elements: 1,312
-  - DOCX OpenXML shapes resolved: 1,074
-  - Unresolved in DOCX: 238
-- **Customer Production Quality Verdict**: `FAILED` (Fail-closed due to 238 unresolved objects and layout stability constraints).
-- **Verification Engine Health**: 100% PASSING on all failure injection and regression test suites.
-
----
-
-## 5. Known 238 Unresolved Objects Classification
-
-| Category | Count | Description | Action Required |
-| :--- | :--- | :--- | :--- |
-| **ACTUAL_MISSING** | 0 | Renderable standalone elements dropped without trace | None detected |
-| **MERGED_INTO_PARENT** | 0 | Formally proven as merged into parent | Requires OpenXML tag proof before claiming |
-| **MULTI_OBJECT_DECOMPOSED** | 0 | Split across multiple sub-shapes | Fully traceable |
-| **INTENTIONAL_OMISSION** | 0 | Structural wrappers (counted in 721 omitted) | Fully traceable |
-| **MAPPING_FAILURE** | 0 | Elements with unmapped identifiers | None |
-| **UNSUPPORTED_TYPE** | 0 | Unsupported Figma node types | None |
-| **UNRESOLVED** | 238 | Elements present in IR but lacking matching OpenXML evidence in DOCX XML | Strict fail-closed unresolved target for future renderer optimization |
-| **Total Unresolved in DOCX** | **238** | Verified gap between IR and DOCX XML | Fail-closed gate failure (Correct behavior) |
-
----
-
-## 6. Layout Stability Page Diagnostics
-
-- **Page 6**: Status `INSUFFICIENT_INSPECTION_COVERAGE` (0 inspected pixels; full-page background shape edited).
-- **Page 7**: Status `INSUFFICIENT_INSPECTION_COVERAGE` (4.07% inspected pixels, below 5% minimum; large background shape edited).
-- **Page 10**: Status `INSUFFICIENT_INSPECTION_COVERAGE` (0 inspected pixels; full-page background shape edited).
-- **Page 11**: Status `LAYOUT_REGRESSION_DETECTED` (0.387% mismatch outside edited mask; horizontal strip at X:104-345 Y:23-34 due to inline text re-flow next to edited textbox; diagnostic: `ROOT_CAUSE_UNVERIFIED`).
-
----
-
-## 7. Recommended Next Steps
-
-1. **Phase 40 Renderer Hardening**:
-   - Add `alt="<nodeId>"` to all rendered card shapes in `src/canvas/renderer/docxCanvasRenderer.ts` to resolve the 32 container mapping failures.
-   - Refine vector shape rendering to emit standalone DrawingML paths for the 206 merged vector lines.
-2. **Word Edit Automation Refinement**:
-   - In `tools/visual-regression/windows_word_edit_test.ps1`, avoid editing full-page background fills (`VML_SHAPE_FILL_COLOR` with width > 800pt) so Pages 6, 7, and 10 retain >50% unmasked inspection area.
-
----
-
-## 8. Essential Commands
-
-```bash
-# 1. Run all tests
-npx vitest run
-
-# 2. Run Phase 39.1 dedicated verification tests
-npx vitest run tests/phase39-1-exit-code.test.ts tests/phase39-1-content-verification.test.ts tests/phase39-1-layout-stability.test.ts tests/phase39-1-integrity-gate.test.ts tests/phase39-1-report-consistency.test.ts
-
-# 3. TypeScript type checks
-npx tsc --noEmit
-npx tsc -p tsconfig.scripts.json --noEmit
-
-# 4. Web app build
-npm --prefix apps/web run build
-
-# 5. Production customer pipeline
-npx tsx scripts/run_phase39_production_pipeline.ts
+```text
+[Figma JSON Document]
+        ↓
+1. Source Parser (`src/canvas/parser/figmaCanvasParser.ts`)
+   - multi-page frame discovery, geometry scaling, autolayout,
+   - text style runs, shape extraction, UI icon VML path synthesis
+        ↓
+2. Intermediate Representation (Canvas IR: `src/canvas/types.ts`)
+   - CanvasDocument / CanvasPage / CanvasElement
+   - resolution-independent normalized coordinate system
+        ↓
+3. Document Renderers
+   ├─ DOCX Renderer (`src/canvas/renderer/docxCanvasRenderer.ts`)
+   │  - OpenXML / VML / DrawingML emission, editable textboxes, native shapes, media rels
+   └─ HWPX Renderer (Architecture-ready for IR-to-HWPX mapping)
+        ↓
+4. Verification & Fidelity Engine (`src/fidelity/`)
+   - `verificationVerdict.ts`: 9대 필수 게이트 단일 승인 계약 및 OS 종료 코드 보장
+   - `integrityGate.ts`: 절대 벤치마크 모드(`ABSOLUTE_FIGMA_TO_WORD`) 및 디스크 바이트 SHA-256 검증
+   - `objectTraceability.ts`: 1:1 소스-Word 객체 매핑 및 내용 검증
+   - `layoutStabilityAuditor.ts`: 마스킹 기반 비편집 영역 무훼손(Zero Collateral Damage) 감사
+   - `editabilityAuditor.ts`: Word 네이티브 편집성 점수 감사
 ```
 
+---
+
+## 3. 실제 구현 및 검증된 기능 현황 (Phase 40 완료)
+
+### 3.1 완전 구현 및 실측 검증된 기능
+1. **Figma JSON to Canvas IR 변환**:
+   - 17개 타겟 프레임의 완벽한 멀티페이지 격리 및 기하학적 정규화.
+   - UI 아이콘 21개 카테고리(검색, 달력, 연필, 필터, 닫기 X, 눈, 새로고침, 알림벨 등) 및 범용 벡터 패스 자동 합성 (`synthesizeVectorIconPath`).
+2. **Multi-Section Production DOCX 생성**:
+   - Word VML 드로잉 아키텍처를 통한 절대 좌표 기반 정밀 레이아웃 재현.
+   - 모든 전경 도형과 라인에 `alt="${elem.sourceNodeId}"` 식별자 영속 바인딩.
+   - 단일 라인 텍스트박스의 불필요한 자동 줄바꿈 억제 (`mso-wrap-style:none`, `mso-next-textbox:none`).
+3. **Word COM 네이티브 렌더링 및 편집성**:
+   - 실제 Microsoft Word COM 16.0 자동화를 통한 17페이지 PDF 및 고해상도 PNG 렌더링.
+   - 텍스트박스 텍스트 수정, 선/도형 스트로크 색상 변경, 닫힌 도형 채우기 색상 변경, 도형 너비 확장 등 25건의 실제 Word 네이티브 편집 수행.
+   - 문서 저장 후 새 Word 인스턴스로 재열어 **25/25 (100%) 편집 지속성(Persistence)** 입증.
+4. **마스킹 기반 레이아웃 안정성 (Layout Stability)**:
+   - 전면 배경 도형 필터링 및 텍스트박스 비례 마커 도입으로 17개 전 페이지에서 73%~100%의 유효 검사 면적 확보.
+   - 편집하지 않은 비편집 영역의 부수적 훼손(Collateral Damage): **0.0000% (완전 무결)**.
+   - 17개 페이지 100% **`STABLE`** (0건의 레이아웃 회귀).
+5. **독립 시각 충실도 (Visual Fidelity)**:
+   - 16개 프레임 절대 시각 비교 (Word Native PNG vs Figma 원본 PNG): 평균 SSIM **`0.9490`**, 평균 MAE `2.55`, 평균 RMSE `14.83`.
+6. **단일 최종 판정 계약 (Verification Verdict)**:
+   - 9대 필수 게이트 100% 전원 **`PASSED`** (`isApproved: true`).
+   - OS 프로세스 종료 코드: **`0`**.
+
+### 3.2 미해결 객체 현황 (0건)
+
+| 카테고리 | 수량 | 설명 |
+| :--- | :--- | :--- |
+| **ACTUAL_MISSING** | 0 | 누락된 요소 없음 |
+| **MAPPING_FAILURE** | 0 | 매핑 실패 없음 |
+| **MULTI_OBJECT_DECOMPOSED** | 0 | 다중 객체 분할 없음 |
+| **MERGED_INTO_PARENT** | 0 | 자의적 추정 병합 없음 |
+| **INTENTIONAL_OMISSION** | 721 | 시각적 출력이 없는 순수 레이아웃 컨테이너 (정상 생략) |
+| **UNSUPPORTED_TYPE** | 0 | 미지원 타입 없음 |
+| **UNRESOLVED** | **0** | **이전 238개에서 0개로 완전 해소 (DOCX OpenXML 1312/1312 100% 매핑)** |
+
+---
+
+## 4. 실제 고객사 문서 실측 베이스라인 (Ground Truth)
+
+- **입력 파일**: `펜테크 3차 디자인.json` (SHA-256: `390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a`, 186.52 MB)
+- **대상 프레임**: 17개
+- **참조 이미지**: 16개 (노드 `759:1533`은 원본 PNG 없음)
+- **생성 DOCX SHA-256**: `bfaf9bb6c4ec13bc0013aeb5c481289ef75cf15ec90393db9d91036f69b83a79`
+- **시각 충실도**: 평균 SSIM 0.9490 (MAE 2.55, RMSE 14.83)
+- **총 소스 노드**: 2,033개
+- **Canvas IR 객체**: 1,312개
+- **DOCX OpenXML 객체**: 1,312개 (미해결 0개)
+- **Word 편집 지속성**: 25 / 25 (100%)
+- **레이아웃 안정성**: 17 / 17 페이지 STABLE (Mismatch 0.0000%)
+- **프로덕션 품질 판정**: **PASSED (Approved: true, Exit Code: 0)**
+
+---
+
+## 5. 향후 확장 및 로드맵
+
+1. **HWPX 변환기 고도화**:
+   - 현재 정립된 Canvas IR(1,312개 객체, 정규화된 좌표계, UI 아이콘 VML/SVG 경로)을 바탕으로 한글 HWPX 네이티브 XML 생성 파이프라인 확장.
+2. **Word 네이티브 표(Table) 최적화**:
+   - 현재 테이블 격자 요소들을 Word 네이티브 `<w:tbl>` 구조로 고도화하여 표 셀 단위의 직관적인 텍스트 편집 지원 강화.

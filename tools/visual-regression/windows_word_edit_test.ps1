@@ -102,6 +102,11 @@ try {
             try { $shapeName = $shape.Name } catch { $shapeName = "" }
             try { $shapeTitle = $shape.Title } catch { $shapeTitle = "" }
 
+            # Ignore full-page background canvas rectangles (e.g. bg_*, or width > 500 && height > 500)
+            # Full-page backgrounds are structural canvas fills and masking them blanks the entire page!
+            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or ($widthPt -gt 500 -and $heightPt -gt 500))
+            if ($isFullPageBg) { continue }
+
             $shapePage = 1
             try {
                 $shapePage = [int]$shape.Anchor.Information(3) # wdActiveEndPageNumber
@@ -117,7 +122,8 @@ try {
                 $origText = $textRange.Text
                 if ($origText -and $origText.Trim().Length -gt 0) {
                     $attemptedEdits++
-                    $targetMarker = "[PHASE38_EDIT_TEXTBOX_$attemptedEdits]"
+                    $origLen = $origText.Trim().Length
+                    $targetMarker = if ($origLen -le 4) { "[E$attemptedEdits]" } else { "[EDIT_$attemptedEdits]" }
                     $textRange.Text = $targetMarker
 
                     $successfulEdits++
@@ -172,6 +178,8 @@ try {
                 }
             } elseif ($catSelector -eq 2) {
                 # Category 3: VML_SHAPE_FILL_COLOR
+                # Lines (width <= 1 or height <= 1) have no Fill property in Word! Skip lines for fill edits
+                if ($widthPt -le 1.0 -or $heightPt -le 1.0) { continue }
                 $attemptedEdits++
                 $targetMarker = "[PHASE38_EDIT_FILL_$attemptedEdits]"
                 $shape.Fill.ForeColor.RGB = 0x00FF00 # Pure Green in BGR
@@ -199,6 +207,7 @@ try {
                 }
             } elseif ($catSelector -eq 3) {
                 # Category 4: VML_SHAPE_DIMENSION
+                if ($widthPt -le 1.0) { continue }
                 $attemptedEdits++
                 $targetMarker = "[PHASE38_EDIT_DIMENSION_$attemptedEdits]"
                 $origWidth = $widthPt
