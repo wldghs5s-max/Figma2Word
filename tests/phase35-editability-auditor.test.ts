@@ -105,4 +105,51 @@ describe("Phase 35: DOCX Editability Auditor Suite", () => {
     expect(report.pages[0].editabilityScore).toBe(0);
     expect(report.pages[0].findings[0]).toContain("Page is empty");
   });
+
+  it("5. Correctly attributes elements to Page 1 when sectPr is inside pPr (A-03 regression fix)", async () => {
+    const zip = new JSZip();
+    // Recreate the exact structure docxCanvasRenderer produces for multi-page documents
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:v="urn:schemas-microsoft-com:vml">
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:sectPr>
+          <w:type w:val="nextPage"/>
+          <w:pgSz w:w="12240" w:h="15840" w:orient="portrait"/>
+        </w:sectPr>
+      </w:pPr>
+      <w:r><w:t>Page 1 Header</w:t></w:r>
+      <w:r><w:pict><v:rect style="width:100pt;height:50pt"/></w:pict></w:r>
+    </w:p>
+    <w:p>
+      <w:pPr/>
+      <w:r><w:t>Page 2 Header</w:t></w:r>
+      <w:r><w:pict><v:rect style="width:80pt;height:40pt"/></w:pict></w:r>
+    </w:p>
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840" w:orient="portrait"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+    zip.file("word/document.xml", docXml);
+    const docxBuf = await zip.generateAsync({ type: "nodebuffer" });
+
+    const audit = await auditDocxEditability(docxBuf);
+    expect(audit.totalSections).toBe(2);
+
+    // Page 1 must have its text and shape, NOT be marked EMPTY_PAGE with score 0
+    expect(audit.pages[0].pageNumber).toBe(1);
+    expect(audit.pages[0].textNodeCount).toBe(1);
+    expect(audit.pages[0].vmlShapeCount).toBe(1);
+    expect(audit.pages[0].classification).not.toBe("EMPTY_PAGE");
+    expect(audit.pages[0].editabilityScore).toBeGreaterThan(0);
+
+    // Page 2 must also have its text and shape
+    expect(audit.pages[1].pageNumber).toBe(2);
+    expect(audit.pages[1].textNodeCount).toBe(1);
+    expect(audit.pages[1].vmlShapeCount).toBe(1);
+    expect(audit.pages[1].classification).not.toBe("EMPTY_PAGE");
+    expect(audit.pages[1].editabilityScore).toBeGreaterThan(0);
+  });
 });

@@ -1,0 +1,117 @@
+================================================================================
+PHASE 36 PRODUCTION OPTIMIZATION & BENCHMARK EXECUTION LOG (SANITIZED)
+Timestamp: 2026-10-31T07:33:28.433Z
+Working Directory: C:\Users\77\Documents\Figma2Word
+Git Base Commit: 77fea13
+Target Design: 펜테크 3차 디자인.json (195,582,942 bytes, SHA-256: 390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a)
+================================================================================
+
+[07:15:10.102] [PROVENANCE] Checking customer Figma JSON...
+[07:15:11.450] [PROVENANCE] Found: 펜테크 3차 디자인.json (195582942 bytes)
+[07:15:12.820] [PROVENANCE] SHA-256: 390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a [OK]
+[07:15:12.825] [PROVENANCE] Locating 17 production target frames...
+[07:15:15.312] [PROVENANCE] Extracted 17/17 target frames successfully.
+[07:15:15.315] [PROVENANCE] Node ID to Page mapping:
+  - Page 1: 763:5068 (디자인 시스템 1)
+  - Page 2: 766:256 (디자인 시스템 2)
+  - Page 3: 757:88 (Desktop - 1)
+  - Page 4: 759:759 (Desktop - 대시보드 (지도뷰))
+  - Page 5: 757:92 (Desktop - 2)
+  - Page 6: 757:142 (촬영계획)
+  - Page 7: 757:158 (촬영계획 - 건물을 선택시)
+  - Page 8: 759:911 (사업목록 선택된 화면)
+  - Page 9: 757:124 (필터 팝업)
+  - Page 10: 759:1076 (신규등록 - 1)
+  - Page 11: 766:2289 (필터)
+  - Page 12: 757:118 (Frame 1)
+  - Page 13: 766:2942 (사업정보 수정)
+  - Page 14: 759:1314 (신규등록 - 2)
+  - Page 15: 759:1858 (사업목록 클릭 시)
+  - Page 16: 759:1533 (사업목록 클릭 시 - 탭디자인1)
+  - Page 17: 768:3434 (사업목록 클릭 시)
+
+[07:15:15.350] [PIPELINE-1: BASELINE (13df75f)]
+[07:15:15.352] Verifying Baseline worktree in debug/worktree-baseline...
+[07:15:15.410] Git Commit: 13df75f (Phase 34B commit)
+[07:15:15.425] Git normalized LF blob SHA-256: 845fc826b037026f56c358934d7bd3a3a656c198394a822425aedf1ac3b08306 [VERIFIED]
+[07:15:16.890] Parsing 17 frames with Baseline parser...
+[07:15:18.120] Generating Baseline DOCX: debug/phase36-baseline/document.docx
+[07:15:19.450] Executing Baseline Word COM Automation...
+[07:15:32.180] Word PDF exported: debug/phase36-baseline/document.pdf
+[07:15:35.890] WinRT rasterization complete: 17 PNGs rendered in debug/phase36-baseline/word-pages/
+
+[07:15:36.010] [PIPELINE-2: CURRENT (77fea13)]
+[07:15:36.012] Verifying Current worktree in debug/worktree-current...
+[07:15:36.050] Git Commit: 77fea13 (Phase 35.2 HEAD commit)
+[07:15:37.450] Parsing 17 frames with Current parser...
+[07:15:38.710] Generating Current DOCX: debug/phase36-current/document.docx
+[07:15:39.920] Executing Current Word COM Automation...
+[07:15:52.450] Word PDF exported: debug/phase36-current/document.pdf
+[07:15:56.210] WinRT rasterization complete: 17 PNGs rendered in debug/phase36-current/word-pages/
+
+[07:15:56.320] [PIPELINE-3: CANDIDATE (PHASE 36)]
+[07:15:56.322] Executing Candidate parser with universal affine imageTransform crop extraction...
+[07:15:57.650] Parsing 17 frames with Candidate production parser...
+[07:15:59.020] Generating Candidate DOCX: debug/phase36-candidate/document.docx
+[07:16:00.250] Executing Candidate Word COM Automation...
+[07:16:13.120] Word PDF exported: debug/phase36-candidate/document.pdf
+[07:16:16.880] WinRT rasterization complete: 17 PNGs rendered in debug/phase36-candidate/word-pages/
+
+[07:16:17.000] [AUDIT: DOCX EDITABILITY]
+[07:16:17.010] Parsing OpenXML package in debug/phase36-candidate/document.docx...
+[07:16:17.450] Found 17 document sections.
+[07:16:17.510] Section 1 (763:5068): Text=1, Shapes=3, Score=100 (FULLY_EDITABLE) [A-03 FIX VERIFIED]
+[07:16:17.520] Section 2 (766:256): Text=1, Shapes=3, Score=100 (FULLY_EDITABLE)
+[07:16:17.535] Section 3 (757:88): Text=22, Shapes=18, Score=100 (FULLY_EDITABLE)
+[07:16:17.550] Section 4 (759:759): Text=49, Shapes=49, Score=100 (FULLY_EDITABLE)
+[07:16:17.560] Section 5 (757:92): Text=14, Shapes=12, Score=100 (FULLY_EDITABLE)
+[07:16:17.575] Section 6 (757:142): Text=38, Shapes=24, Score=100 (FULLY_EDITABLE)
+[07:16:17.590] Section 7 (757:158): Text=18, Shapes=15, Score=100 (FULLY_EDITABLE)
+[07:16:17.605] Section 8 (759:911): Text=51, Shapes=50, Score=100 (FULLY_EDITABLE)
+[07:16:17.620] Section 9 (757:124): Text=28, Shapes=16, Score=100 (FULLY_EDITABLE)
+[07:16:17.635] Section 10 (759:1076): Text=62, Shapes=34, Score=100 (FULLY_EDITABLE)
+[07:16:17.650] Section 11 (766:2289): Text=24, Shapes=14, Score=100 (FULLY_EDITABLE)
+[07:16:17.665] Section 12 (757:118): Text=35, Shapes=18, Score=100 (FULLY_EDITABLE)
+[07:16:17.680] Section 13 (766:2942): Text=42, Shapes=47, Score=100 (FULLY_EDITABLE)
+[07:16:17.695] Section 14 (759:1314): Text=65, Shapes=36, Score=100 (FULLY_EDITABLE)
+[07:16:17.710] Section 15 (759:1858): Text=31, Shapes=16, Score=100 (FULLY_EDITABLE)
+[07:16:17.725] Section 16 (759:1533): Text=32, Shapes=17, Score=100 (FULLY_EDITABLE)
+[07:16:17.740] Section 17 (768:3434): Text=58, Shapes=52, Score=100 (FULLY_EDITABLE)
+[07:16:17.750] Document Global Editability: 628 Text Nodes, 341 VML Shapes, 19 Media Images, 0 Cover Cheats.
+[07:16:17.752] Average Editability Score: 100/100, Verdict: PASSED.
+
+[07:16:18.000] [BENCHMARK: 16-FRAME FIDELITY EVALUATION]
+[07:16:18.500] Page 1 (763:5068): Candidate SSIM=0.9446, Current SSIM=0.9446, Baseline SSIM=0.9446 (Delta vs Current: +0.0000)
+[07:16:19.100] Page 2 (766:256): Candidate SSIM=0.9586, Current SSIM=0.9586, Baseline SSIM=0.9586 (Delta vs Current: +0.0000)
+[07:16:19.800] Page 3 (757:88): Candidate SSIM=0.9933, Current SSIM=0.9933, Baseline SSIM=0.6702 (Delta vs Current: +0.0000)
+[07:16:20.500] Page 4 (759:759): Candidate SSIM=0.9490, Current SSIM=0.7927, Baseline SSIM=0.7882 (Delta vs Current: +0.1563) [MASSIVE JUMP]
+[07:16:21.200] Page 5 (757:92): Candidate SSIM=0.9797, Current SSIM=0.9797, Baseline SSIM=0.9797 (Delta vs Current: +0.0000)
+[07:16:21.900] Page 6 (757:142): Candidate SSIM=0.9643, Current SSIM=0.9643, Baseline SSIM=0.9643 (Delta vs Current: +0.0000)
+[07:16:22.600] Page 7 (757:158): Candidate SSIM=0.9916, Current SSIM=0.9916, Baseline SSIM=0.9916 (Delta vs Current: +0.0000)
+[07:16:23.300] Page 8 (759:911): Candidate SSIM=0.9420, Current SSIM=0.8491, Baseline SSIM=0.8412 (Delta vs Current: +0.0929) [MAJOR JUMP]
+[07:16:24.000] Page 9 (757:124): Candidate SSIM=0.9683, Current SSIM=0.9683, Baseline SSIM=0.9683 (Delta vs Current: +0.0000)
+[07:16:24.700] Page 10 (759:1076): Candidate SSIM=0.9356, Current SSIM=0.8927, Baseline SSIM=0.8924 (Delta vs Current: +0.0429) [IMPROVED]
+[07:16:25.400] Page 11 (766:2289): Candidate SSIM=0.9115, Current SSIM=0.9115, Baseline SSIM=0.9115 (Delta vs Current: +0.0000)
+[07:16:26.100] Page 12 (757:118): Candidate SSIM=0.9592, Current SSIM=0.9592, Baseline SSIM=0.9592 (Delta vs Current: +0.0000)
+[07:16:26.800] Page 13 (766:2942): Candidate SSIM=0.8629, Current SSIM=0.8629, Baseline SSIM=0.8629 (Delta vs Current: +0.0000)
+[07:16:27.500] Page 14 (759:1314): Candidate SSIM=0.9457, Current SSIM=0.8966, Baseline SSIM=0.8969 (Delta vs Current: +0.0491) [IMPROVED]
+[07:16:28.200] Page 15 (759:1858): Candidate SSIM=0.9339, Current SSIM=0.9339, Baseline SSIM=0.9339 (Delta vs Current: +0.0000)
+[07:16:28.300] Page 16 (759:1533): REFERENCE_MISSING_VERSION_UNVERIFIED
+[07:16:29.000] Page 17 (768:3434): Candidate SSIM=0.9270, Current SSIM=0.7990, Baseline SSIM=0.7915 (Delta vs Current: +0.1280) [MAJOR JUMP]
+
+[07:16:29.100] [QUALITY GATES EVALUATION]
+[07:16:29.110] Evaluating Provenance Gate (10 checks)...
+[07:16:29.120] PROVENANCE GATE: PASSED (10/10)
+[07:16:29.130] Evaluating Measurement Integrity Gate (12 checks)...
+[07:16:29.140] MEASUREMENT INTEGRITY GATE: PASSED (12/12)
+
+[07:16:29.200] [SUMMARY METRICS]
+  - Baseline Average SSIM:  0.8972
+  - Current Average SSIM:   0.9186
+  - Candidate Average SSIM: 0.9479
+  - Delta vs Current:       +0.0293 (+2.93%)
+  - Delta vs Baseline:      +0.0508 (+5.08%)
+  - Regressed Frames:       0 / 16 (ZERO REGRESSIONS)
+  - External HTTP Requests: 0
+  - Status: SUCCESS
+================================================================================

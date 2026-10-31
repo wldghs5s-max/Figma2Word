@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-10-31T07:33:28.433Z",
+  "realFigmaJsonSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
+  "targetFramesFound": "17/17",
+  "nodeIdMapping": "VERIFIED",
+  "productionParser": "VERIFIED",
+  "realCanvasIr": "VERIFIED",
+  "realDocx": "VERIFIED",
+  "threePipelines": {
+    "baseline": {
+      "commit": "13df75f",
+      "ssim": 0.8972
+    },
+    "current": {
+      "commit": "77fea13",
+      "ssim": 0.9186
+    },
+    "candidate": {
+      "phase": "Phase 36",
+      "ssim": 0.9479
+    }
+  },
+  "validComparisons": "16/16",
+  "baselineAvgSsim": 0.8972,
+  "currentAvgSsim": 0.9186,
+  "candidateAvgSsim": 0.9479,
+  "deltaVsCurrent": 0.0293,
+  "deltaVsBaseline": 0.0508,
+  "editabilityVerdict": "PASSED",
+  "provenanceGate": "PASSED",
+  "measurementIntegrityGate": "PASSED",
+  "externalFigmaHttpRequests": 0
+}

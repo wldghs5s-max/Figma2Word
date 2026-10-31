@@ -498,7 +498,6 @@ export class FigmaCanvasParser {
             | [[number, number, number], [number, number, number]]
             | undefined;
           if (
-            imageScaleMode === "CROP" &&
             Array.isArray(transform) &&
             transform.length === 2 &&
             Array.isArray(transform[0]) &&
@@ -508,22 +507,19 @@ export class FigmaCanvasParser {
             const tx = transform[0][2] ?? 0;
             const sy = transform[1][1] ?? 1;
             const ty = transform[1][2] ?? 0;
-            let left = 0,
-              top = 0,
-              right = 0,
-              bottom = 0;
-            if (tx >= 0 && ty >= 0 && sx > 0 && sx <= 1 && sy > 0 && sy <= 1) {
-              left = Math.max(0, Math.min(0.95, tx));
-              top = Math.max(0, Math.min(0.95, ty));
-              right = Math.max(0, Math.min(0.95, 1 - (tx + sx)));
-              bottom = Math.max(0, Math.min(0.95, 1 - (ty + sy)));
-            } else if (sx > 0 && sy > 0) {
+            let left = Math.max(0, Math.min(0.95, tx));
+            let top = Math.max(0, Math.min(0.95, ty));
+            let right = Math.max(0, Math.min(0.95, 1 - (tx + sx)));
+            let bottom = Math.max(0, Math.min(0.95, 1 - (ty + sy)));
+
+            if (left === 0 && right === 0 && top === 0 && bottom === 0 && sx > 0 && sy > 0 && (sx !== 1 || sy !== 1)) {
               left = Math.max(0, Math.min(0.95, -tx / sx));
               top = Math.max(0, Math.min(0.95, -ty / sy));
               right = Math.max(0, Math.min(0.95, 1 - (1 - tx) / sx));
               bottom = Math.max(0, Math.min(0.95, 1 - (1 - ty) / sy));
             }
-            if (left > 0 || top > 0 || right > 0 || bottom > 0) {
+
+            if (left > 0.001 || top > 0.001 || right > 0.001 || bottom > 0.001) {
               imageCrop = { top, bottom, left, right };
             }
           }

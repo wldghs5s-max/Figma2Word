@@ -63,23 +63,51 @@ export async function auditDocxEditability(
   const bodyMatch = docXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
   const bodyContent = bodyMatch ? bodyMatch[1] : docXml;
 
-  // Split content by w:sectPr using fast non-backtracking indexOf
+  // Split content by w:sectPr.
+  // In Word OpenXML:
+  // 1. For intermediate sections, <w:sectPr> is placed inside <w:pPr> of the LAST paragraph
+  //    of that section. Content runs (<w:r>) inside that same <w:p> belong to that section.
+  //    Therefore, the section boundary ends at the closing </w:p> of that enclosing paragraph.
+  // 2. For the final section, <w:sectPr> is a direct child of <w:body> at the end of the document.
   const rawSections: string[] = [];
-  const sectPrClose = "</w:sectPr>";
   let searchPos = 0;
 
-  while (true) {
-    const endIdx = bodyContent.indexOf(sectPrClose, searchPos);
-    if (endIdx === -1) break;
-    const chunkEnd = endIdx + sectPrClose.length;
+  while (searchPos < bodyContent.length) {
+    const sectPrIdx = bodyContent.indexOf("<w:sectPr", searchPos);
+    if (sectPrIdx === -1) {
+      const trailing = bodyContent.substring(searchPos);
+      if (trailing.trim().length > 0) {
+        if (rawSections.length > 0) {
+          rawSections[rawSections.length - 1] += trailing;
+        } else {
+          rawSections.push(trailing);
+        }
+      }
+      break;
+    }
+
+    const sectPrCloseIdx = bodyContent.indexOf("</w:sectPr>", sectPrIdx);
+    if (sectPrCloseIdx === -1) break;
+    const sectPrEnd = sectPrCloseIdx + "</w:sectPr>".length;
+
+    // Check if this sectPr is inside an active <w:p>
+    const lastPBeforeSectPr = bodyContent.lastIndexOf("<w:p", sectPrIdx);
+    const lastPCloseBeforeSectPr = bodyContent.lastIndexOf("</w:p>", sectPrIdx);
+    const isInsideP =
+      lastPBeforeSectPr >= searchPos &&
+      (lastPCloseBeforeSectPr === -1 || lastPBeforeSectPr > lastPCloseBeforeSectPr);
+
+    let chunkEnd = sectPrEnd;
+    if (isInsideP) {
+      // The section ends at the closing </w:p> of this paragraph
+      const pCloseIdx = bodyContent.indexOf("</w:p>", sectPrEnd);
+      if (pCloseIdx !== -1) {
+        chunkEnd = pCloseIdx + "</w:p>".length;
+      }
+    }
+
     rawSections.push(bodyContent.substring(searchPos, chunkEnd));
     searchPos = chunkEnd;
-  }
-  if (searchPos < bodyContent.length) {
-    const trailing = bodyContent.substring(searchPos);
-    if (trailing.trim().length > 0) {
-      rawSections.push(trailing);
-    }
   }
 
   // If no sectPr found, treat whole body as single section

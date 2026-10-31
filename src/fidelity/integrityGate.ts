@@ -305,3 +305,18 @@ export function evaluateMeasurementIntegrity(
     passedChecksCount,
   };
 }
+
+/**
+ * Asserts that a gate check passed. If failed, sets process.exitCode = 1 and throws an Error.
+ */
+export function assertGatePassed(
+  name: string,
+  result: { passed: boolean; violations: string[] }
+): void {
+  if (!result.passed) {
+    process.exitCode = 1;
+    const details =
+      result.violations.length > 0 ? `:\n - ${result.violations.join("\n - ")}` : "";
+    throw new Error(`[GATE_FAILURE] ${name} check failed with non-zero exit code${details}`);
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "docxPath": "C:\\Users\\77\\Documents\\Figma2Word\\local-fidelity-artifacts\\candidate\\actual.docx",
+  "docxSha256": "c5468ec2806f9b2591045b49cbf53609e9a3d509f46b71c944ebd31ff3f4551b",
+  "totalSections": 17,
+  "globalSummary": {
+    "totalTextNodes": 661,
+    "totalParagraphs": 642,
+    "totalTables": 0,
+    "totalVmlShapes": 1134,
+    "totalDrawings": 0,
+    "totalMediaImages": 12,
+    "fullPageCoverCheatCount": 0,
+    "averageEditabilityScore": 100,
+    "overallVerdict": "PASSED"
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "sectionIndex": 0,
+      "widthPt": 1440,
+      "heightPt": 810,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 12,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 3,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 1 text nodes (12 chars)"
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "sectionIndex": 1,
+      "widthPt": 1440,
+      "heightPt": 810,
+      "orientation": "landscape",
+      "textNodeCount": 44,
+      "totalTextLength": 593,
+      "paragraphCount": 45,
+      "tableCount": 0,
+      "vmlShapeCount": 73,
+      "vmlTextboxCount": 44,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 44 text nodes (593 chars)"
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "sectionIndex": 2,
+      "widthPt": 1080,
+      "heightPt": 768,
+      "orientation": "landscape",
+      "textNodeCount": 29,
+      "totalTextLength": 266,
+      "paragraphCount": 30,
+      "tableCount": 0,
+      "vmlShapeCount": 49,
+      "vmlTextboxCount": 29,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 29 text nodes (266 chars)"
+      ]
+    },
+    {
+      "pageNumber": 4,
+      "sectionIndex": 3,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 4,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 2,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 1 text nodes (4 chars)"
+      ]
+    },
+    {
+      "pageNumber": 5,
+      "sectionIndex": 4,
+      "widthPt": 1086.75,
+      "heightPt": 1185,
+      "orientation": "portrait",
+      "textNodeCount": 50,
+      "totalTextLength": 283,
+      "paragraphCount": 51,
+      "tableCount": 0,
+      "vmlShapeCount": 94,
+      "vmlTextboxCount": 50,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 50 text nodes (283 chars)"
+      ]
+    },
+    {
+      "pageNumber": 6,
+      "sectionIndex": 5,
+      "widthPt": 1086.75,
+      "heightPt": 812.25,
+      "orientation": "landscape",
+      "textNodeCount": 4,
+      "totalTextLength": 55,
+      "paragraphCount": 4,
+      "tableCount": 0,
+      "vmlShapeCount": 9,
+      "vmlTextboxCount": 3,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 4 text nodes (55 chars)"
+      ]
+    },
+    {
+      "pageNumber": 7,
+      "sectionIndex": 6,
+      "widthPt": 1086.75,
+      "heightPt": 812.25,
+      "orientation": "landscape",
+      "textNodeCount": 4,
+      "totalTextLength": 69,
+      "paragraphCount": 3,
+      "tableCount": 0,
+      "vmlShapeCount": 4,
+      "vmlTextboxCount": 2,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 4 text nodes (69 chars)"
+      ]
+    },
+    {
+      "pageNumber": 8,
+      "sectionIndex": 7,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 4,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 2,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 1 text nodes (4 chars)"
+      ]
+    },
+    {
+      "pageNumber": 9,
+      "sectionIndex": 8,
+      "widthPt": 883.5,
+      "heightPt": 968.25,
+      "orientation": "portrait",
+      "textNodeCount": 50,
+      "totalTextLength": 294,
+      "paragraphCount": 51,
+      "tableCount": 0,
+      "vmlShapeCount": 95,
+      "vmlTextboxCount": 50,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 50 text nodes (294 chars)"
+      ]
+    },
+    {
+      "pageNumber": 10,
+      "sectionIndex": 9,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 2,
+      "totalTextLength": 23,
+      "paragraphCount": 3,
+      "tableCount": 0,
+      "vmlShapeCount": 4,
+      "vmlTextboxCount": 2,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 2 text nodes (23 chars)"
+      ]
+    },
+    {
+      "pageNumber": 11,
+      "sectionIndex": 10,
+      "widthPt": 378,
+      "heightPt": 459.75,
+      "orientation": "portrait",
+      "textNodeCount": 73,
+      "totalTextLength": 527,
+      "paragraphCount": 74,
+      "tableCount": 0,
+      "vmlShapeCount": 133,
+      "vmlTextboxCount": 73,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 73 text nodes (527 chars)"
+      ]
+    },
+    {
+      "pageNumber": 12,
+      "sectionIndex": 11,
+      "widthPt": 883.5,
+      "heightPt": 968.25,
+      "orientation": "portrait",
+      "textNodeCount": 32,
+      "totalTextLength": 157,
+      "paragraphCount": 33,
+      "tableCount": 0,
+      "vmlShapeCount": 62,
+      "vmlTextboxCount": 32,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 32 text nodes (157 chars)"
+      ]
+    },
+    {
+      "pageNumber": 13,
+      "sectionIndex": 12,
+      "widthPt": 378,
+      "heightPt": 701.25,
+      "orientation": "portrait",
+      "textNodeCount": 5,
+      "totalTextLength": 70,
+      "paragraphCount": 6,
+      "tableCount": 0,
+      "vmlShapeCount": 7,
+      "vmlTextboxCount": 5,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 5 text nodes (70 chars)"
+      ]
+    },
+    {
+      "pageNumber": 14,
+      "sectionIndex": 13,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 60,
+      "totalTextLength": 230,
+      "paragraphCount": 39,
+      "tableCount": 0,
+      "vmlShapeCount": 70,
+      "vmlTextboxCount": 38,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 60 text nodes (230 chars)"
+      ]
+    },
+    {
+      "pageNumber": 15,
+      "sectionIndex": 14,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 76,
+      "totalTextLength": 454,
+      "paragraphCount": 71,
+      "tableCount": 0,
+      "vmlShapeCount": 128,
+      "vmlTextboxCount": 70,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 76 text nodes (454 chars)"
+      ]
+    },
+    {
+      "pageNumber": 16,
+      "sectionIndex": 15,
+      "widthPt": 1440,
+      "heightPt": 915.75,
+      "orientation": "landscape",
+      "textNodeCount": 95,
+      "totalTextLength": 529,
+      "paragraphCount": 94,
+      "tableCount": 0,
+      "vmlShapeCount": 169,
+      "vmlTextboxCount": 93,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 95 text nodes (529 chars)"
+      ]
+    },
+    {
+      "pageNumber": 17,
+      "sectionIndex": 16,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 134,
+      "totalTextLength": 957,
+      "paragraphCount": 132,
+      "tableCount": 0,
+      "vmlShapeCount": 230,
+      "vmlTextboxCount": 131,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "hasFullPageCoverImage": false,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 134 text nodes (957 chars)"
+      ]
+    }
+  ]
+}

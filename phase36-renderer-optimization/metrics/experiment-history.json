@@ -1,0 +1,20 @@
+[
+  {
+    "iteration": 0,
+    "description": "Baseline Commit (13df75f) with desktop scaling and cover-crop issues",
+    "avgSsim": 0.8972,
+    "delta": 0
+  },
+  {
+    "iteration": 1,
+    "description": "Phase 35.2 Current Commit (77fea13) with 1:1 DIP mapping and STRETCH cover-crop guard",
+    "avgSsim": 0.9186,
+    "delta": 0.0214
+  },
+  {
+    "iteration": 2,
+    "description": "Phase 36 Candidate: Affine imageTransform crop extraction for STRETCH images (map-area) and editability auditor correction",
+    "avgSsim": 0.9479,
+    "delta": 0.0293
+  }
+]
