@@ -89,13 +89,13 @@ The conversion pipeline consists of three core layers:
 | Category | Count | Description | Action Required |
 | :--- | :--- | :--- | :--- |
 | **ACTUAL_MISSING** | 0 | Renderable standalone elements dropped without trace | None detected |
-| **MERGED_INTO_PARENT** | 206 | Full-frame background fills, lines, or vectors merged into section background | Refine shape tagging |
+| **MERGED_INTO_PARENT** | 0 | Formally proven as merged into parent | Requires OpenXML tag proof before claiming |
 | **MULTI_OBJECT_DECOMPOSED** | 0 | Split across multiple sub-shapes | Fully traceable |
 | **INTENTIONAL_OMISSION** | 0 | Structural wrappers (counted in 721 omitted) | Fully traceable |
-| **MAPPING_FAILURE** | 32 | Card container shapes rendered without explicit `alt="<nodeId>"` attribute | Add alt attribute to card shapes |
+| **MAPPING_FAILURE** | 0 | Elements with unmapped identifiers | None |
 | **UNSUPPORTED_TYPE** | 0 | Unsupported Figma node types | None |
-| **UNRESOLVED** | 0 | Undetermined cause | None |
-| **Total Unresolved in DOCX** | **238** | Expected difference between IR and DOCX XML | Target for future renderer phase |
+| **UNRESOLVED** | 238 | Elements present in IR but lacking matching OpenXML evidence in DOCX XML | Strict fail-closed unresolved target for future renderer optimization |
+| **Total Unresolved in DOCX** | **238** | Verified gap between IR and DOCX XML | Fail-closed gate failure (Correct behavior) |
 
 ---
 
@@ -137,3 +137,4 @@ npm --prefix apps/web run build
 # 5. Production customer pipeline
 npx tsx scripts/run_phase39_production_pipeline.ts
 ```
+

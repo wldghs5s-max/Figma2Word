@@ -1,10 +1,10 @@
 {
-  "runId": "run_phase39_1793446968574",
+  "runId": "run_phase39_1793451319136",
   "runStatus": "FAILED",
   "isApproved": false,
-  "startedAt": "2026-10-31T11:42:48.574Z",
-  "finishedAt": "2026-10-31T11:43:33.671Z",
-  "gitCommit": "2cfed8bfb442fc7c186993e777a3e229ce41254b",
+  "startedAt": "2026-10-31T12:55:19.136Z",
+  "finishedAt": "2026-10-31T12:56:05.327Z",
+  "gitCommit": "537a71692a6f4bc9decb9149c1df2beaa9c01193",
   "sourceFileSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "sourceFrameIds": [
     "763:5068",
@@ -25,8 +25,8 @@
     "759:1533",
     "768:3434"
   ],
-  "candidateDocxSha256": "04936325a88e368a270bf25638df2ad27183340ec6e0cc65c2b6ee6ef128258a",
-  "candidatePdfSha256": "a5ab86913a583931ebcb20de9d01b2decc2b0fee888d72810aa137718e1ad00d",
+  "candidateDocxSha256": "373c7df1350a5057b5613a08c098ab98125c36e61b52365f6ea019f06ecd1784",
+  "candidatePdfSha256": "45553d344bf5ca1484868fbbc7d248167758ee4b77ba783e278e9e7bda25d4e0",
   "candidatePngShaMap": {
     "763:5068": "d3bbd96e10df7f04f273468e52288625c74a2e07acb4b25c72a085269c9fcb99",
     "766:256": "09fd69450123d57ef9b8ab7e442dd042cc7e597ef68f4c72dca16d9832ce4aa8",
@@ -90,7 +90,7 @@
       "gateId": "GATE_OBJECT_TRACEABILITY",
       "name": "Source-to-Word Object Traceability Gate",
       "status": "FAILED",
-      "summary": "Resolved 1074/2033 objects, content verified 768",
+      "summary": "Traceability failed: 238 unresolved in DOCX, content verified 745/2033",
       "failureReasons": [
         "238 objects exist in IR but failed to resolve into DOCX XML"
       ]
@@ -105,19 +105,19 @@
       "gateId": "GATE_EDITABILITY",
       "name": "DOCX Native Editability Gate",
       "status": "PASSED",
-      "summary": "Average score 88/100, verdict PASSED"
+      "summary": "Verified native DOCX editability, average score 88/100"
     },
     "GATE_MEDIA_RELATIONSHIPS": {
       "gateId": "GATE_MEDIA_RELATIONSHIPS",
       "name": "DOCX Media Relationships & Integrity Gate",
       "status": "PASSED",
-      "summary": "Verified 11 relationships, broken count: 0"
+      "summary": "Verified 11 image relationships without errors"
     },
     "GATE_LAYOUT_STABILITY": {
       "gateId": "GATE_LAYOUT_STABILITY",
       "name": "Masked Layout Stability Gate",
       "status": "FAILED",
-      "summary": "Zero regressions on unedited document regions (avg mismatch 0.0330%)",
+      "summary": "Layout stability failed: 4 non-stable pages (coverage: 3, regressions: 1)",
       "failureReasons": [
         "4 page regressions detected outside edited bounding box"
       ]
@@ -145,7 +145,7 @@
     "traceability": {
       "sourceNodes": 2033,
       "docxObjectsResolved": 1074,
-      "contentVerified": 768,
+      "contentVerified": 745,
       "unresolved": 238
     },
     "editability": {

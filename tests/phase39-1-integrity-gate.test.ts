@@ -119,6 +119,8 @@ describe("Phase 39.1: Provenance, PNG Byte Hash & Measurement Separation Test Su
           nodeId: "1:1",
           frameName: "Frame 1",
           status: "VALID_BENCHMARK",
+          referencePngPath: "ref.png",
+          referencePngSha256: "r".repeat(64),
           baselinePngPath: "a.png",
           baselinePngSha256: "a".repeat(64),
           improvedPngPath: "b.png",
@@ -176,5 +178,196 @@ describe("Phase 39.1: Provenance, PNG Byte Hash & Measurement Separation Test Su
     const res = evaluateMeasurementIntegrity(bundle);
     expect(res.passed).toBe(false);
     expect(res.violations.some((v) => v.includes("duplicated into Baseline DOCX hash"))).toBe(true);
+  });
+
+  it("5. Successfully passes genuine ABSOLUTE_FIGMA_TO_WORD benchmark with disk verification", () => {
+    const refPngPath = path.join(tmpDir, "test.png");
+    const candPngPath = path.join(tmpDir, "test2.png");
+
+    const bundle: MeasurementBundle = {
+      mode: "real",
+      comparisonMode: "ABSOLUTE_FIGMA_TO_WORD",
+      inputJsonSha256: "a".repeat(64),
+      improvedDocxSha256: "b".repeat(64),
+      improvedPdfSha256: "c".repeat(64),
+      wordAutomationSucceeded: true,
+      computedAt: new Date().toISOString(),
+      pages: [
+        {
+          pageNumber: 1,
+          nodeId: "1:100",
+          frameName: "Cover Page",
+          status: "VALID_BENCHMARK",
+          referencePngPath: refPngPath,
+          referencePngSha256: genuineHash,
+          improvedPngPath: candPngPath,
+          improvedPngSha256: genuineHash,
+          baselinePngPath: undefined,
+          baselinePngSha256: undefined,
+          baselineSsim: null,
+          baselineMae: null,
+          baselineRmse: null,
+          baselineMismatch: null,
+          improvedSsim: 0.945,
+          improvedMae: 1.25,
+          improvedRmse: 3.42,
+          improvedMismatch: 0.02,
+          ssimDelta: null,
+        },
+      ],
+      averages: {
+        baselineSsim: null,
+        improvedSsim: 0.945,
+        ssimDelta: null,
+        baselineMae: null,
+        improvedMae: 1.25,
+        baselineRmse: null,
+        improvedRmse: 3.42,
+      },
+    };
+
+    const res = evaluateMeasurementIntegrity(bundle, 1, { verifyDiskFiles: true });
+    expect(res.passed).toBe(true);
+    expect(res.coverageStatus).toBe("EXPECTED_REFERENCE_COVERAGE_MET");
+    expect(res.violations).toHaveLength(0);
+  });
+
+  it("6. Rejects ABSOLUTE_FIGMA_TO_WORD when baselineDocxSha256 is illegally populated", () => {
+    const bundle: MeasurementBundle = {
+      mode: "real",
+      comparisonMode: "ABSOLUTE_FIGMA_TO_WORD",
+      inputJsonSha256: "a".repeat(64),
+      baselineDocxSha256: "d".repeat(64), // ILLEGAL in ABSOLUTE mode
+      improvedDocxSha256: "b".repeat(64),
+      improvedPdfSha256: "c".repeat(64),
+      wordAutomationSucceeded: true,
+      computedAt: new Date().toISOString(),
+      pages: [
+        {
+          pageNumber: 1,
+          nodeId: "1:100",
+          frameName: "Cover",
+          status: "VALID_BENCHMARK",
+          referencePngPath: testPngPath,
+          referencePngSha256: genuineHash,
+          improvedPngPath: path.join(tmpDir, "test2.png"),
+          improvedPngSha256: genuineHash,
+          baselineSsim: null,
+          baselineMae: null,
+          baselineRmse: null,
+          baselineMismatch: null,
+          improvedSsim: 0.95,
+          improvedMae: 1.0,
+          improvedRmse: 2.0,
+          improvedMismatch: 0.01,
+          ssimDelta: null,
+        },
+      ],
+      averages: {
+        baselineSsim: null,
+        improvedSsim: 0.95,
+        ssimDelta: null,
+        baselineMae: null,
+        improvedMae: 1.0,
+        baselineRmse: null,
+        improvedRmse: 2.0,
+      },
+    };
+
+    const res = evaluateMeasurementIntegrity(bundle);
+    expect(res.passed).toBe(false);
+    expect(res.violations.some((v) => v.includes("Baseline DOCX SHA-256 populated in ABSOLUTE_FIGMA_TO_WORD mode"))).toBe(true);
+  });
+
+  it("7. Rejects ABSOLUTE_FIGMA_TO_WORD when referencePngPath is missing", () => {
+    const bundle: MeasurementBundle = {
+      mode: "real",
+      comparisonMode: "ABSOLUTE_FIGMA_TO_WORD",
+      inputJsonSha256: "a".repeat(64),
+      improvedDocxSha256: "b".repeat(64),
+      improvedPdfSha256: "c".repeat(64),
+      wordAutomationSucceeded: true,
+      computedAt: new Date().toISOString(),
+      pages: [
+        {
+          pageNumber: 1,
+          nodeId: "1:100",
+          frameName: "Cover",
+          status: "VALID_BENCHMARK",
+          referencePngPath: undefined, // MISSING
+          referencePngSha256: undefined,
+          improvedPngPath: path.join(tmpDir, "test2.png"),
+          improvedPngSha256: genuineHash,
+          baselineSsim: null,
+          baselineMae: null,
+          baselineRmse: null,
+          baselineMismatch: null,
+          improvedSsim: 0.95,
+          improvedMae: 1.0,
+          improvedRmse: 2.0,
+          improvedMismatch: 0.01,
+          ssimDelta: null,
+        },
+      ],
+      averages: {
+        baselineSsim: null,
+        improvedSsim: 0.95,
+        ssimDelta: null,
+        baselineMae: null,
+        improvedMae: 1.0,
+        baselineRmse: null,
+        improvedRmse: 2.0,
+      },
+    };
+
+    const res = evaluateMeasurementIntegrity(bundle);
+    expect(res.passed).toBe(false);
+    expect(res.violations.some((v) => v.includes("missing reference or improved PNG path in absolute mode"))).toBe(true);
+  });
+
+  it("8. Rejects ABSOLUTE_FIGMA_TO_WORD when average baselineSsim or ssimDelta is populated", () => {
+    const bundle: MeasurementBundle = {
+      mode: "real",
+      comparisonMode: "ABSOLUTE_FIGMA_TO_WORD",
+      inputJsonSha256: "a".repeat(64),
+      improvedDocxSha256: "b".repeat(64),
+      improvedPdfSha256: "c".repeat(64),
+      wordAutomationSucceeded: true,
+      computedAt: new Date().toISOString(),
+      pages: [
+        {
+          pageNumber: 1,
+          nodeId: "1:100",
+          frameName: "Cover",
+          status: "VALID_BENCHMARK",
+          referencePngPath: testPngPath,
+          referencePngSha256: genuineHash,
+          improvedPngPath: path.join(tmpDir, "test2.png"),
+          improvedPngSha256: genuineHash,
+          baselineSsim: null,
+          baselineMae: null,
+          baselineRmse: null,
+          baselineMismatch: null,
+          improvedSsim: 0.95,
+          improvedMae: 1.0,
+          improvedRmse: 2.0,
+          improvedMismatch: 0.01,
+          ssimDelta: null,
+        },
+      ],
+      averages: {
+        baselineSsim: 0.90, // ILLEGAL in ABSOLUTE mode!
+        improvedSsim: 0.95,
+        ssimDelta: 0.05,    // ILLEGAL in ABSOLUTE mode!
+        baselineMae: null,
+        improvedMae: 1.0,
+        baselineRmse: null,
+        improvedRmse: 2.0,
+      },
+    };
+
+    const res = evaluateMeasurementIntegrity(bundle);
+    expect(res.passed).toBe(false);
+    expect(res.violations.some((v) => v.includes("INTEGRITY_FAIL_09C"))).toBe(true);
   });
 });

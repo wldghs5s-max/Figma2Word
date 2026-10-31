@@ -414,21 +414,21 @@ export async function runPhase39Pipeline() {
       nodeId,
       frameName,
       status: "VALID_BENCHMARK",
-      baselinePngPath: refPngPath,
-      baselinePngSha256: refSha,
       improvedPngPath: candPngPath,
       improvedPngSha256: candSha,
       referencePngPath: refPngPath,
       referencePngSha256: refSha,
-      baselineSsim: cmp.ssim,
-      baselineMae: cmp.mae,
-      baselineRmse: cmp.rmse,
-      baselineMismatch: cmp.mismatchRatio,
+      baselinePngPath: undefined,
+      baselinePngSha256: undefined,
+      baselineSsim: null,
+      baselineMae: null,
+      baselineRmse: null,
+      baselineMismatch: null,
       improvedSsim: cmp.ssim,
       improvedMae: cmp.mae,
       improvedRmse: cmp.rmse,
       improvedMismatch: cmp.mismatchRatio,
-      ssimDelta: 0.0,
+      ssimDelta: null,
     });
   }
 
@@ -479,28 +479,26 @@ export async function runPhase39Pipeline() {
 
   const measurementBundle: MeasurementBundle = {
     mode: "real",
+    comparisonMode: "ABSOLUTE_FIGMA_TO_WORD",
     inputJsonSha256: jsonSha256,
-    baselineDocxSha256: candidateDocxSha,
     improvedDocxSha256: candidateDocxSha,
-    baselinePdfSha256: candidatePdfSha || "0".repeat(64),
     improvedPdfSha256: candidatePdfSha || "0".repeat(64),
     wordAutomationSucceeded,
     computedAt: new Date().toISOString(),
     pages: pageMeasurements,
     averages: {
-      baselineSsim: avgSsim,
+      baselineSsim: null,
       improvedSsim: avgSsim,
-      ssimDelta: 0.0,
-      baselineMae: avgMae,
+      ssimDelta: null,
+      baselineMae: null,
       improvedMae: avgMae,
-      baselineRmse: avgRmse,
+      baselineRmse: null,
       improvedRmse: avgRmse,
     },
   };
 
   const measGate = evaluateMeasurementIntegrity(measurementBundle, 16, {
     verifyDiskFiles: true,
-    allowIdenticalDeltasWithEvidence: true,
   });
   log(`  Measurement Gate:       ${measGate.passed ? "PASSED" : "FAILED"} (${measGate.coverageStatus})`);
   if (!measGate.passed) {

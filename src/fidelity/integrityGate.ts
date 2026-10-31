@@ -272,6 +272,8 @@ export function evaluateMeasurementIntegrity(
     violations.push("INTEGRITY_FAIL_04: Missing or invalid Baseline DOCX SHA-256 hash in comparative benchmark.");
   } else if (!isAbsolute && bundle.baselineDocxSha256 === bundle.improvedDocxSha256 && !options?.allowIdenticalDeltasWithEvidence) {
     violations.push("INTEGRITY_FAIL_04: Candidate DOCX hash was duplicated into Baseline DOCX hash.");
+  } else if (isAbsolute && bundle.baselineDocxSha256 !== undefined) {
+    violations.push("INTEGRITY_FAIL_04: Baseline DOCX SHA-256 populated in ABSOLUTE_FIGMA_TO_WORD mode.");
   } else {
     passedChecksCount++;
   }
@@ -282,6 +284,8 @@ export function evaluateMeasurementIntegrity(
     violations.push("INTEGRITY_FAIL_05: Missing or invalid Improved PDF SHA-256 hash.");
   } else if (!isAbsolute && (!bundle.baselinePdfSha256 || bundle.baselinePdfSha256.length !== 64)) {
     violations.push("INTEGRITY_FAIL_05: Missing or invalid Baseline PDF SHA-256 hash in comparative benchmark.");
+  } else if (isAbsolute && bundle.baselinePdfSha256 !== undefined) {
+    violations.push("INTEGRITY_FAIL_05: Baseline PDF SHA-256 populated in ABSOLUTE_FIGMA_TO_WORD mode.");
   } else {
     passedChecksCount++;
   }
@@ -332,81 +336,107 @@ export function evaluateMeasurementIntegrity(
 
     // 8.2 Valid benchmark frame checks
     if (p.status === "VALID_BENCHMARK") {
-      if (!p.baselinePngPath || !p.improvedPngPath) {
-        violations.push(`INTEGRITY_FAIL_07B: Valid benchmark frame ${p.nodeId} missing PNG path.`);
-        frameCheckPassed = false;
-        break;
-      }
-      if (p.baselinePngPath === p.improvedPngPath) {
-        violations.push(`INTEGRITY_FAIL_07C: Frame ${p.nodeId} reuses identical PNG path for Before and After.`);
-        frameCheckPassed = false;
-        break;
-      }
-      if (p.baselineSsim === null || p.improvedSsim === null) {
-        violations.push(`INTEGRITY_FAIL_07D: Valid benchmark frame ${p.nodeId} has null SSIM value.`);
-        frameCheckPassed = false;
-        break;
-      }
-
-      // Check empty PNG hash
-      if (!p.baselinePngSha256 || p.baselinePngSha256.trim() === "" || !p.improvedPngSha256 || p.improvedPngSha256.trim() === "") {
-        violations.push(`INTEGRITY_FAIL_EMPTY_PNG_HASH: Frame ${p.nodeId} has empty baseline or improved PNG SHA-256.`);
-        frameCheckPassed = false;
-        break;
-      }
-
-      // Check finite numerical values
-      if (!Number.isFinite(p.baselineSsim) || !Number.isFinite(p.improvedSsim)) {
-        violations.push(`INTEGRITY_FAIL_NON_FINITE_SSIM: Frame ${p.nodeId} has non-finite SSIM (NaN or Infinity).`);
-        frameCheckPassed = false;
-        break;
-      }
-      if (p.baselineSsim < -1 || p.baselineSsim > 1 || p.improvedSsim < -1 || p.improvedSsim > 1) {
-        violations.push(`INTEGRITY_FAIL_OUT_OF_BOUNDS_SSIM: Frame ${p.nodeId} SSIM out of valid range [-1, 1].`);
-        frameCheckPassed = false;
-        break;
-      }
-
-      // SSIM delta consistency
-      if (p.ssimDelta !== null) {
-        if (!Number.isFinite(p.ssimDelta)) {
-          violations.push(`INTEGRITY_FAIL_NON_FINITE_DELTA: Frame ${p.nodeId} has non-finite ssimDelta.`);
+      if (!isAbsolute) {
+        if (!p.baselinePngPath || !p.improvedPngPath) {
+          violations.push(`INTEGRITY_FAIL_07B: Valid benchmark frame ${p.nodeId} missing PNG path.`);
           frameCheckPassed = false;
           break;
         }
-        const expectedDelta = p.improvedSsim - p.baselineSsim;
-        if (Math.abs(p.ssimDelta - expectedDelta) > 0.001) {
-          violations.push(`INTEGRITY_FAIL_DELTA_MISMATCH: Frame ${p.nodeId} delta ${p.ssimDelta} != improved (${p.improvedSsim}) - baseline (${p.baselineSsim}).`);
+        if (p.baselinePngPath === p.improvedPngPath) {
+          violations.push(`INTEGRITY_FAIL_07C: Frame ${p.nodeId} reuses identical PNG path for Before and After.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.baselineSsim === null || p.improvedSsim === null) {
+          violations.push(`INTEGRITY_FAIL_07D: Valid benchmark frame ${p.nodeId} has null SSIM value.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (!p.baselinePngSha256 || p.baselinePngSha256.trim() === "" || !p.improvedPngSha256 || p.improvedPngSha256.trim() === "") {
+          violations.push(`INTEGRITY_FAIL_EMPTY_PNG_HASH: Frame ${p.nodeId} has empty baseline or improved PNG SHA-256.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (!Number.isFinite(p.baselineSsim) || !Number.isFinite(p.improvedSsim)) {
+          violations.push(`INTEGRITY_FAIL_NON_FINITE_SSIM: Frame ${p.nodeId} has non-finite SSIM (NaN or Infinity).`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.baselineSsim < -1 || p.baselineSsim > 1 || p.improvedSsim < -1 || p.improvedSsim > 1) {
+          violations.push(`INTEGRITY_FAIL_OUT_OF_BOUNDS_SSIM: Frame ${p.nodeId} SSIM out of valid range [-1, 1].`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.ssimDelta !== null) {
+          if (!Number.isFinite(p.ssimDelta)) {
+            violations.push(`INTEGRITY_FAIL_NON_FINITE_DELTA: Frame ${p.nodeId} has non-finite ssimDelta.`);
+            frameCheckPassed = false;
+            break;
+          }
+          const expectedDelta = p.improvedSsim - p.baselineSsim;
+          if (Math.abs(p.ssimDelta - expectedDelta) > 0.001) {
+            violations.push(`INTEGRITY_FAIL_DELTA_MISMATCH: Frame ${p.nodeId} delta ${p.ssimDelta} != improved (${p.improvedSsim}) - baseline (${p.baselineSsim}).`);
+            frameCheckPassed = false;
+            break;
+          }
+        }
+        if (p.baselineMae !== null && (!Number.isFinite(p.baselineMae) || p.baselineMae < 0)) {
+          violations.push(`INTEGRITY_FAIL_INVALID_MAE: Frame ${p.nodeId} has negative or non-finite baselineMae.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.baselineRmse !== null && (!Number.isFinite(p.baselineRmse) || p.baselineRmse < 0)) {
+          violations.push(`INTEGRITY_FAIL_INVALID_RMSE: Frame ${p.nodeId} has negative or non-finite baselineRmse.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.baselineMismatch !== null && (!Number.isFinite(p.baselineMismatch) || p.baselineMismatch < 0 || p.baselineMismatch > 1)) {
+          violations.push(`INTEGRITY_FAIL_INVALID_MISMATCH: Frame ${p.nodeId} baselineMismatch ratio out of range [0, 1]: ${p.baselineMismatch}`);
+          frameCheckPassed = false;
+          break;
+        }
+      } else {
+        // Absolute mode (Figma Reference PNG vs Improved Word PNG)
+        if (!p.referencePngPath || !p.improvedPngPath) {
+          violations.push(`INTEGRITY_FAIL_07B: Valid benchmark frame ${p.nodeId} missing reference or improved PNG path in absolute mode.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.improvedSsim === null) {
+          violations.push(`INTEGRITY_FAIL_07D: Valid benchmark frame ${p.nodeId} has null improvedSsim value.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.baselinePngPath !== undefined || p.baselineSsim !== null || p.ssimDelta !== null) {
+          violations.push(`INTEGRITY_FAIL_ARTIFICIAL_DELTA: Frame ${p.nodeId} populates baseline PNG/SSIM or delta in absolute benchmark mode.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (!p.referencePngSha256 || p.referencePngSha256.trim() === "" || !p.improvedPngSha256 || p.improvedPngSha256.trim() === "") {
+          violations.push(`INTEGRITY_FAIL_EMPTY_PNG_HASH: Frame ${p.nodeId} has empty reference or improved PNG SHA-256 in absolute mode.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (!Number.isFinite(p.improvedSsim)) {
+          violations.push(`INTEGRITY_FAIL_NON_FINITE_SSIM: Frame ${p.nodeId} has non-finite improvedSsim.`);
+          frameCheckPassed = false;
+          break;
+        }
+        if (p.improvedSsim < -1 || p.improvedSsim > 1) {
+          violations.push(`INTEGRITY_FAIL_OUT_OF_BOUNDS_SSIM: Frame ${p.nodeId} improvedSsim out of valid range [-1, 1].`);
           frameCheckPassed = false;
           break;
         }
       }
 
-      // MAE / RMSE sanity (must be non-negative finite)
-      if (p.baselineMae !== null && (!Number.isFinite(p.baselineMae) || p.baselineMae < 0)) {
-        violations.push(`INTEGRITY_FAIL_INVALID_MAE: Frame ${p.nodeId} has negative or non-finite baselineMae.`);
-        frameCheckPassed = false;
-        break;
-      }
+      // Improved metric sanity
       if (p.improvedMae !== null && (!Number.isFinite(p.improvedMae) || p.improvedMae < 0)) {
         violations.push(`INTEGRITY_FAIL_INVALID_MAE: Frame ${p.nodeId} has negative or non-finite improvedMae.`);
         frameCheckPassed = false;
         break;
       }
-      if (p.baselineRmse !== null && (!Number.isFinite(p.baselineRmse) || p.baselineRmse < 0)) {
-        violations.push(`INTEGRITY_FAIL_INVALID_RMSE: Frame ${p.nodeId} has negative or non-finite baselineRmse.`);
-        frameCheckPassed = false;
-        break;
-      }
       if (p.improvedRmse !== null && (!Number.isFinite(p.improvedRmse) || p.improvedRmse < 0)) {
         violations.push(`INTEGRITY_FAIL_INVALID_RMSE: Frame ${p.nodeId} has negative or non-finite improvedRmse.`);
-        frameCheckPassed = false;
-        break;
-      }
-
-      // Mismatch ratio sanity (0 <= ratio <= 1)
-      if (p.baselineMismatch !== null && (!Number.isFinite(p.baselineMismatch) || p.baselineMismatch < 0 || p.baselineMismatch > 1)) {
-        violations.push(`INTEGRITY_FAIL_INVALID_MISMATCH: Frame ${p.nodeId} baselineMismatch ratio out of range [0, 1]: ${p.baselineMismatch}`);
         frameCheckPassed = false;
         break;
       }
@@ -416,16 +446,9 @@ export function evaluateMeasurementIntegrity(
         break;
       }
 
-      // Check delta policy for comparison mode
-      if (isAbsolute && p.ssimDelta !== null) {
-        violations.push(`INTEGRITY_FAIL_ARTIFICIAL_DELTA: Frame ${p.nodeId} populates artificial baseline ssimDelta in absolute benchmark mode.`);
-        frameCheckPassed = false;
-        break;
-      }
-
       // Strict disk verification
       if (options?.verifyDiskFiles) {
-        if (p.baselinePngPath) {
+        if (!isAbsolute && p.baselinePngPath) {
           if (!fs.existsSync(p.baselinePngPath)) {
             violations.push(`INTEGRITY_FAIL_FILE_NOT_FOUND: Frame ${p.nodeId} baseline PNG does not exist on disk: ${p.baselinePngPath}`);
             frameCheckPassed = false;
@@ -476,13 +499,17 @@ export function evaluateMeasurementIntegrity(
 
   // Check 9: Constant offset simulation
   checksCount++;
-  const validPages = (bundle.pages || []).filter((p) => p.status === "VALID_BENCHMARK" && p.ssimDelta !== null);
-  if (validPages.length >= 3 && !options?.allowIdenticalDeltasWithEvidence) {
-    const deltas = validPages.map((p) => Number(p.ssimDelta!.toFixed(4)));
-    const firstDelta = deltas[0];
-    const allIdentical = deltas.every((d) => Math.abs(d - firstDelta) < 1e-6);
-    if (allIdentical && Math.abs(firstDelta) > 1e-6) {
-      violations.push(`INTEGRITY_FAIL_08: Detected constant offset simulation across all frames (delta = ${firstDelta}).`);
+  if (!isAbsolute) {
+    const validPagesWithDelta = (bundle.pages || []).filter((p) => p.status === "VALID_BENCHMARK" && p.ssimDelta !== null);
+    if (validPagesWithDelta.length >= 3 && !options?.allowIdenticalDeltasWithEvidence) {
+      const deltas = validPagesWithDelta.map((p) => Number(p.ssimDelta!.toFixed(4)));
+      const firstDelta = deltas[0];
+      const allIdentical = deltas.every((d) => Math.abs(d - firstDelta) < 1e-6);
+      if (allIdentical && Math.abs(firstDelta) > 1e-6) {
+        violations.push(`INTEGRITY_FAIL_08: Detected constant offset simulation across all frames (delta = ${firstDelta}).`);
+      } else {
+        passedChecksCount++;
+      }
     } else {
       passedChecksCount++;
     }
@@ -492,21 +519,36 @@ export function evaluateMeasurementIntegrity(
 
   // Check 10: Aggregation consistency (average must equal arithmetic mean of valid pages)
   checksCount++;
-  if (validPages.length > 0) {
-    const meanBaselineSsim = validPages.reduce((s, p) => s + p.baselineSsim!, 0) / validPages.length;
-    const meanImprovedSsim = validPages.reduce((s, p) => s + p.improvedSsim!, 0) / validPages.length;
-    const reportedBaseline = bundle.averages.baselineSsim;
+  const validBenchmarkPages = (bundle.pages || []).filter((p) => p.status === "VALID_BENCHMARK");
+  if (validBenchmarkPages.length > 0) {
+    let aggFailed = false;
+    if (!isAbsolute) {
+      const meanBaselineSsim = validBenchmarkPages.reduce((s, p) => s + (p.baselineSsim ?? 0), 0) / validBenchmarkPages.length;
+      const reportedBaseline = bundle.averages.baselineSsim;
+      if (reportedBaseline !== null && Math.abs(meanBaselineSsim - reportedBaseline) > 0.001) {
+        violations.push(
+          `INTEGRITY_FAIL_09A: Baseline SSIM average mismatch: reported ${reportedBaseline} vs recomputed ${meanBaselineSsim.toFixed(4)}`
+        );
+        aggFailed = true;
+      }
+    } else {
+      if (bundle.averages.baselineSsim !== null || bundle.averages.ssimDelta !== null) {
+        violations.push("INTEGRITY_FAIL_09C: Baseline SSIM average or ssimDelta populated in ABSOLUTE_FIGMA_TO_WORD mode.");
+        aggFailed = true;
+      }
+    }
+
+    const meanImprovedSsim = validBenchmarkPages.reduce((s, p) => s + (p.improvedSsim ?? 0), 0) / validBenchmarkPages.length;
     const reportedImproved = bundle.averages.improvedSsim;
 
-    if (reportedBaseline !== null && Math.abs(meanBaselineSsim - reportedBaseline) > 0.001) {
-      violations.push(
-        `INTEGRITY_FAIL_09A: Baseline SSIM average mismatch: reported ${reportedBaseline} vs recomputed ${meanBaselineSsim.toFixed(4)}`
-      );
-    } else if (reportedImproved !== null && Math.abs(meanImprovedSsim - reportedImproved) > 0.001) {
+    if (reportedImproved !== null && Math.abs(meanImprovedSsim - reportedImproved) > 0.001) {
       violations.push(
         `INTEGRITY_FAIL_09B: Improved SSIM average mismatch: reported ${reportedImproved} vs recomputed ${meanImprovedSsim.toFixed(4)}`
       );
-    } else {
+      aggFailed = true;
+    }
+
+    if (!aggFailed) {
       passedChecksCount++;
     }
   } else {
@@ -515,7 +557,7 @@ export function evaluateMeasurementIntegrity(
 
   // Check 11: Zero valid comparisons check (B-03 fix)
   checksCount++;
-  if (validPages.length === 0) {
+  if (validBenchmarkPages.length === 0) {
     violations.push("INTEGRITY_FAIL_10: NO_VALID_COMPARISONS - Zero valid benchmark comparisons evaluated.");
   } else {
     passedChecksCount++;
@@ -524,9 +566,9 @@ export function evaluateMeasurementIntegrity(
   // Check 12: Expected reference coverage check (if requested)
   if (expectedCoverage !== undefined) {
     checksCount++;
-    if (validPages.length < expectedCoverage) {
+    if (validBenchmarkPages.length < expectedCoverage) {
       violations.push(
-        `INTEGRITY_FAIL_11: PARTIAL_VALID_COMPARISONS - Evaluated only ${validPages.length} valid comparisons, expected ${expectedCoverage}.`
+        `INTEGRITY_FAIL_11: PARTIAL_VALID_COMPARISONS - Evaluated only ${validBenchmarkPages.length} valid comparisons, expected ${expectedCoverage}.`
       );
     } else {
       passedChecksCount++;
@@ -537,9 +579,9 @@ export function evaluateMeasurementIntegrity(
   let coverageStatus: CoverageStatus;
   if (!bundle.wordAutomationSucceeded || violations.some((v) => v.includes("INTEGRITY_FAIL_02"))) {
     coverageStatus = "MEASUREMENT_FAILED";
-  } else if (validPages.length === 0) {
+  } else if (validBenchmarkPages.length === 0) {
     coverageStatus = "NO_VALID_COMPARISONS";
-  } else if (expectedCoverage !== undefined && validPages.length < expectedCoverage) {
+  } else if (expectedCoverage !== undefined && validBenchmarkPages.length < expectedCoverage) {
     coverageStatus = "PARTIAL_VALID_COMPARISONS";
   } else if (violations.length > 0) {
     coverageStatus = "MEASUREMENT_FAILED";

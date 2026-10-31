@@ -462,12 +462,11 @@ export function buildObjectTraceability(
             contentVerifiedCount++;
             preservedTexts++;
           } else {
-            // Strict content verification: must exactly match or contain the normalized source text
+            // Strict content verification: must exactly match or fully contain the normalized source text
+            // Partial slice matches (e.g. first 20 chars) are strictly prohibited
             const matches =
               combinedDocxText.length > 0 &&
-              (combinedDocxText === normSource ||
-                combinedDocxText.includes(normSource) ||
-                (normSource.length > 20 && combinedDocxText.includes(normSource.slice(0, 20))));
+              (combinedDocxText === normSource || combinedDocxText.includes(normSource));
 
             if (matches) {
               contentVerified = true;
@@ -493,37 +492,30 @@ export function buildObjectTraceability(
           const rIdMatch = /r:id="([^"]+)"/.exec(primarySnippet) || /r:embed="([^"]+)"/.exec(primarySnippet);
           const actualRId = rIdMatch ? rIdMatch[1] : undefined;
 
-          if (actualRId) {
-            if (options?.docxRelsXml) {
-              const target = relIdToTarget.get(actualRId);
-              if (target) {
-                if (options?.mediaFilesMap) {
-                  const mediaInfo = options.mediaFilesMap.get(target);
-                  if (mediaInfo && (mediaInfo.isPlaceholder || mediaInfo.size <= 100)) {
-                    contentVerified = false; // Dummy placeholder!
-                    conversionStatus = "PARTIALLY_CONVERTED";
-                  } else {
-                    contentVerified = true;
-                    contentVerifiedCount++;
-                    preservedImages++;
-                  }
-                } else {
-                  contentVerified = true;
-                  contentVerifiedCount++;
-                  preservedImages++;
-                }
+          // Evidence-based image verification: requires actual relationship ID, rels XML, and authentic media file
+          if (actualRId && options?.docxRelsXml && options?.mediaFilesMap) {
+            const target = relIdToTarget.get(actualRId);
+            if (target) {
+              const mediaInfo = options.mediaFilesMap.get(target);
+              if (mediaInfo && !mediaInfo.isPlaceholder && mediaInfo.size > 100) {
+                // Confirmed non-placeholder media bytes with authentic relationship
+                contentVerified = true;
+                contentVerifiedCount++;
+                preservedImages++;
               } else {
-                contentVerified = false; // Broken relationship target!
+                // Placeholder dummy image or empty bytes
+                contentVerified = false;
                 conversionStatus = "PARTIALLY_CONVERTED";
               }
             } else {
-              contentVerified = true;
-              contentVerifiedCount++;
-              preservedImages++;
+              // Broken relationship target
+              contentVerified = false;
+              conversionStatus = "PARTIALLY_CONVERTED";
             }
           } else {
+            // Unverified image: missing rels XML, missing media map, or missing r:id
             contentVerified = false;
-            conversionStatus = "PARTIALLY_CONVERTED";
+            conversionStatus = "UNRESOLVED";
           }
         }
 
@@ -552,7 +544,7 @@ export function buildObjectTraceability(
         if (rMatch) resolvedRelationshipId = rMatch[1];
       }
 
-      // Classify unresolved/missing objects into canonical categories
+      // Classify unresolved/missing objects into canonical categories without unverified heuristics
       let unresolvedCategory: UnresolvedCategory | undefined;
       if (conversionStatus === "INTENTIONALLY_OMITTED") {
         unresolvedCategory = "INTENTIONAL_OMISSION";
@@ -563,21 +555,14 @@ export function buildObjectTraceability(
       ) {
         unresolvedCategory = "UNSUPPORTED_TYPE";
       } else if (conversionStatus === "UNRESOLVED" || conversionStatus === "MISSING") {
-        if (elementKind === "CONTAINER") {
-          unresolvedCategory = "MERGED_INTO_PARENT";
-        } else if (matchedDocxShapes.length > 1) {
+        if (matchedDocxShapes.length > 1) {
           unresolvedCategory = "MULTI_OBJECT_DECOMPOSED";
-        } else if (
-          nodeType === "VECTOR" ||
-          nodeType === "LINE" ||
-          nodeType === "STAR" ||
-          nodeType === "POLYGON"
-        ) {
-          unresolvedCategory = "MERGED_INTO_PARENT";
-        } else if (docxShapesById.has(nodeId) || docxShapesByAlt.has(nodeId)) {
+        } else if (docxShapesById.has(nodeId)) {
           unresolvedCategory = "MAPPING_FAILURE";
         } else {
-          unresolvedCategory = "ACTUAL_MISSING";
+          // Without definitive OpenXML proof of parent merging or omission,
+          // leave strictly classified as UNRESOLVED
+          unresolvedCategory = "UNRESOLVED";
         }
       }
 
