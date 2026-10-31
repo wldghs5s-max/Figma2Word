@@ -253,6 +253,7 @@ export type GeometryProvenance =
   | "LOCALLY_RECOVERED_GEOMETRY"
   | "SEMANTIC_APPROXIMATION"
   | "GEOMETRIC_FALLBACK"
+  | "PRIMITIVE_SHAPE"
   | "UNRESOLVED";
 
 export interface CanvasElement {
@@ -282,6 +283,9 @@ export interface CanvasElement {
   // Vector Path details
   vectorPath?: string; // Normalized VML path string (coordsize="1000,1000")
   rawSvgPath?: string; // Original SVG path string
+  strokeVectorPath?: string; // Normalized VML stroke path if separate from fill path
+  rawStrokeSvgPath?: string; // Original SVG stroke path string
+  fillRule?: "nonzero" | "evenodd"; // Winding rule for complex geometries with cutouts
   vectorPoints?: { x: number; y: number }[]; // Sampled polygon points for HWPX (<hp:polygon>)
   vectorSubpaths?: CanvasVectorSubpath[]; // Discrete subpaths for HWPX to avoid spurious connecting lines
   geometryProvenance?: GeometryProvenance;

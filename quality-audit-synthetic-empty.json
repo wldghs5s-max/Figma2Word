@@ -1,0 +1,16 @@
+{
+  "id": "synthetic-empty",
+  "title": "synthetic",
+  "timestamp": "2026-10-31T11:01:04.603Z",
+  "executionMode": "structure_only",
+  "pageVisualComparisons": [],
+  "summary": {
+    "totalEvaluatedPages": 0,
+    "passedPages": 0,
+    "warningPages": 0,
+    "structuralDiscrepancies": 0,
+    "status": "PASS",
+    "statusMessage": "모든 검증 항목이 기준 허용치 내에서 정상 통과되었습니다."
+  },
+  "reproductionCommand": "npx tsx tools/quality-audit/index.ts --id \"synthetic-empty\""
+}

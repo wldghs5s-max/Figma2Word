@@ -1,6 +1,6 @@
 {
-  "runId": "run_phase39_1793456496643",
-  "evaluatedAt": "2026-10-31T14:22:24.148Z",
+  "runId": "run_phase39_1793459606567",
+  "evaluatedAt": "2026-10-31T15:14:44.261Z",
   "overallStatus": "PASSED",
   "isApproved": true,
   "requiredGateCount": 9,
@@ -58,13 +58,13 @@
       "gateId": "GATE_WORD_EDIT_PERSISTENCE",
       "name": "Word Native Edit Persistence Gate",
       "status": "PASSED",
-      "summary": "Persisted 25/25 native Word edits across reopen"
+      "summary": "Persisted 25/25 Normal edits across reopen (Stress edits: 25/25 persisted)"
     },
     "GATE_VISUAL_FIDELITY": {
       "gateId": "GATE_VISUAL_FIDELITY",
       "name": "Visual Fidelity Benchmark Gate",
       "status": "PASSED",
-      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492"
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
     }
   },
   "failureReasons": [],

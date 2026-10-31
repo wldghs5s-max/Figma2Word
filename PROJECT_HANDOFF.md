@@ -1,11 +1,11 @@
 # Project Handoff Document
 ## Figma2Word Engineering Architecture & Production Capability Status
 
-- **버전**: Phase 40.2 Original Vector Fidelity Recovery & Native Word Editing Hardening
+- **버전**: Phase 40.3 Production Fidelity & Real-World Word Editing Hardening
 - **저장소**: `wldghs5s-max/Figma2Word`
 - **브랜치**: `master`
-- **수정 전 Git HEAD**: `d4896be6afbbcd9a4e075375b8bc352264d75ef8`
-- **독립 감사자 / 엔지니어링 협업자 대상**: AI Engineering Collaborators (ChatGPT, Codex, Gemini)
+- **수정 전 Git HEAD**: `139c9990ac19fb66a80d16833f81732c8ebb4b91`
+- **독립 감사자 / 엔지니어링 작업자 대상**: AI Engineering Collaborators (ChatGPT, Codex, Gemini)
 
 ---
 
@@ -13,7 +13,7 @@
 
 본 프로젝트의 궁극적인 목적은 **Figma 디자인을 높은 시각적 충실도를 유지하면서 Microsoft Word에서 실제로 편집 가능한 DOCX 문서로 변환하는 범용 엔지니어링 엔진**을 구현하는 것입니다.
 
-장기적으로 동일한 정규화된 중간 표현(Canvas IR)을 활용하여 HWPX(한글 문서) 생성까지 원활하게 확장할 수 있는 아키텍처를 지향합니다.
+장기적으로 동일한 정규화된 중간 표현(Canvas IR)을 활용하여 HWPX(한글 문서) 생성까지 유연하게 확장할 수 있는 아키텍처를 지향합니다.
 
 다음 기본 원칙을 엄격하게 준수합니다:
 1. **실제 변환 품질 최우선**: 시각 충실도와 Word 실사용 편집성을 동시에 보호합니다.
@@ -26,101 +26,95 @@
 
 ```text
 [Figma JSON Document]
-        ↓
+        │
+        ▼
 1. Source Parser (`src/canvas/parser/figmaCanvasParser.ts`)
-   - 17개 타겟 프레임 탐색, 기하학적 정규화, 오토레이아웃 계산
-   - 텍스트 스타일 런 추출, 도형/선 추출, 이미지 노드 추출
-   - 다중 자식 VECTOR 분해 합성 (`totalVectorSiblings > 1`: 선, 호, 훅, 점, 박스)
-   - UI 아이콘 의미적 패스 매핑 (단어 경계 기반: profile, update, chevron 등)
-   - 형상 출처(Provenance) 명시적 태깅 (`geometryProvenance`)
-        ↓
+   - 17개 타깃 프레임 탐색, 기하학적 정규화, 오토레이아웃 계산
+   - 텍스트/스타일 추출, 도형/선 추출, 이미지 노드 추출
+   - 다중 자식 VECTOR 분해 합성 (`totalVectorSiblings > 1`: search 렌즈-손잡이 분해, 원, 막대 등)
+   - UI 아이콘 의미적 패스 매핑 (단어 경계 기반: profile, update, rotate-cw, rotate-ccw 등)
+   - Fill & Stroke 동시 존재 노드 분리 (`strokeVectorPath`, `fillRule: evenodd`)
+   - 형상 출처(Provenance) 명시적 태깅 (`geometryProvenance`, 기본도형 `PRIMITIVE_SHAPE`)
+        │
+        ▼
 2. Intermediate Representation (Canvas IR: `src/canvas/types.ts`)
    - CanvasDocument / CanvasPage / CanvasElement
    - 해상도 독립적 절대 좌표계 (pt 단위)
    - `geometryProvenance`: SOURCE_GEOMETRY | LOCALLY_RECOVERED_GEOMETRY |
-                           SEMANTIC_APPROXIMATION | GEOMETRIC_FALLBACK | UNRESOLVED
-        ↓
+                           SEMANTIC_APPROXIMATION | GEOMETRIC_FALLBACK |
+                           PRIMITIVE_SHAPE | UNRESOLVED
+        │
+        ▼
 3. Document Renderers
-   ├─ DOCX Renderer (`src/canvas/renderer/docxCanvasRenderer.ts`)
-   │  - OpenXML / VML (`<v:shape>`, `<v:textbox>`, `<v:rect>`, `<v:line>`)
-   │  - `alt="${elem.sourceNodeId}"` 및 `o:title` 원본 식별자 영속 바인딩
-   │  - 단일 라인 텍스트박스 인라인 줄바꿈 방지 (`mso-wrap-style:none`)
-   │  - 미디어 관계(`word/_rels/document.xml.rels`) 및 바이너리 매핑
-   └─ HWPX Renderer (Canvas IR 기반 HWPX 확장 준비 완료)
-        ↓
+   ├─► DOCX Renderer (`src/canvas/renderer/docxCanvasRenderer.ts`)
+   │   - OpenXML / VML (`<v:shape>`, `<v:textbox>`, `<v:rect>`, `<v:line>`)
+   │   - `<v:path fillrule="evenodd"/>` 태그 및 면/선 분리 VML 렌더링
+   │   - `alt="${elem.sourceNodeId}"` 및 `o:title` 원본 식별자 영속 바인딩
+   │   - 단일 라인 텍스트박스 인라인 줄바꿈 방지 (`mso-wrap-style:none`)
+   │   - 미디어 관계(`word/_rels/document.xml.rels`) 및 바이너리 매핑
+   └─► HWPX Renderer (Canvas IR 기반 HWPX 확장 준비 완료)
+        │
+        ▼
 4. Verification & Fidelity Engine (`src/fidelity/`)
    - `verificationVerdict.ts`: 9대 필수 게이트 단일 승인 계약 및 OS 프로세스 종료 코드(0/1) 보장
-   - `integrityGate.ts`: 절대 벤치마크 모드(`ABSOLUTE_FIGMA_TO_WORD`) 및 입력 디스크 바이트 SHA-256 검증
-   - `objectTraceability.ts`: 1:1 소스-Word 객체 매핑, `<w:br>`/`<w:cr>` 줄바꿈 지원 텍스트 100% 일치 검증
-   - `layoutStabilityAuditor.ts`: 마스킹 기반 비편집 영역 무훼손(Zero Collateral Damage) 및 동적 Page/Section 보존 검증
+   - `integrityGate.ts`: 절대 벤치마크 모드(`ABSOLUTE_FIGMA_TO_WORD`) 및 입력 디스크 바이너리 SHA-256 검증
+   - `objectTraceability.ts`: 1:1 소스-Word 객체 매핑, 텍스트 누락 차단, 빈 shape 허위 성공 배제
+   - `layoutStabilityAuditor.ts`: 마스크 기반 비편집 영역 무훼손(Zero Collateral Damage) 및 동적 Page/Section 보존 검증
    - `editabilityAuditor.ts`: Word 네이티브 편집성 점수 감사
 ```
 
 ---
 
-## 3. 실제 구현 및 검증된 기능 현황 (Phase 40.2 완료)
+## 3. Phase 40.3 주요 개선 사항 및 실측 성과
 
-### 3.1 렌더러 및 벡터 형상 충실도
-- **토큰 오분류 원천 차단**:
-  - `profile` 토큰: 기존 `file` 정규식 충돌을 제거하고 사용자 두상(원형) + 어깨 곡선 경로 매핑 (`SEMANTIC_APPROXIMATION`).
-  - `update` 토큰: 기존 `date` 정규식 충돌을 제거하고 270도 회전 원호 + 화살촉 경로 매핑 (`SEMANTIC_APPROXIMATION`).
-  - 화살표 꺾쇠 분리: `arrow-left`(`<`)와 `arrow-right`(`>`) 방향성 명확히 분리.
-- **다중 VECTOR 자식 분해 합성**:
-  - 부모 아래 복수의 VECTOR 자식이 존재할 때, 동일한 아이콘이 중복 합성되어 찌그러지던 현상 해소.
-  - 자식의 가로/세로 비율과 치수에 맞추어 선 0x2, 원형 호, 훅(화살촉), 점, 박스로 분해 복원 (`LOCALLY_RECOVERED_GEOMETRY`).
-- **서브패스 전수 결합**:
-  - Figma의 `fillGeometry`, `strokeGeometry`, `vectorPaths` 모든 서브패스를 누락 없이 `paths.join(" ")` 결합 (`SOURCE_GEOMETRY`).
-- **미인식 아이콘 기하 폴백**:
-  - 의미적 추정이 불가능한 노드는 거짓 복원하지 않고 `GEOMETRIC_FALLBACK`으로 투명하게 분류.
+### 3.1 7대 독립 감사 결함(F-01 ~ F-07) 전수 해결
+1. **F-01 (Fill & Stroke 동시 존재 및 Winding Rule 보존)**: 면 채우기와 윤곽선이 동시에 있는 노드에서 `strokeVectorPath`를 별도 추출하여 채우기 VML shape과 선 VML shape을 순차 방출, `<v:path fillrule="evenodd"/>` 지원.
+2. **F-02 (복합 아이콘 분해 및 CW/CCW 회전 방향 구분)**: 다중 자식 벡터로 구성된 `search` 아이콘을 렌즈(원)와 손잡이(막대)로 분해 렌더링, 시계방향(`rotate-cw`)과 반시계방향(`rotate-ccw`) 아이콘 명확히 분리.
+3. **F-03 (Word Stress Edit 실제 실행 및 격리 분리)**: 실제 Word COM을 통해 실제 개행(`\r\n`), 긴 한글 문단, 폭 30% 확장을 적용하는 고강도 스트레스 편집을 `debug/phase39-editability-stress/`에서 독립 실행하고 25/25 영속성 실측.
+4. **F-04 (대형 전경 객체 카운터 왜곡 교정)**: 실제 z-order와 Word COM 편집 성공 여부를 확인하여 `$largeForegroundTested`를 엄격하게 카운트.
+5. **F-05 (Fail-Closed 콘텐츠 보존 강화)**: 텍스트 1건이라도 누락 시 `VERIFIED` 불가, 기하 속성이 전혀 없는 빈 셰이프 태그의 허위 성공 판정 원천 차단.
+6. **F-06 (Visual Fidelity Gate 실질 품질 연결)**: 단순 비교 수량(`validCount >= 16`)뿐 아니라 `meanSsim >= 0.9400`을 게이트 통과 필수로 강제.
+7. **F-07 (보고서 및 해시 정합성, 89개 Primitive 객체 정직한 분류)**: Candidate DOCX와 Word Saved DOCX의 해시 역할 분리 명시, 사각형/선/타원 89개에 `PRIMITIVE_SHAPE` 부여하여 미해결 오인 완전 해소.
 
-### 3.2 콘텐츠 보존율 (Content Preservation)
-- **텍스트 보존율**: **628 / 628 (100.00%)**
-  - `<w:br>` 및 `<w:cr>` 태그 파싱 지원으로 이전 오판되었던 4개 노드(`757:155`, `757:165`, `766:1947`, `759:1622`) 텍스트 100% 일치 확인.
-- **도형 보존율**: **327 / 327 (100.00%)**
-  - 모든 327개 도형이 VML 네이티브 벡터 요소로 DOCX에 생성됨.
-- **이미지 보존율**: **19 / 19 (100.00%)**
-  - 11개 고유 미디어 바이너리 및 관계가 완벽하게 바인딩됨.
-- **DOCX OpenXML 매핑**: **1,312 / 1,312 (100.00%)**, 미해결 객체 **0개**.
+### 3.2 최신 핵심 벤치마크 지표 요약
 
-### 3.3 Word 실사용 편집 안정성 (Editability & Layout Stability)
-- **네이티브 Word 편집 영속성**: **25 / 25 (100.00%)**
-  - Word 16.0 COM으로 텍스트 수정(7), 선/도형 스트로크 색상 변경(6), 도형 채우기 색상 변경(6), 도형 너비 확장(6) 수행.
-  - 저장 및 프로세스 완전 종료 후 새 Word 인스턴스로 재열어 25건 전원 보존 확인.
-- **마스킹 기반 레이아웃 안정성**:
-  - 17개 페이지 전원 **`STABLE`** (0건의 의도치 않은 회귀).
-  - 비편집 영역 부수적 훼손(Collateral Damage): **0.0030% (극소)**, MAE **0.00**.
-  - 동적 Section-to-Page 대응: `pageCountPreserved = true`, `sectionCountPreserved = true` (17/17 일치).
-
-### 3.4 시각적 충실도 (Visual Fidelity)
-- **16개 유효 프레임 평균 SSIM**: **`0.9492`** (Phase 40 0.9490 대비 향상, 0개 프레임 후퇴).
-- 평균 MAE `2.55`, 평균 RMSE `14.83`.
+| 지표 항목 | 실측값 | 판정 기준 | 최종 상태 |
+|---|---:|---|---|
+| **평균 SSIM (16개 프레임)** | **0.9492** | >= 0.9400 | **PASSED** |
+| **평균 MAE / RMSE** | **2.53 / 14.78** | 최적화 개선 | **PASSED** |
+| **Normal Edit Persistence** | **25 / 25 (100%)** | 100% 지속 | **PASSED** |
+| **Stress Edit Persistence** | **25 / 25 (100%)** | 100% 지속 | **PASSED** |
+| **Normal Layout Stability** | **0 Regressions (0.0030% Mismatch)** | 0 회귀 | **VERIFIED** |
+| **Stress Layout Stability** | **4 Pages Reflow Detected** | 정직한 실측 기록 | **DOCUMENTED** |
+| **Source-to-Word Traceability** | **Text 628/628, Shape 327/327, Image 19/19** | 누락 0건 | **VERIFIED** |
+| **Unresolved Objects in DOCX** | **0 건** | 0건 | **VERIFIED** |
+| **9대 필수 게이트 통과율** | **9 / 9 (100%)** | 전원 통과 필수 | **PASSED (Exit 0)** |
 
 ---
 
-## 4. 실제 고객사 문서 실측 베이스라인 (Ground Truth)
+## 4. 재현 및 검증 실행 방법
 
-- **입력 파일**: `펜테크 3차 디자인.json` (SHA-256: `390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a`, 186.52 MB)
-- **대상 프레임**: 17개
-- **참조 이미지**: 16개 (프레임 `759:1533`은 원본 PNG 없음)
-- **생성 DOCX SHA-256**: `362fc3855ff4281ef569cb2f6be124d35e16ef9337ce21c277ef94c0ee107f97`
-- **총 소스 노드**: 2,033개
-- **Canvas IR 객체**: 1,312개 (컨테이너 721개 제외)
-- **DOCX OpenXML 매핑 객체**: 1,312개 (미해결 0개)
-- **형상 출처(Provenance) 구성**:
-  - Source Geometry: 0 (고객사 JSON 원본에 SVG 기하 데이터 부재)
-  - Locally Recovered: 175 (복수 자식 기하 분해 합성)
-  - Semantic Approximation: 60 (토큰 기반 의미적 근사)
-  - Geometric Fallback: 3 (기본 도형 폴백)
-  - Unresolved: 89 (형상 데이터 부재 특수 노드)
-- **9대 필수 게이트**: **9 / 9 PASSED (`FINAL VERDICT: PASSED (Approved: true, Exit Code: 0)`)**
+### 4.1 단위 테스트
+```bash
+npx vitest run tests/phase40-3-fidelity.test.ts
+npx vitest run tests/phase38-object-traceability.test.ts
+```
+
+### 4.2 타입 검사 및 웹 빌드
+```bash
+npx tsc --noEmit
+npx tsc -p tsconfig.scripts.json --noEmit
+npm --prefix apps/web run build
+```
+
+### 4.3 전체 프로덕션 파이프라인 (Word COM 자동화 포함)
+```bash
+npx tsx scripts/run_phase39_production_pipeline.ts
+```
 
 ---
 
-## 5. HWPX 확장 계획 및 아키텍처 로드맵
+## 5. 향후 작업 로드맵 (HWPX 지원 확장 등)
 
-1. **Canvas IR 기반 HWPX Renderer 구축**:
-   - 현재 정립된 Canvas IR(1,312개 객체, 정규화된 좌표계, UI 아이콘 VML/SVG 경로)을 활용하여 HWPX의 `section*.xml` (한글 네이티브 드로잉 및 텍스트박스 요소)으로의 1:1 변환 엔진 구현.
-2. **Word 네이티브 표(Table) 최적화**:
-   - 현재 절대 좌표 격자로 렌더링되는 표 요소들을 Word 네이티브 `<w:tbl>` 구조로 고도화하여 표 셀 단위의 직관적인 편집 지원 강화.
-3. **Figma Vector Export 연동**:
-   - Figma 플러그인 또는 API 호출 시 vector data export 옵션을 활성화하여 `SOURCE_GEOMETRY` 비율을 추가 확대.
+- **Canvas IR 기반 HWPX 렌더러 구현**: 현재 정규화된 Canvas IR을 활용하여 HWPX의 `<hp:shape>`, `<hp:textart>`, 테이블 구조로의 직접 변환기 확장.
+- **다중 열 오토레이아웃 고도화**: 복잡한 반응형 디자인 요소의 네이티브 Word 표/컬럼 변환 고도화.

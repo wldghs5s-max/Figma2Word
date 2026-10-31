@@ -136,7 +136,7 @@ async function main() {
     const m = mappingByNodeId.get(t.id);
     const inDocx = !!m?.docxObjectId;
 
-    let initialStatus = "UNRESOLVED";
+    let historicalPhase39Status = "UNRESOLVED";
     let currentStatus = inDocx ? "RENDERED_AND_MAPPED" : "UNRESOLVED";
     let basis = "";
     let fixPath = "";
@@ -145,40 +145,49 @@ async function main() {
     let remainingWork = inDocx ? "None - verified in OpenXML" : "Requires renderer mapping to OpenXML";
 
     if (t.type === "VECTOR") {
-      initialStatus = "RENDERING_MISSING";
-      if (inDocx) {
+      historicalPhase39Status = "RENDERING_MISSING";
+      if (inDocx && m?.contentVerified) {
         vectorRecoveredCount++;
         const prov = m?.geometryProvenance || "SEMANTIC_APPROXIMATION";
         basis = `Rendered via VML <v:shape alt="${t.id}"> with provenance '${prov}' (context: '${parentName} -> ${n.name}')`;
         fixPath = "src/canvas/parser/figmaCanvasParser.ts & src/canvas/renderer/docxCanvasRenderer.ts";
         verificationMethod = `OpenXML contains <v:shape alt="${t.id}"> (provenance: ${prov})`;
       } else {
+        currentStatus = "UNRESOLVED";
+        confidenceLevel = "LOW";
+        remainingWork = "Requires valid vector geometry mapping in OpenXML";
         unresolvedCount++;
-        basis = "Vector element not resolved into OpenXML shape";
+        basis = "Vector element not resolved into OpenXML shape or missing valid geometry";
         fixPath = "N/A";
         verificationMethod = "OpenXML lookup failed";
       }
     } else if (t.kind === "IMAGE") {
-      initialStatus = "RENDERED_BUT_MAPPING_MISSING";
+      historicalPhase39Status = "RENDERED_BUT_MAPPING_MISSING";
       if (inDocx && m?.contentVerified) {
         imageVerifiedCount++;
         basis = `Emitted as <v:rect alt="${t.id}"> with verified relationship '${m.docxRelationshipId}' and non-placeholder media bytes`;
         fixPath = "scripts/run_phase39_production_pipeline.ts (mediaFilesMap and relsXml)";
         verificationMethod = "OpenXML <v:imagedata r:id> resolves to valid media file >100B in docx package";
       } else {
+        currentStatus = "UNRESOLVED";
+        confidenceLevel = "LOW";
+        remainingWork = "Requires verified media bytes and relationship target";
         unresolvedCount++;
         basis = "Image element missing or relationship broken";
         fixPath = "N/A";
         verificationMethod = "Relationship resolution failed";
       }
     } else if (t.kind === "CONTAINER") {
-      initialStatus = "RENDERED_BUT_MAPPING_MISSING";
+      historicalPhase39Status = "RENDERED_BUT_MAPPING_MISSING";
       if (inDocx) {
         borderMappedCount++;
         basis = `Rendered as border line with alt="${t.id}" and recognized in objectTraceability`;
         fixPath = "src/canvas/renderer/docxCanvasRenderer.ts (altId binding) & src/fidelity/objectTraceability.ts";
         verificationMethod = "OpenXML line shape matches sourceNodeId in docxShapesByAlt";
       } else {
+        currentStatus = "UNRESOLVED";
+        confidenceLevel = "LOW";
+        remainingWork = "Requires container border mapping to OpenXML";
         unresolvedCount++;
         basis = "Container border not resolved in DOCX XML";
         fixPath = "N/A";
@@ -194,7 +203,8 @@ async function main() {
       parentId,
       parentName,
       name: n.name || "",
-      initialStatus,
+      historicalPhase39Status,
+      initialStatus: historicalPhase39Status,
       actualStatus: currentStatus,
       geometryProvenance: m?.geometryProvenance,
       docxObjectId: m?.docxObjectId,

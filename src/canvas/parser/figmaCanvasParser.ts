@@ -66,8 +66,16 @@ export function synthesizeVectorIconPath(
 
     // 2. Tiny elements (dots, pupils, arrowhead hooks, check hooks)
     if (wPt <= 4.5 && hPt <= 4.5) {
-      if (/\b(rotate|refresh|reload|update|ccw|cw)\b/i.test(nameLower)) {
-        // Arrowhead hook at top-left
+      if (/\b(ccw|rotate-ccw)\b/i.test(nameLower)) {
+        // CCW Arrowhead hook at top-left
+        return makeVectorResult("M 100 900 L 100 100 L 900 100", "LOCALLY_RECOVERED_GEOMETRY");
+      }
+      if (/\b(cw|rotate-cw)\b/i.test(nameLower)) {
+        // CW Arrowhead hook at top-right
+        return makeVectorResult("M 900 900 L 900 100 L 100 100", "LOCALLY_RECOVERED_GEOMETRY");
+      }
+      if (/\b(rotate|refresh|reload|update)\b/i.test(nameLower)) {
+        // Default Arrowhead hook at top-left
         return makeVectorResult("M 100 900 L 100 100 L 900 100", "LOCALLY_RECOVERED_GEOMETRY");
       }
       if (/\b(eye|view|visible)\b/i.test(nameLower)) {
@@ -80,6 +88,20 @@ export function synthesizeVectorIconPath(
       }
       // General bullet / dot
       return makeVectorResult("M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z", "LOCALLY_RECOVERED_GEOMETRY");
+    }
+
+    // 2b. Composite search / magnifier (lens circle + diagonal handle bar)
+    if (/\b(search|find|glass|magnif)\b/i.test(parentName)) {
+      if (siblingIdx === 0) {
+        // Lens circle
+        return makeVectorResult(
+          "M 420 180 C 552 180 660 288 660 420 C 660 552 552 660 420 660 C 288 660 180 552 180 420 C 180 288 288 180 420 180 Z",
+          "LOCALLY_RECOVERED_GEOMETRY"
+        );
+      } else {
+        // Diagonal handle bar
+        return makeVectorResult("M 590 590 L 850 850", "LOCALLY_RECOVERED_GEOMETRY");
+      }
     }
 
     // 3. Composite 'x' close icon (two diagonal crossed lines)
@@ -99,7 +121,17 @@ export function synthesizeVectorIconPath(
     }
 
     // 5. Composite rotate-ccw / rotate-cw (arc + arrowhead hook)
-    if (/\b(rotate|refresh|reload|update|ccw|cw)\b/i.test(parentName)) {
+    if (/\b(ccw|rotate-ccw)\b/i.test(parentName)) {
+      if (wPt > 5 && hPt > 5) {
+        return makeVectorResult("M 500 150 A 350 350 0 1 0 800 500", "LOCALLY_RECOVERED_GEOMETRY");
+      }
+    }
+    if (/\b(cw|rotate-cw)\b/i.test(parentName)) {
+      if (wPt > 5 && hPt > 5) {
+        return makeVectorResult("M 500 150 A 350 350 0 1 1 200 500", "LOCALLY_RECOVERED_GEOMETRY");
+      }
+    }
+    if (/\b(rotate|refresh|reload|update)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
         return makeVectorResult("M 250 400 A 350 350 0 1 1 200 600", "LOCALLY_RECOVERED_GEOMETRY");
       }
@@ -198,8 +230,24 @@ export function synthesizeVectorIconPath(
     );
   }
 
-  // 7. Rotate / Refresh / Reload / Update (Must match 'update' so it is not misidentified as 'date')
-  if (/\b(rotate|refresh|reload|update|ccw|cw)\b/i.test(nameLower)) {
+  // 7a. Rotate CCW (Counter-Clockwise)
+  if (/\b(ccw|rotate-ccw)\b/i.test(nameLower)) {
+    return makeVectorResult(
+      "M 500 150 A 350 350 0 1 0 800 500 M 500 50 L 500 250 L 650 150",
+      "SEMANTIC_APPROXIMATION"
+    );
+  }
+
+  // 7b. Rotate CW (Clockwise)
+  if (/\b(cw|rotate-cw)\b/i.test(nameLower)) {
+    return makeVectorResult(
+      "M 500 150 A 350 350 0 1 1 200 500 M 500 50 L 500 250 L 350 150",
+      "SEMANTIC_APPROXIMATION"
+    );
+  }
+
+  // 7c. Rotate / Refresh / Reload / Update (Must match 'update' so it is not misidentified as 'date')
+  if (/\b(rotate|refresh|reload|update)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 250 400 A 350 350 0 1 1 200 600 M 120 280 L 260 420 L 400 280",
       "SEMANTIC_APPROXIMATION"
@@ -894,6 +942,7 @@ export class FigmaCanvasParser {
             imageCrop,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
+            geometryProvenance: "PRIMITIVE_SHAPE",
           });
 
           // If this node is a container with children (e.g. frame with image background and text overlays),
@@ -985,6 +1034,7 @@ export class FigmaCanvasParser {
             contentHeightPt: isCenteredInParent ? hPt : undefined,
             sourceNodeId: child.id,
             sourceNodeType: child.type,
+            geometryProvenance: "PRIMITIVE_SHAPE",
           });
         } else if (child.type === "LINE") {
           let lineW = wPt;
@@ -1013,6 +1063,7 @@ export class FigmaCanvasParser {
             style: this.extractStyle(child, scaleX),
             sourceNodeId: child.id,
             sourceNodeType: child.type,
+            geometryProvenance: "PRIMITIVE_SHAPE",
           });
         } else if (child.type === "ELLIPSE") {
           const style = this.extractStyle(child, scaleX);
@@ -1072,6 +1123,7 @@ export class FigmaCanvasParser {
                 vectorSubpaths,
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             } else {
               elements.push({
@@ -1085,6 +1137,7 @@ export class FigmaCanvasParser {
                 style,
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
           }
@@ -1103,24 +1156,33 @@ export class FigmaCanvasParser {
             const parentName = node.name || "";
             const nodeName = child.name || "";
             let rawPath = "";
+            let rawStrokePath = "";
             let provenance: GeometryProvenance = "UNRESOLVED";
 
-            // Multi-path extraction across all geometries (A-02 Full Geometry Utilization)
-            const fillPaths = Array.isArray((child as any).fillGeometry)
-              ? (child as any).fillGeometry.map((g: any) => g?.path).filter(Boolean)
-              : [];
-            const strokePaths = Array.isArray((child as any).strokeGeometry)
-              ? (child as any).strokeGeometry.map((g: any) => g?.path).filter(Boolean)
-              : [];
-            const vpPaths = Array.isArray((child as any).vectorPaths)
-              ? (child as any).vectorPaths.map((vp: any) => vp?.data || vp?.path).filter(Boolean)
-              : [];
+            // Multi-path extraction across all geometries (F-01 Fill & Stroke Preservation & Fill Rule)
+            const fillGeom = Array.isArray((child as any).fillGeometry) ? (child as any).fillGeometry : [];
+            const strokeGeom = Array.isArray((child as any).strokeGeometry) ? (child as any).strokeGeometry : [];
+            const vpGeom = Array.isArray((child as any).vectorPaths) ? (child as any).vectorPaths : [];
 
-            if (fillPaths.length > 0) {
+            const fillPaths = fillGeom.map((g: any) => g?.path).filter(Boolean);
+            const strokePaths = strokeGeom.map((g: any) => g?.path).filter(Boolean);
+            const vpPaths = vpGeom.map((vp: any) => vp?.data || vp?.path).filter(Boolean);
+
+            let fillRule: "nonzero" | "evenodd" | undefined = undefined;
+            if (fillGeom.length > 0 && fillGeom[0]?.windingRule) {
+              fillRule = fillGeom[0].windingRule.toUpperCase() === "EVENODD" ? "evenodd" : "nonzero";
+            }
+
+            if (fillPaths.length > 0 && strokePaths.length > 0) {
+              rawPath = fillPaths.join(" ");
+              rawStrokePath = strokePaths.join(" ");
+              provenance = "SOURCE_GEOMETRY";
+            } else if (fillPaths.length > 0) {
               rawPath = fillPaths.join(" ");
               provenance = "SOURCE_GEOMETRY";
             } else if (strokePaths.length > 0) {
-              rawPath = strokePaths.join(" ");
+              rawStrokePath = strokePaths.join(" ");
+              rawPath = rawStrokePath;
               provenance = "SOURCE_GEOMETRY";
             } else if (vpPaths.length > 0) {
               rawPath = vpPaths.join(" ");
@@ -1154,6 +1216,7 @@ export class FigmaCanvasParser {
             }
 
             let vmlPath = "";
+            let strokeVmlPath = "";
             let vectorPoints: { x: number; y: number }[] | undefined;
             let vectorSubpaths: { points: { x: number; y: number }[]; closed: boolean }[] | undefined;
 
@@ -1164,6 +1227,11 @@ export class FigmaCanvasParser {
               const hHwpu = Math.max(10, Math.round(hPt * 100));
               vectorSubpaths = parsed.toHwpxSubpathsWithClosed(wHwpu, hHwpu);
               vectorPoints = vectorSubpaths.flatMap((s) => s.points);
+            }
+
+            if (rawStrokePath && rawStrokePath !== rawPath) {
+              const parsedStroke = SvgPath.parse(rawStrokePath);
+              strokeVmlPath = parsedStroke.toVmlPath(1000, 1000);
             }
 
             elements.push({
@@ -1177,6 +1245,9 @@ export class FigmaCanvasParser {
               style,
               vectorPath: vmlPath,
               rawSvgPath: rawPath,
+              strokeVectorPath: strokeVmlPath || undefined,
+              rawStrokeSvgPath: rawStrokePath && rawStrokePath !== rawPath ? rawStrokePath : undefined,
+              fillRule,
               vectorPoints,
               vectorSubpaths,
               geometryProvenance: provenance,
@@ -1224,6 +1295,7 @@ export class FigmaCanvasParser {
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
 
@@ -1247,6 +1319,7 @@ export class FigmaCanvasParser {
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
             if ((bs.top ?? 0) > 0) {
@@ -1265,6 +1338,7 @@ export class FigmaCanvasParser {
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
             if ((bs.left ?? 0) > 0) {
@@ -1283,6 +1357,7 @@ export class FigmaCanvasParser {
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
             if ((bs.right ?? 0) > 0) {
@@ -1301,6 +1376,7 @@ export class FigmaCanvasParser {
                 },
                 sourceNodeId: child.id,
                 sourceNodeType: child.type,
+                geometryProvenance: "PRIMITIVE_SHAPE",
               });
             }
           } else if (hasFill || hasStroke) {
@@ -1315,6 +1391,7 @@ export class FigmaCanvasParser {
               style,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
+              geometryProvenance: "PRIMITIVE_SHAPE",
             });
           }
 
@@ -1337,6 +1414,7 @@ export class FigmaCanvasParser {
               style,
               sourceNodeId: child.id,
               sourceNodeType: child.type,
+              geometryProvenance: "PRIMITIVE_SHAPE",
             });
           }
           processChildren(child, effectiveOpacity);

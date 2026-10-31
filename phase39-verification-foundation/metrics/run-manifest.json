@@ -1,10 +1,10 @@
 {
-  "runId": "run_phase39_1793456496643",
+  "runId": "run_phase39_1793459606567",
   "runStatus": "PASSED",
   "isApproved": true,
-  "startedAt": "2026-10-31T14:21:36.643Z",
-  "finishedAt": "2026-10-31T14:22:24.149Z",
-  "gitCommit": "d4896be6afbbcd9a4e075375b8bc352264d75ef8",
+  "startedAt": "2026-10-31T15:13:26.567Z",
+  "finishedAt": "2026-10-31T15:14:44.261Z",
+  "gitCommit": "139c9990ac19fb66a80d16833f81732c8ebb4b91",
   "sourceFileSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "sourceFrameIds": [
     "763:5068",
@@ -25,23 +25,23 @@
     "759:1533",
     "768:3434"
   ],
-  "candidateDocxSha256": "021614098ce20d4cb6acb9585cb64fc8d243c43b79b4ec60ce73dea89fc1238e",
-  "candidatePdfSha256": "3a13331e2f4ecf401a5c8caefa56b1635309aebd7c8706e131e2c796251d4d6e",
+  "candidateDocxSha256": "6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359",
+  "candidatePdfSha256": "ed5cfeefdf8e1130b2e3299e1312ea92320d78dd59ba14168e543a1195d7997b",
   "candidatePngShaMap": {
     "763:5068": "d3bbd96e10df7f04f273468e52288625c74a2e07acb4b25c72a085269c9fcb99",
     "766:256": "21e08209a5addc57140257e6461815fbd94925f1fbb63b6502ab18404dc49a02",
     "757:88": "ed673d3bb35c261d820d7a00afa3a4c9434035a629902b65429d8ab678a50390",
-    "759:759": "a872e79f39c05cf8f9bd354f3f467d1ba9d63cb925a20b2b56e2a89c5d2bcd61",
+    "759:759": "51303d3a824cd3a7c57fc021b4c01d784f28c549c439f042055fdc1b4631c6f5",
     "757:92": "317bfec3f16e571ae9d2f5eba7d9c8e9adb41755ab65e2438bb42ebe3d355a95",
     "757:142": "4fc0030f1b5d6d57ec6b1257157c6c4179d8dc8f623d59df73c2ffffbd5d1db9",
     "757:158": "f844cd3e7d39eda04ef70504207d1397cfbefd07eb3adc1e3cb6c1e53f78ce4c",
-    "759:911": "66f140c9618fae7d2e2a8ee7dee773d79ca99a63f0b4ac3196e032319720aafd",
+    "759:911": "dba0a9bb6d2cb7991ba3cb2da59160f0940269367798b7f168389784e221f0dc",
     "757:124": "c75e30ed4473e05f339cbcd22a445b5bf4e15895952dd45f9896863168302f60",
-    "759:1076": "ce42bbd5978f6c900609aacd6995e5691a7d0fb8dfdfd3cd0c8bbbeced930d32",
+    "759:1076": "feac9910ec8f01010c871097be01a5d23858b80751161655d90a8d56d84498d0",
     "766:2289": "f43c97a6c06dfb586497f16d1c714c0edd8f57b3bd0f1bc0ab6b7f0de2125d72",
     "757:118": "429c575a8b43d93c809ddab05aae1b6043ab2dc11cb9dd10acae3a27aa3f0e61",
     "766:2942": "56c269fcb22f1a9c4b5ef88efbeb0f5b7c57b45fb285bb978cb9213acbc00d7e",
-    "759:1314": "245d0a8bcb9c0b81edbc14144028501d99617ca539c47738356e60e7ac3d4fc1",
+    "759:1314": "d2be92d8e32710e059a036b686ab240885fbdc6458f43d91ddadc74532d09992",
     "759:1858": "f43ad9dc27fa730cbfc5b2f28affb1a948ef26dfb6ab6f06acbad09482d16630",
     "759:1533": "451315eaa0e0f376bee3bfe2560ab7cbbc417ec9aac7125f2577ad95f11b2c4c",
     "768:3434": "7f2d50c7d6ee9cc74dd855462cd39b78128966a1f7454a0c002d23529776a1d3"
@@ -120,13 +120,13 @@
       "gateId": "GATE_WORD_EDIT_PERSISTENCE",
       "name": "Word Native Edit Persistence Gate",
       "status": "PASSED",
-      "summary": "Persisted 25/25 native Word edits across reopen"
+      "summary": "Persisted 25/25 Normal edits across reopen (Stress edits: 25/25 persisted)"
     },
     "GATE_VISUAL_FIDELITY": {
       "gateId": "GATE_VISUAL_FIDELITY",
       "name": "Visual Fidelity Benchmark Gate",
       "status": "PASSED",
-      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492"
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
     }
   },
   "metricsSummary": {

@@ -543,7 +543,16 @@ export class DocxCanvasRenderer {
         ? `<v:shadow on="t" type="single" color="#${cleanHex(elem.style.shadow.color, "000000")}" offset="${(elem.style.shadow.offsetX || 0).toFixed(2)}pt,${(elem.style.shadow.offsetY || 0).toFixed(2)}pt"${typeof elem.style.shadow.opacity === "number" ? ` opacity="${elem.style.shadow.opacity.toFixed(2)}"` : ""}/>`
         : "";
 
-      if (dashChild || opacityChild || shadowChild) {
+      const pathChild = elem.fillRule === "evenodd" ? '<v:path fillrule="evenodd"/>' : "";
+
+      // F-01: When fill and stroke geometries have distinct paths, emit discrete fill and stroke shapes
+      if (elem.strokeVectorPath && elem.strokeVectorPath !== pathStr && hasFill && hasStroke) {
+        const fillShape = `<v:shape id="${shapeId}" ${altAttr} ${titleAttr} style="${baseStyle}" coordsize="1000,1000" path="${pathStr}" filled="t" ${fillcolorAttr} stroked="f">${opacityChild}${pathChild}${shadowChild}</v:shape>`;
+        const strokeShape = `<v:shape id="${shapeId}_s" ${altAttr} ${titleAttr} style="${baseStyle}" coordsize="1000,1000" path="${elem.strokeVectorPath}" filled="f" stroked="t" ${strokecolorAttr} ${strokeweightAttr}>${dashChild}</v:shape>`;
+        return `<w:r>\n  <w:pict>\n    ${fillShape}\n    ${strokeShape}\n  </w:pict>\n</w:r>`;
+      }
+
+      if (dashChild || opacityChild || shadowChild || pathChild) {
         return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
@@ -556,7 +565,7 @@ export class DocxCanvasRenderer {
              ${fillcolorAttr}
              ${strokedAttr}
              ${strokecolorAttr}
-             ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}</v:shape>
+             ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}${pathChild}</v:shape>
   </w:pict>
 </w:r>`;
       }

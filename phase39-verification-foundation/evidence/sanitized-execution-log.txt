@@ -1,7 +1,7 @@
 ================================================================================
  Figma2Word — Phase 39: Trustworthy Verification Foundation Production Pipeline
- Run ID: run_phase39_1793456496643
- Started: 2026-10-31T14:21:36.643Z
+ Run ID: run_phase39_1793459606567
+ Started: 2026-10-31T15:13:26.567Z
 ================================================================================
 
 [Step 1] Verifying Real Customer Input JSON Integrity:
@@ -21,7 +21,7 @@
 
 [Step 5] Multi-Section Production DOCX Generation:
   Saved candidate DOCX: C:\Users\77\Documents\Figma2Word\debug\phase39-production\candidate_multi_page.docx
-  DOCX SHA-256: 021614098ce20d4cb6acb9585cb64fc8d243c43b79b4ec60ce73dea89fc1238e
+  DOCX SHA-256: 6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359
 
 [Step 6] Microsoft Word Native Rendering Automation:
   Word rendered 17 pages to PDF and PNG.
@@ -51,17 +51,25 @@
   Average Editability:    88/100
   Overall Verdict:        PASSED
 
-[Step 11] Word Native Edit Persistence Test (B-05 Hardened):
+[Step 11] Word Native Normal Edit Persistence Test (25 Edits):
   Attempted Edits:        25
   Persisted Edits:        25 / 25
   Edit Verdict:           PASSED
 
-[Step 12] Masked Layout Stability Audit (D-01 Dynamic Layout Verification):
-  Layout Verification: Page count preserved=true, Section count preserved=true
-  Unintended Regressions: 0
-  Avg Unchanged Mismatch: 0.0030%
-  Avg Unchanged MAE:      0
-  Stability Verdict:      VERIFIED
+[Step 11b] Word Native Stress Edit Persistence Test (25 Stress Edits with Newlines & Overflows):
+  Stress Attempted:       25
+  Stress Persisted:       25 / 25
+  Stress Verdict:         PASSED
+
+[Step 12] Masked Layout Stability Audit (Dynamic Verification across Normal & Stress):
+  Normal Layout Verification: Page count preserved=true, Section count preserved=true
+  Normal Unintended Regressions: 0
+  Normal Avg Unchanged Mismatch: 0.0030%
+  Normal Avg Unchanged MAE:      0
+  Normal Stability Verdict:      VERIFIED
+  Stress Unintended Regressions: 4
+  Stress Avg Unchanged Mismatch: 0.0750%
+  Stress Stability Verdict:      FAILED
 
 [Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):
   Valid Evaluations:      16 / 16 target frames

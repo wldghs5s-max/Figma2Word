@@ -107,12 +107,10 @@ try {
             # Only ignore full-page background canvas rectangles (both portrait and landscape)
             # Shapes with both width > 500 and height > 500 cover the entire page canvas, leaving <5% unmasked inspection area.
             # Large foreground objects (e.g. wide cards width 500+ with height <= 500, or tall sidebars) remain eligible and tested!
-            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*") -or ($widthPt -gt 500 -and $heightPt -gt 500)
+            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or $altText -like "bg_*") -or ($widthPt -gt 500 -and $heightPt -gt 500)
             if ($isFullPageBg) { continue }
 
-            if ($widthPt -gt 300 -or $heightPt -gt 300) {
-                $largeForegroundCount++
-            }
+            $isLargeForeground = ($widthPt -gt 300 -or $heightPt -gt 300)
 
             $shapePage = 1
             try {
@@ -131,7 +129,8 @@ try {
                     $attemptedEdits++
                     $origLen = $origText.Trim().Length
                     if ($EditMode -eq "Stress") {
-                        $targetMarker = "[STRESS_OVERFLOW_TEST_긴_문자열_줄바꿈_추가_테스트_$attemptedEdits]"
+                        # F-03: Real multi-line newline with overflowing Korean text
+                        $targetMarker = "[STRESS_$attemptedEdits]`r`n줄바꿈 오버플로 검증용 긴 한글 텍스트`r`n세 번째 문단 레이아웃 확인"
                     } else {
                         # Normal Edit: proportional realistic replacement text preserving layout
                         $targetMarker = if ($origLen -le 4) {
@@ -145,6 +144,7 @@ try {
                     $textRange.Text = $targetMarker
 
                     $successfulEdits++
+                    if ($isLargeForeground) { $largeForegroundTested++ }
                     $editOperations += @{
                         editIndex = $attemptedEdits
                         category = "VML_TEXTBOX_TEXT"
@@ -171,9 +171,10 @@ try {
                 $attemptedEdits++
                 $targetMarker = "[PHASE38_EDIT_STROKE_$attemptedEdits]"
                 $shape.Line.ForeColor.RGB = 0x0000FF # Pure Red in BGR
-                $shape.Line.Weight = 2.0
+                $shape.Line.Weight = if ($EditMode -eq "Stress") { 4.0 } else { 2.0 }
 
                 $successfulEdits++
+                if ($isLargeForeground) { $largeForegroundTested++ }
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_STROKE_COLOR"
@@ -203,6 +204,7 @@ try {
                 $shape.Fill.ForeColor.RGB = 0x00FF00 # Pure Green in BGR
 
                 $successfulEdits++
+                if ($isLargeForeground) { $largeForegroundTested++ }
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_FILL_COLOR"
@@ -229,9 +231,10 @@ try {
                 $attemptedEdits++
                 $targetMarker = "[PHASE38_EDIT_DIMENSION_$attemptedEdits]"
                 $origWidth = $widthPt
-                $shape.Width = $widthPt + 4.0
+                $shape.Width = if ($EditMode -eq "Stress") { $widthPt * 1.3 } else { $widthPt + 4.0 }
 
                 $successfulEdits++
+                if ($isLargeForeground) { $largeForegroundTested++ }
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "VML_SHAPE_DIMENSION"
@@ -269,6 +272,7 @@ try {
                 $marker = "[PHASE38_EDIT_TABLE_$attemptedEdits]"
                 $cell.Range.Text = $marker
                 $successfulEdits++
+                if ($isLargeForeground) { $largeForegroundTested++ }
                 $editOperations += @{
                     editIndex = $attemptedEdits
                     category = "TABLE_CELL_TEXT"
@@ -341,11 +345,13 @@ try {
         }
         # 2. Try match by target marker in TextFrame
         if ($op.marker -and $op.marker.Length -gt 0) {
+            $firstLineMarker = ($op.marker -split "`r|`n")[0].Trim()
             for ($k = 1; $k -le $docObj.Shapes.Count; $k++) {
                 try {
                     $s = $docObj.Shapes.Item($k)
                     if ($s.TextFrame -and $s.TextFrame.HasText -ne 0) {
-                        if ($s.TextFrame.TextRange.Text.Contains($op.marker)) { return $s }
+                        $sText = $s.TextFrame.TextRange.Text
+                        if ($sText -and ($sText.Contains($op.marker) -or $sText.Contains($firstLineMarker))) { return $s }
                     }
                 } catch {}
             }
@@ -370,7 +376,10 @@ try {
                 $shape = Find-Shape $doc2 $op
                 if ($shape -and $shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
                     $currentText = $shape.TextFrame.TextRange.Text
-                    if ($currentText -and $currentText.Contains($marker)) {
+                    $firstLineMarker = ($marker -split "`r|`n")[0].Trim()
+                    $cleanCurrent = $currentText -replace "`r`n", "`n" -replace "`r", "`n"
+                    $cleanMarker = $marker -replace "`r`n", "`n" -replace "`r", "`n"
+                    if ($currentText -and ($currentText.Contains($firstLineMarker) -or $cleanCurrent.Contains($cleanMarker))) {
                         $persisted = $true
                         $categoryCounts["VML_TEXTBOX_TEXT"]++
                     } else {

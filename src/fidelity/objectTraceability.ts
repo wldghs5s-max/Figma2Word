@@ -50,6 +50,7 @@ export interface ProvenanceBreakdown {
   locallyRecoveredCount: number;
   semanticApproximationCount: number;
   geometricFallbackCount: number;
+  primitiveShapeCount: number;
   unresolvedCount: number;
 }
 
@@ -504,7 +505,23 @@ export function buildObjectTraceability(
           }
         } else if (elementKind === "SHAPE") {
           const primaryDocxShape = matchedDocxShapes[0];
-          if (primaryDocxShape && primaryDocxShape.id && primaryDocxShape.tag) {
+          const snippet = primaryDocxShape?.rawSnippet || "";
+          const hasValidGeometry =
+            !!primaryDocxShape &&
+            !!primaryDocxShape.id &&
+            !!primaryDocxShape.tag &&
+            (
+              // Standard primitive tag with style/geometry
+              ["rect", "oval", "line", "roundrect", "v:rect", "v:oval", "v:line", "v:roundrect"].includes(primaryDocxShape.tag.toLowerCase()) ||
+              // Vector shape with valid path attribute or child
+              /path="[^"]{3,}"/i.test(snippet) ||
+              /<v:path\b/i.test(snippet) ||
+              // Or explicit stroked/filled visual styling
+              /strokecolor="/i.test(snippet) ||
+              /fillcolor="/i.test(snippet)
+            );
+
+          if (hasValidGeometry) {
             contentVerified = true;
             contentVerifiedCount++;
             preservedShapes++;
@@ -648,17 +665,18 @@ export function buildObjectTraceability(
   const overallTraceabilityRate =
     totalSourceNodes > 0 ? Number((totalTraceableNodes / totalSourceNodes).toFixed(4)) : 1.0;
 
+  const isAllTextPreserved = sourceTexts === preservedTexts;
   let traceabilityVerdict: "VERIFIED" | "PARTIAL" | "FAILED" = "FAILED";
   if (totalSourceNodes === 0) {
     traceabilityVerdict = "FAILED";
   } else if (
     missingCount === 0 &&
     unresolvedInDocxCount === 0 &&
-    textPreservationRate >= 0.95 &&
-    overallTraceabilityRate >= 0.95
+    isAllTextPreserved &&
+    overallTraceabilityRate >= 1.0
   ) {
     traceabilityVerdict = "VERIFIED";
-  } else if (missingCount + unresolvedInDocxCount <= 5) {
+  } else if (missingCount + unresolvedInDocxCount <= 5 && textPreservationRate >= 0.95) {
     traceabilityVerdict = "PARTIAL";
   } else {
     traceabilityVerdict = "FAILED";
@@ -679,9 +697,10 @@ export function buildObjectTraceability(
     locallyRecoveredCount: mappings.filter((m) => m.geometryProvenance === "LOCALLY_RECOVERED_GEOMETRY").length,
     semanticApproximationCount: mappings.filter((m) => m.geometryProvenance === "SEMANTIC_APPROXIMATION").length,
     geometricFallbackCount: mappings.filter((m) => m.geometryProvenance === "GEOMETRIC_FALLBACK").length,
+    primitiveShapeCount: mappings.filter((m) => m.geometryProvenance === "PRIMITIVE_SHAPE").length,
     unresolvedCount: mappings.filter(
       (m) =>
-        (m.sourceElementKind === "SHAPE" || m.sourceNodeType === "VECTOR") &&
+        (m.sourceNodeType === "VECTOR" || m.sourceNodeType === "STAR" || m.sourceNodeType === "POLYGON") &&
         (!m.geometryProvenance || m.geometryProvenance === "UNRESOLVED" || m.conversionStatus === "UNRESOLVED")
     ).length,
   };

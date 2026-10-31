@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-31T14:21:49.182Z",
+  "timestamp": "2026-10-31T15:13:39.515Z",
   "sourceDocumentSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "totalSourceNodes": 2033,
   "totalTraceableNodes": 2033,
@@ -23,7 +23,8 @@
     "locallyRecoveredCount": 175,
     "semanticApproximationCount": 60,
     "geometricFallbackCount": 3,
-    "unresolvedCount": 89
+    "primitiveShapeCount": 1074,
+    "unresolvedCount": 0
   },
   "sourceTextsCount": 628,
   "sourceShapesCount": 327,

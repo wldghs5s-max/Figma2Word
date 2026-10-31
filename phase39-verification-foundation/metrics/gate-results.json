@@ -47,12 +47,12 @@
     "gateId": "GATE_WORD_EDIT_PERSISTENCE",
     "name": "Word Native Edit Persistence Gate",
     "status": "PASSED",
-    "summary": "Persisted 25/25 native Word edits across reopen"
+    "summary": "Persisted 25/25 Normal edits across reopen (Stress edits: 25/25 persisted)"
   },
   "GATE_VISUAL_FIDELITY": {
     "gateId": "GATE_VISUAL_FIDELITY",
     "name": "Visual Fidelity Benchmark Gate",
     "status": "PASSED",
-    "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492"
+    "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
   }
 }

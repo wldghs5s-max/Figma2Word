@@ -1,0 +1,471 @@
+{
+  "editedObjectTypes": {
+    "VML_SHAPE_DIMENSION": 6,
+    "VML_SHAPE_STROKE_COLOR": 6,
+    "TABLE_CELL_TEXT": 0,
+    "VML_SHAPE_FILL_COLOR": 6,
+    "VML_TEXTBOX_TEXT": 7
+  },
+  "beforePdfSha256": "84c0db3abacbb703833ef70340246d76fc2cff55b9d547d21c14b86110094da1",
+  "editMode": "Stress",
+  "sourceSha256": "6102c9e3d04e481a4c2e0fdacc5db0d742fcbfc3672b34fffa96244af7d63359",
+  "editStatistics": {
+    "persistenceRatePercent": 100,
+    "attempted": 25,
+    "verdict": "PASSED",
+    "successful": 25,
+    "persisted": 25
+  },
+  "layoutStability": {
+    "verdict": "STABLE",
+    "sectionCountPreserved": true,
+    "pageCountPreserved": true
+  },
+  "editedBoundingBoxes": [
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 79.5,
+      "marker": "[STRESS_1]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 4,
+      "widthPt": 72.0999984741211,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 79.5,
+      "marker": "[PHASE38_EDIT_STROKE_2]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 8,
+      "widthPt": 72.0999984741211,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 7.5,
+      "topPt": 80.6500015258789,
+      "marker": "[PHASE38_EDIT_FILL_3]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 15,
+      "widthPt": 4.5,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 13.649999618530273,
+      "topPt": 78,
+      "marker": "[PHASE38_EDIT_DIMENSION_4]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 16,
+      "widthPt": 169.39999389648438,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 44.25,
+      "marker": "[STRESS_5]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 1,
+      "widthPt": 145.6999969482422,
+      "leftPt": 34.5
+    },
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 44.25,
+      "marker": "[PHASE38_EDIT_STROKE_6]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 2,
+      "widthPt": 127.69999694824219,
+      "leftPt": 34.5
+    },
+    {
+      "heightPt": 24,
+      "topPt": 78.4000015258789,
+      "marker": "[PHASE38_EDIT_FILL_7]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 4,
+      "widthPt": 71.25,
+      "leftPt": 1008.4000244140625
+    },
+    {
+      "heightPt": 333.75,
+      "topPt": 851.25,
+      "marker": "[PHASE38_EDIT_DIMENSION_8]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 5,
+      "widthPt": 907.75,
+      "leftPt": 96.75
+    },
+    {
+      "heightPt": 41.5,
+      "topPt": 201.75,
+      "marker": "[STRESS_9]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 6,
+      "widthPt": 1086.75,
+      "leftPt": 221.25
+    },
+    {
+      "heightPt": 24,
+      "topPt": 78.4000015258789,
+      "marker": "[PHASE38_EDIT_STROKE_10]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 8,
+      "widthPt": 71.25,
+      "leftPt": 1008.4000244140625
+    },
+    {
+      "heightPt": 52.5,
+      "topPt": 286.8999938964844,
+      "marker": "[PHASE38_EDIT_FILL_11]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 9,
+      "widthPt": 70.5,
+      "leftPt": 370.1499938964844
+    },
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 81,
+      "marker": "[PHASE38_EDIT_DIMENSION_12]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 10,
+      "widthPt": 76.0999984741211,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 24,
+      "topPt": 12,
+      "marker": "[STRESS_13]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 11,
+      "widthPt": 30.049999237060547,
+      "leftPt": 24
+    },
+    {
+      "heightPt": 25.950000762939453,
+      "topPt": 36.75,
+      "marker": "[PHASE38_EDIT_STROKE_14]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 12,
+      "widthPt": 560.2999877929688,
+      "leftPt": 212.25
+    },
+    {
+      "heightPt": 24,
+      "topPt": 12,
+      "marker": "[PHASE38_EDIT_FILL_15]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 13,
+      "widthPt": 100.1500015258789,
+      "leftPt": 24
+    },
+    {
+      "heightPt": 23.399999618530273,
+      "topPt": 81,
+      "marker": "[PHASE38_EDIT_DIMENSION_16]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 14,
+      "widthPt": 76.0999984741211,
+      "leftPt": 282
+    },
+    {
+      "heightPt": 13.649999618530273,
+      "topPt": 78,
+      "marker": "[STRESS_17]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 15,
+      "widthPt": 165.4499969482422,
+      "leftPt": 295.5
+    },
+    {
+      "heightPt": 149.25,
+      "topPt": 109.1500015258789,
+      "marker": "[PHASE38_EDIT_STROKE_18]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 16,
+      "widthPt": 875.25,
+      "leftPt": 282.3999938964844
+    },
+    {
+      "heightPt": 13.649999618530273,
+      "topPt": 78,
+      "marker": "[PHASE38_EDIT_FILL_19]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 17,
+      "widthPt": 218.35000610351562,
+      "leftPt": 295.5
+    },
+    {
+      "heightPt": 17.549999237060547,
+      "topPt": 120.75,
+      "marker": "[PHASE38_EDIT_DIMENSION_20]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 1,
+      "widthPt": 146.3000030517578,
+      "leftPt": 34.5
+    },
+    {
+      "heightPt": 17.549999237060547,
+      "topPt": 120.75,
+      "marker": "[STRESS_21]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 2,
+      "widthPt": 160.3000030517578,
+      "leftPt": 34.5
+    },
+    {
+      "heightPt": 24.75,
+      "topPt": 78,
+      "marker": "[PHASE38_EDIT_STROKE_22]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 4,
+      "widthPt": 56.099998474121094,
+      "leftPt": 1020
+    },
+    {
+      "heightPt": 20.75,
+      "topPt": 1074,
+      "marker": "[PHASE38_EDIT_FILL_23]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 5,
+      "widthPt": 225.10000610351562,
+      "leftPt": 716.25
+    },
+    {
+      "heightPt": 41.5,
+      "topPt": 391.5,
+      "marker": "[PHASE38_EDIT_DIMENSION_24]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 6,
+      "widthPt": 1090.75,
+      "leftPt": 156.75
+    },
+    {
+      "heightPt": 24.75,
+      "topPt": 78,
+      "marker": "[STRESS_25]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 8,
+      "widthPt": 56.099998474121094,
+      "leftPt": 1020
+    }
+  ],
+  "initialMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346,
+    "paragraphs": 17,
+    "tables": 0
+  },
+  "savedDocxSha256": "15679f9dd697dd7d3c6faf43da994c4d1a37bc32c7127ec70d8d4ae59b1f8754",
+  "afterPdfSha256": "6bb7c989b6fc988c8141293b960d15498556c3ac6ab440e111be8aa4fbc53a75",
+  "reopenedMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1346
+  },
+  "success": true,
+  "untestedObjects": 1338,
+  "verdict": "PASSED",
+  "verifiedEdits": [
+    {
+      "page": 4,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 1,
+      "marker": "[STRESS_1]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 8,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 2,
+      "marker": "[PHASE38_EDIT_STROKE_2]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 15,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 3,
+      "marker": "[PHASE38_EDIT_FILL_3]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 16,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 4,
+      "marker": "[PHASE38_EDIT_DIMENSION_4]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 1,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 5,
+      "marker": "[STRESS_5]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 2,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 6,
+      "marker": "[PHASE38_EDIT_STROKE_6]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 4,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 7,
+      "marker": "[PHASE38_EDIT_FILL_7]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 5,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 8,
+      "marker": "[PHASE38_EDIT_DIMENSION_8]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 6,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 9,
+      "marker": "[STRESS_9]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 8,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 10,
+      "marker": "[PHASE38_EDIT_STROKE_10]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 9,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 11,
+      "marker": "[PHASE38_EDIT_FILL_11]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 10,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 12,
+      "marker": "[PHASE38_EDIT_DIMENSION_12]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 11,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 13,
+      "marker": "[STRESS_13]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 12,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 14,
+      "marker": "[PHASE38_EDIT_STROKE_14]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 13,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 15,
+      "marker": "[PHASE38_EDIT_FILL_15]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 14,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 16,
+      "marker": "[PHASE38_EDIT_DIMENSION_16]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 15,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 17,
+      "marker": "[STRESS_17]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 16,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 18,
+      "marker": "[PHASE38_EDIT_STROKE_18]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 17,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 19,
+      "marker": "[PHASE38_EDIT_FILL_19]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 1,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 20,
+      "marker": "[PHASE38_EDIT_DIMENSION_20]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 2,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 21,
+      "marker": "[STRESS_21]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    },
+    {
+      "page": 4,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 22,
+      "marker": "[PHASE38_EDIT_STROKE_22]",
+      "category": "VML_SHAPE_STROKE_COLOR"
+    },
+    {
+      "page": 5,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 23,
+      "marker": "[PHASE38_EDIT_FILL_23]",
+      "category": "VML_SHAPE_FILL_COLOR"
+    },
+    {
+      "page": 6,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 24,
+      "marker": "[PHASE38_EDIT_DIMENSION_24]",
+      "category": "VML_SHAPE_DIMENSION"
+    },
+    {
+      "page": 8,
+      "error": null,
+      "persistedInReopenedDoc": true,
+      "editIndex": 25,
+      "marker": "[STRESS_25]\r\n以꾨컮轅??ㅻ쾭?뚮줈 寃利앹슜 湲??쒓? ?띿뒪??r\n??踰덉㎏ 臾몃떒 ?덉씠?꾩썐 ?뺤씤",
+      "category": "VML_TEXTBOX_TEXT"
+    }
+  ],
+  "largeForegroundTested": 0
+}

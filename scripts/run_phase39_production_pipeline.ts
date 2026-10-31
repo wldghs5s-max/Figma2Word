@@ -85,7 +85,8 @@ export async function runPhase39Pipeline() {
   const jsonPath = path.resolve(rootDir, "펜테크 3차 디자인.json");
   const outDir = path.resolve(rootDir, "phase39-verification-foundation");
   const debugDir = path.resolve(rootDir, "debug/phase39-production");
-  const editWorkDir = path.resolve(rootDir, "debug/phase39-editability");
+  const editWorkDirNormal = path.resolve(rootDir, "debug/phase39-editability-normal");
+  const editWorkDirStress = path.resolve(rootDir, "debug/phase39-editability-stress");
   const framesJsonPath = path.resolve(
     rootDir,
     "research/rea-document-engine/phase26-visual-fidelity/exact-17-frames.json"
@@ -105,7 +106,8 @@ export async function runPhase39Pipeline() {
   fs.mkdirSync(metricsDir, { recursive: true });
   fs.mkdirSync(evidenceDir, { recursive: true });
   fs.mkdirSync(debugDir, { recursive: true });
-  fs.mkdirSync(editWorkDir, { recursive: true });
+  fs.mkdirSync(editWorkDirNormal, { recursive: true });
+  fs.mkdirSync(editWorkDirStress, { recursive: true });
 
   const logLines: string[] = [];
   function log(msg: string) {
@@ -316,25 +318,40 @@ export async function runPhase39Pipeline() {
   log(`  Average Editability:    ${editabilityAudit.globalSummary.averageEditabilityScore}/100`);
   log(`  Overall Verdict:        ${editabilityAudit.globalSummary.overallVerdict}`);
 
-  // Step 11: Word Native Edit Persistence Test
-  log("\n[Step 11] Word Native Edit Persistence Test (B-05 Hardened):");
+  // Step 11: Word Native Edit Persistence Test (Normal Edit)
+  log("\n[Step 11] Word Native Normal Edit Persistence Test (25 Edits):");
   let editResult: any = null;
   let wordEditSucceeded = false;
   try {
-    editResult = runWordEditTest(wordEditScript, candidateDocxPath, editWorkDir, 25);
+    editResult = runWordEditTest(wordEditScript, candidateDocxPath, editWorkDirNormal, 25, "Normal");
     wordEditSucceeded = editResult.success === true;
     log(`  Attempted Edits:        ${editResult.editStatistics?.attempted}`);
     log(`  Persisted Edits:        ${editResult.editStatistics?.persisted} / ${editResult.editStatistics?.successful}`);
     log(`  Edit Verdict:           ${editResult.verdict || editResult.editStatistics?.verdict}`);
   } catch (err: any) {
-    log(`  [WARN] Word edit test error: ${err.message}`);
+    log(`  [WARN] Word Normal edit test error: ${err.message}`);
     wordEditSucceeded = false;
   }
 
+  // Step 11b: Word Native Stress Edit Persistence Test (Stress Edit)
+  log("\n[Step 11b] Word Native Stress Edit Persistence Test (25 Stress Edits with Newlines & Overflows):");
+  let stressEditResult: any = null;
+  let wordStressEditSucceeded = false;
+  try {
+    stressEditResult = runWordEditTest(wordEditScript, candidateDocxPath, editWorkDirStress, 25, "Stress");
+    wordStressEditSucceeded = stressEditResult.success === true;
+    log(`  Stress Attempted:       ${stressEditResult.editStatistics?.attempted}`);
+    log(`  Stress Persisted:       ${stressEditResult.editStatistics?.persisted} / ${stressEditResult.editStatistics?.successful}`);
+    log(`  Stress Verdict:         ${stressEditResult.verdict || stressEditResult.editStatistics?.verdict}`);
+  } catch (err: any) {
+    log(`  [WARN] Word Stress edit test error: ${err.message}`);
+    wordStressEditSucceeded = false;
+  }
+
   // Step 12: Masked Layout Stability Audit
-  log("\n[Step 12] Masked Layout Stability Audit (D-01 Dynamic Layout Verification):");
-  const beforeEditDir = path.join(editWorkDir, "rendered-before");
-  const afterEditDir = path.join(editWorkDir, "rendered-after");
+  log("\n[Step 12] Masked Layout Stability Audit (Dynamic Verification across Normal & Stress):");
+  const beforeEditDir = path.join(editWorkDirNormal, "rendered-before");
+  const afterEditDir = path.join(editWorkDirNormal, "rendered-after");
   const editedBoxes = editResult?.editedBoundingBoxes || [];
 
   const pageCountPreserved =
@@ -345,7 +362,7 @@ export async function runPhase39Pipeline() {
     editResult?.layoutStability?.sectionCountPreserved === true &&
     editResult?.reopenedMetrics?.sections === candidateDoc.pages.length;
 
-  log(`  Layout Verification: Page count preserved=${pageCountPreserved}, Section count preserved=${sectionCountPreserved}`);
+  log(`  Normal Layout Verification: Page count preserved=${pageCountPreserved}, Section count preserved=${sectionCountPreserved}`);
 
   const layoutStabilityReport = auditLayoutStability(
     beforeEditDir,
@@ -355,10 +372,32 @@ export async function runPhase39Pipeline() {
     pageCountPreserved,
     sectionCountPreserved
   );
-  log(`  Unintended Regressions: ${layoutStabilityReport.unintendedRegressionsCount}`);
-  log(`  Avg Unchanged Mismatch: ${(layoutStabilityReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%`);
-  log(`  Avg Unchanged MAE:      ${layoutStabilityReport.averageUnchangedMae}`);
-  log(`  Stability Verdict:      ${layoutStabilityReport.layoutStabilityVerdict}`);
+  log(`  Normal Unintended Regressions: ${layoutStabilityReport.unintendedRegressionsCount}`);
+  log(`  Normal Avg Unchanged Mismatch: ${(layoutStabilityReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%`);
+  log(`  Normal Avg Unchanged MAE:      ${layoutStabilityReport.averageUnchangedMae}`);
+  log(`  Normal Stability Verdict:      ${layoutStabilityReport.layoutStabilityVerdict}`);
+
+  if (wordStressEditSucceeded) {
+    const beforeEditDirStress = path.join(editWorkDirStress, "rendered-before");
+    const afterEditDirStress = path.join(editWorkDirStress, "rendered-after");
+    const editedBoxesStress = stressEditResult?.editedBoundingBoxes || [];
+    const stressLayoutReport = auditLayoutStability(
+      beforeEditDirStress,
+      afterEditDirStress,
+      editedBoxesStress,
+      wordRenderResult.pageCount || 17,
+      stressEditResult?.layoutStability?.pageCountPreserved === true,
+      stressEditResult?.layoutStability?.sectionCountPreserved === true
+    );
+    log(`  Stress Unintended Regressions: ${stressLayoutReport.unintendedRegressionsCount}`);
+    log(`  Stress Avg Unchanged Mismatch: ${(stressLayoutReport.averageUnchangedMismatchRatio * 100).toFixed(4)}%`);
+    log(`  Stress Stability Verdict:      ${stressLayoutReport.layoutStabilityVerdict}`);
+    fs.writeFileSync(
+      path.join(metricsDir, "layout-stability-stress.json"),
+      JSON.stringify(stressLayoutReport, null, 2),
+      "utf8"
+    );
+  }
 
   // Step 13: 16-Frame Dual Visual Fidelity Benchmark
   log("\n[Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):");
@@ -620,7 +659,7 @@ export async function runPhase39Pipeline() {
       name: "Word Native Edit Persistence Gate",
       status: wordEditSucceeded ? "PASSED" : (editResult?.editStatistics?.persisted > 0 ? "PARTIAL" : "FAILED"),
       summary: wordEditSucceeded
-        ? `Persisted ${editResult.editStatistics?.persisted}/${editResult.editStatistics?.successful} native Word edits across reopen`
+        ? `Persisted ${editResult.editStatistics?.persisted}/${editResult.editStatistics?.successful} Normal edits across reopen (Stress edits: ${wordStressEditSucceeded ? `${stressEditResult?.editStatistics?.persisted}/${stressEditResult?.editStatistics?.successful} persisted` : "NOT_VERIFIED"})`
         : `Word edit persistence incomplete or failed: persisted ${editResult?.editStatistics?.persisted || 0}/${editResult?.editStatistics?.successful || 0}`,
       failureReasons: !wordEditSucceeded
         ? [`Word edit persistence check returned non-success (${editResult?.verdict || "UNKNOWN"})`]
@@ -629,12 +668,14 @@ export async function runPhase39Pipeline() {
     {
       gateId: "GATE_VISUAL_FIDELITY",
       name: "Visual Fidelity Benchmark Gate",
-      status: validCount >= 16 ? "PASSED" : "PARTIAL",
-      summary: validCount >= 16
-        ? `Evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim}`
-        : `Visual fidelity incomplete: evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim}`,
+      status: validCount >= 16 && Number(avgSsim) >= 0.9400 ? "PASSED" : (validCount >= 12 ? "PARTIAL" : "FAILED"),
+      summary: validCount >= 16 && Number(avgSsim) >= 0.9400
+        ? `Evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim} (Quality threshold >= 0.9400 verified)`
+        : `Visual fidelity failed threshold: evaluated ${validCount}/16 frames, mean SSIM: ${avgSsim} (required >= 0.9400)`,
       failureReasons: validCount < 16
         ? [`Evaluated only ${validCount}/16 target reference frames`]
+        : Number(avgSsim) < 0.9400
+        ? [`Mean SSIM ${avgSsim} is below production threshold of 0.9400`]
         : undefined,
     },
   ];
@@ -730,6 +771,13 @@ export async function runPhase39Pipeline() {
   fs.writeFileSync(path.join(metricsDir, "object-coverage.json"), JSON.stringify(traceabilityReport.summary, null, 2), "utf8");
   fs.writeFileSync(path.join(metricsDir, "layout-stability.json"), JSON.stringify(layoutStabilityReport, null, 2), "utf8");
   fs.writeFileSync(path.join(metricsDir, "production-verification.json"), JSON.stringify(pageMeasurements, null, 2), "utf8");
+  if (editResult) {
+    fs.writeFileSync(path.join(metricsDir, "word-edit-metrics-normal.json"), JSON.stringify(editResult, null, 2), "utf8");
+    fs.writeFileSync(path.join(metricsDir, "word-edit-metrics.json"), JSON.stringify(editResult, null, 2), "utf8");
+  }
+  if (stressEditResult) {
+    fs.writeFileSync(path.join(metricsDir, "word-edit-metrics-stress.json"), JSON.stringify(stressEditResult, null, 2), "utf8");
+  }
 
   // Derive CSV
   let csvContent = "pageNumber,nodeId,frameName,status,ssim,mae,rmse,mismatchRatio\n";
