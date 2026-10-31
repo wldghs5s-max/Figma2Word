@@ -544,3 +544,20 @@ export function recoverPendingJournals(
 
   return { recoveredCount, discardedCount };
 }
+
+/**
+ * Counts pending journal files without modifying disk (read-only audit for dry-run/preflight).
+ */
+export function countPendingJournals(outputDir: string): number {
+  if (!fs.existsSync(outputDir)) return 0;
+  let count = 0;
+  try {
+    const files = fs.readdirSync(outputDir);
+    for (const f of files) {
+      if (f.startsWith(".journal_") && f.endsWith(".json")) {
+        count++;
+      }
+    }
+  } catch {}
+  return count;
+}

@@ -22,6 +22,7 @@ import {
   removeJournalEntry,
   cleanupStaleTempFiles,
   recoverPendingJournals,
+  countPendingJournals,
   isPathInsideDirectory,
 } from "../cache/cacheManifest.js";
 import { validateSecureCdnUrl } from "./urlSecurity.js";
@@ -55,6 +56,16 @@ export interface RequestBudget {
   maxTotalHttpLimit: number;
 }
 
+export interface HttpRequestMetrics {
+  apiHttpRequestsAttempted: number;
+  cdnHttpRequestsAttempted: number;
+  totalHttpRequestsAttempted: number;
+  cdnRedirectHops: number;
+  imagesDownloadedSuccessfully: number;
+  imagesFailed: number;
+  imagesReusedFromCache: number;
+}
+
 export interface OneShotCaptureOptions {
   fileKeyOrUrl: string;
   accessToken?: string;
@@ -80,21 +91,22 @@ export type CaptureExecutionStatus =
   | "FAILED"
   | "RATE_LIMITED";
 
-export interface OneShotCaptureResult {
+export interface OneShotCaptureResult extends HttpRequestMetrics {
   status: CaptureExecutionStatus;
   success: boolean;
   dryRun: boolean;
   plan: OneShotCapturePlan;
-  actualFigmaApiCalls: number;
-  actualCdnDownloads: number;
-  totalHttpRequests: number;
+  actualFigmaApiCalls: number; // compatible alias to apiHttpRequestsAttempted
+  actualCdnDownloads: number;  // compatible alias to cdnHttpRequestsAttempted
+  totalHttpRequests: number;   // compatible alias to totalHttpRequestsAttempted
   capturedEntries: CacheEntry[];
   errors: string[];
   abortedDueToRateLimit?: boolean;
+  abortedDueToAuth?: boolean;
   budgetExceeded?: boolean;
 }
 
-export { maskToken };
+export { maskToken, countPendingJournals };
 
 export interface SecureCdnFetchResult {
   ok: boolean;
@@ -103,19 +115,85 @@ export interface SecureCdnFetchResult {
   error?: string;
   isRateLimit?: boolean;
   isAuthError?: boolean;
+  isBudgetExceeded?: boolean;
   redirectCount: number;
   redirectChain: string[];
   finalUrl: string;
 }
 
 /**
- * Downloads CDN image with explicit, manual redirect tracking and SSRF defense (Phase 34A.1 / GATE-02).
+ * Exact HTTP Request Budget Manager (Phase 34A.1 / HOTFIX-02).
+ * Tracks individual HTTP requests attempted across Figma API, CDN initial requests, and redirect hops.
+ * Enforces pre-request budget checks immediately prior to network dispatch.
+ */
+export class HttpRequestBudgetManager {
+  public apiHttpRequestsAttempted = 0;
+  public cdnHttpRequestsAttempted = 0;
+  public cdnRedirectHops = 0;
+
+  constructor(
+    public readonly maxApi: number,
+    public readonly maxCdn: number,
+    public readonly maxTotal: number
+  ) {}
+
+  get totalHttpRequestsAttempted(): number {
+    return this.apiHttpRequestsAttempted + this.cdnHttpRequestsAttempted;
+  }
+
+  canMakeApiRequest(): { allowed: boolean; reason?: string } {
+    if (this.apiHttpRequestsAttempted >= this.maxApi) {
+      return {
+        allowed: false,
+        reason: `Figma API request budget ceiling reached (${this.apiHttpRequestsAttempted}/${this.maxApi}).`,
+      };
+    }
+    if (this.totalHttpRequestsAttempted >= this.maxTotal) {
+      return {
+        allowed: false,
+        reason: `Total HTTP request budget ceiling reached (${this.totalHttpRequestsAttempted}/${this.maxTotal}).`,
+      };
+    }
+    return { allowed: true };
+  }
+
+  canMakeCdnRequest(): { allowed: boolean; reason?: string } {
+    if (this.cdnHttpRequestsAttempted >= this.maxCdn) {
+      return {
+        allowed: false,
+        reason: `CDN HTTP request budget ceiling reached (${this.cdnHttpRequestsAttempted}/${this.maxCdn}).`,
+      };
+    }
+    if (this.totalHttpRequestsAttempted >= this.maxTotal) {
+      return {
+        allowed: false,
+        reason: `Total HTTP request budget ceiling reached (${this.totalHttpRequestsAttempted}/${this.maxTotal}).`,
+      };
+    }
+    return { allowed: true };
+  }
+
+  consumeApiRequest(): void {
+    this.apiHttpRequestsAttempted++;
+  }
+
+  consumeCdnRequest(isRedirectHop = false): void {
+    this.cdnHttpRequestsAttempted++;
+    if (isRedirectHop) {
+      this.cdnRedirectHops++;
+    }
+  }
+}
+
+/**
+ * Downloads CDN image with explicit, manual redirect tracking and SSRF defense (Phase 34A.1 / GATE-02 & HOTFIX-02).
  * - redirect: "manual" prevents standard fetch from following redirects invisibly.
  * - Every redirect hop (301, 302, 303, 307, 308) is re-validated via validateSecureCdnUrl().
  * - HTTPS -> HTTP protocol downgrade is strictly blocked.
  * - Target loopback, localhost, and cloud metadata addresses are blocked.
  * - Redirect loops and excess redirect hops (> maxRedirects) are rejected.
  * - Never sends Authorization or X-Figma-Token to CDN endpoints.
+ * - Every single attempted HTTP request (including redirect hops) checks and consumes HTTP request budget.
  */
 export async function fetchCdnImageWithSecureRedirects(
   initialUrl: string,
@@ -124,11 +202,13 @@ export async function fetchCdnImageWithSecureRedirects(
     maxRedirects?: number;
     timeoutMs?: number;
     maxBytes?: number;
+    budgetManager?: HttpRequestBudgetManager;
   }
 ): Promise<SecureCdnFetchResult> {
   const maxRedirects = options?.maxRedirects ?? 3;
   const timeoutMs = options?.timeoutMs ?? 30000;
   const maxBytes = options?.maxBytes ?? 50 * 1024 * 1024;
+  const budgetManager = options?.budgetManager;
 
   let currentUrl = initialUrl;
   const redirectChain: string[] = [];
@@ -146,6 +226,25 @@ export async function fetchCdnImageWithSecureRedirects(
         redirectChain,
         finalUrl: currentUrl,
       };
+    }
+
+    // 2. Budget verification and consumption strictly BEFORE initiating HTTP request (HOTFIX-02)
+    const isHop = redirectChain.length > 0;
+    if (budgetManager) {
+      const budgetCheck = budgetManager.canMakeCdnRequest();
+      if (!budgetCheck.allowed) {
+        return {
+          ok: false,
+          status: 0,
+          error: budgetCheck.reason || "CDN HTTP request budget ceiling reached",
+          isBudgetExceeded: true,
+          redirectCount: redirectChain.length,
+          redirectChain,
+          finalUrl: currentUrl,
+        };
+      }
+      // Consume budget immediately prior to dispatching network request
+      budgetManager.consumeCdnRequest(isHop);
     }
 
     const controller = new AbortController();
@@ -187,7 +286,7 @@ export async function fetchCdnImageWithSecureRedirects(
 
     const status = res.status ?? (res.ok ? 200 : 500);
 
-    // 2. Check for redirect responses
+    // 3. Check for redirect responses
     if ([301, 302, 303, 307, 308].includes(status)) {
       if (redirectChain.length >= maxRedirects) {
         return {
@@ -267,10 +366,10 @@ export async function fetchCdnImageWithSecureRedirects(
       redirectChain.push(currentUrl);
       visitedUrls.add(destUrl);
       currentUrl = destUrl;
-      continue; // Follow next hop safely
+      continue; // Follow next hop safely (budget check and consumption happens at start of loop)
     }
 
-    // 3. Fail-Fast on Rate Limiting (429) or Access Denied (401/403)
+    // 4. Fail-Fast on Rate Limiting (429) or Access Denied (401/403)
     if (status === 429) {
       return {
         ok: false,
@@ -306,7 +405,7 @@ export async function fetchCdnImageWithSecureRedirects(
       };
     }
 
-    // 4. Read body buffer and check size limit
+    // 5. Read body buffer and check size limit
     const cl = res.headers?.get ? res.headers.get("content-length") : (res.headers as any)?.["content-length"];
     if (cl && parseInt(cl, 10) > maxBytes) {
       return {
@@ -409,24 +508,37 @@ export function planOneShotCapture(
 }
 
 /**
- * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A.1 Hardening & Failure Recovery.
+ * Executes or dry-runs a One-Shot Reference Capture with full Phase 34A.1 Hardening, Failure Recovery, and Exact Budget Accounting.
  */
 export async function executeOneShotCapture(
   options: OneShotCaptureOptions
 ): Promise<OneShotCaptureResult> {
+  const parsed = parseFigmaUrl(options.fileKeyOrUrl);
+  const fileKey = parsed.fileKey;
+
   const manifestPath =
     options.manifestPath || path.resolve(process.cwd(), "debug/cache/cache-manifest.json");
-  const manifest = loadCacheManifest(manifestPath);
+  const outputDir =
+    options.outputDir || path.resolve(process.cwd(), `debug/cache/figma_references/${fileKey}`);
 
-  const plan = planOneShotCapture(options, manifest);
+  // Load baseline manifest for planning
+  const initialManifest = loadCacheManifest(manifestPath);
+  const initialPlan = planOneShotCapture(options, initialManifest);
 
-  // 1. Dry Run evaluation
+  // 1. Dry Run evaluation (Inviolable rule: Zero disk modifications, zero network requests)
   if (options.dryRun !== false) {
     return {
       status: "DRY_RUN",
       success: true,
       dryRun: true,
-      plan,
+      plan: initialPlan,
+      apiHttpRequestsAttempted: 0,
+      cdnHttpRequestsAttempted: 0,
+      totalHttpRequestsAttempted: 0,
+      cdnRedirectHops: 0,
+      imagesDownloadedSuccessfully: 0,
+      imagesFailed: 0,
+      imagesReusedFromCache: initialPlan.cachedFramesCount,
       actualFigmaApiCalls: 0,
       actualCdnDownloads: 0,
       totalHttpRequests: 0,
@@ -441,7 +553,14 @@ export async function executeOneShotCapture(
       status: "BLOCKED_NO_APPROVAL",
       success: false,
       dryRun: false,
-      plan,
+      plan: initialPlan,
+      apiHttpRequestsAttempted: 0,
+      cdnHttpRequestsAttempted: 0,
+      totalHttpRequestsAttempted: 0,
+      cdnRedirectHops: 0,
+      imagesDownloadedSuccessfully: 0,
+      imagesFailed: 0,
+      imagesReusedFromCache: initialPlan.cachedFramesCount,
       actualFigmaApiCalls: 0,
       actualCdnDownloads: 0,
       totalHttpRequests: 0,
@@ -464,7 +583,14 @@ export async function executeOneShotCapture(
       status: policyErr.details?.code === "BLOCKED_OFFLINE" ? "BLOCKED_OFFLINE" : "BLOCKED_NO_APPROVAL",
       success: false,
       dryRun: false,
-      plan,
+      plan: initialPlan,
+      apiHttpRequestsAttempted: 0,
+      cdnHttpRequestsAttempted: 0,
+      totalHttpRequestsAttempted: 0,
+      cdnRedirectHops: 0,
+      imagesDownloadedSuccessfully: 0,
+      imagesFailed: 0,
+      imagesReusedFromCache: initialPlan.cachedFramesCount,
       actualFigmaApiCalls: 0,
       actualCdnDownloads: 0,
       totalHttpRequests: 0,
@@ -478,13 +604,35 @@ export async function executeOneShotCapture(
     throw new FigmaApiError("Cannot execute One-Shot capture without access token in live mode", 401);
   }
 
-  // 5. If all frames are already cached, succeed immediately without any HTTP calls
+  // 5. Cache directory preparation & Crash Recovery BEFORE Plan Finalization (HOTFIX-01)
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  // Clean up any stale temp files and recover pending journals from previous crash
+  cleanupStaleTempFiles(outputDir);
+  recoverPendingJournals(outputDir, initialManifest, manifestPath);
+
+  // Reload manifest to guarantee fresh state synchronized with recovery
+  const activeManifest = loadCacheManifest(manifestPath);
+
+  // Re-calculate plan with post-recovery cache state (HOTFIX-01: Inviolable recovery-aware plan)
+  const plan = planOneShotCapture(options, activeManifest);
+
+  // 6. If all frames are already cached post-recovery, succeed immediately without any HTTP calls
   if (plan.toFetchNodeIds.length === 0) {
     return {
       status: "COMPLETED",
       success: true,
       dryRun: false,
       plan,
+      apiHttpRequestsAttempted: 0,
+      cdnHttpRequestsAttempted: 0,
+      totalHttpRequestsAttempted: 0,
+      cdnRedirectHops: 0,
+      imagesDownloadedSuccessfully: 0,
+      imagesFailed: 0,
+      imagesReusedFromCache: plan.cachedFramesCount,
       actualFigmaApiCalls: 0,
       actualCdnDownloads: 0,
       totalHttpRequests: 0,
@@ -498,23 +646,14 @@ export async function executeOneShotCapture(
     throw new Error("No fetch implementation available for capture");
   }
 
-  // Budget limits
+  // 7. Initialize Exact HTTP Request Budget Manager (HOTFIX-02)
   const maxApi = options.maxApiCallLimit ?? 5;
   const maxCdn = options.maxCdnCallLimit ?? 25;
   const maxTotal = options.maxTotalHttpLimit ?? 30;
+  const budgetManager = new HttpRequestBudgetManager(maxApi, maxCdn, maxTotal);
 
-  const outputDir =
-    options.outputDir || path.resolve(process.cwd(), `debug/cache/figma_references/${plan.fileKey}`);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  // Clean up any stale temp files and recover pending journals from previous crash
-  cleanupStaleTempFiles(outputDir);
-  recoverPendingJournals(outputDir, manifest, manifestPath);
-
-  let apiCallsCount = 0;
-  let cdnDownloadsCount = 0;
+  let imagesDownloadedSuccessfully = 0;
+  let imagesFailed = 0;
   const capturedEntries: CacheEntry[] = [];
   const errors: string[] = [];
   let abortedDueToRateLimit = false;
@@ -534,9 +673,10 @@ export async function executeOneShotCapture(
 
   for (const batch of batches) {
     // Budget check before API call
-    if (apiCallsCount >= maxApi || (apiCallsCount + cdnDownloadsCount) >= maxTotal) {
+    const apiBudgetCheck = budgetManager.canMakeApiRequest();
+    if (!apiBudgetCheck.allowed) {
       budgetExceeded = true;
-      errors.push(`Budget ceiling reached: API calls (${apiCallsCount}/${maxApi}), Total (${apiCallsCount + cdnDownloadsCount}/${maxTotal}).`);
+      errors.push(apiBudgetCheck.reason || "Figma API request budget ceiling reached");
       break;
     }
 
@@ -548,7 +688,7 @@ export async function executeOneShotCapture(
       dryRun: options.dryRun,
     });
 
-    apiCallsCount++;
+    budgetManager.consumeApiRequest();
     const idsParam = batch.join(",");
     const apiUrl = `https://api.figma.com/v1/images/${encodeURIComponent(plan.fileKey)}?ids=${encodeURIComponent(idsParam)}&format=png`;
 
@@ -598,6 +738,7 @@ export async function executeOneShotCapture(
       const imgUrl = images[nodeId];
       if (!imgUrl) {
         errors.push(`Figma returned no image URL for node '${nodeId}'`);
+        imagesFailed++;
         continue;
       }
 
@@ -605,13 +746,16 @@ export async function executeOneShotCapture(
       const urlValidation = validateSecureCdnUrl(imgUrl);
       if (!urlValidation.valid) {
         errors.push(`Blocked insecure CDN download URL for node '${nodeId}': ${urlValidation.reason}`);
+        imagesFailed++;
         continue;
       }
 
-      // 2. Budget check before CDN call
-      if (cdnDownloadsCount >= maxCdn || (apiCallsCount + cdnDownloadsCount) >= maxTotal) {
+      // 2. Budget check before initiating CDN download (HOTFIX-02)
+      const cdnBudgetCheck = budgetManager.canMakeCdnRequest();
+      if (!cdnBudgetCheck.allowed) {
         budgetExceeded = true;
-        errors.push(`Budget ceiling reached during CDN downloads: (${cdnDownloadsCount}/${maxCdn}).`);
+        errors.push(cdnBudgetCheck.reason || "CDN HTTP request budget ceiling reached");
+        imagesFailed++;
         break;
       }
 
@@ -623,29 +767,39 @@ export async function executeOneShotCapture(
         dryRun: options.dryRun,
       });
 
-      cdnDownloadsCount++;
-
       let tempFilePath: string | null = null;
       let journalFilePath: string | null = null;
       try {
-        // Download via secure redirect fetcher (manual redirect, no auth headers, SSRF re-validated on hops)
-        const dlResult = await fetchCdnImageWithSecureRedirects(imgUrl, fetchImpl);
+        // Download via secure redirect fetcher with exact budget manager
+        const dlResult = await fetchCdnImageWithSecureRedirects(imgUrl, fetchImpl, {
+          budgetManager,
+        });
 
-        // Fail-Fast check on CDN response (GATE-05)
+        // Fail-Fast check on CDN response
+        if (dlResult.isBudgetExceeded) {
+          budgetExceeded = true;
+          errors.push(dlResult.error || `CDN request budget ceiling reached on node '${nodeId}'`);
+          imagesFailed++;
+          break; // Stop further downloads
+        }
+
         if (dlResult.isRateLimit) {
           abortedDueToRateLimit = true;
           errors.push(dlResult.error || `CDN rate limit (429) encountered on node '${nodeId}'`);
+          imagesFailed++;
           break; // Halt entire capture immediately
         }
 
         if (dlResult.isAuthError) {
           abortedDueToAuth = true;
           errors.push(dlResult.error || `CDN access denied (HTTP ${dlResult.status}) on node '${nodeId}'`);
+          imagesFailed++;
           break; // Halt entire capture immediately
         }
 
         if (!dlResult.ok || !dlResult.buffer) {
           errors.push(dlResult.error || `Failed to download image for node '${nodeId}': HTTP ${dlResult.status}`);
+          imagesFailed++;
           continue;
         }
 
@@ -655,6 +809,7 @@ export async function executeOneShotCapture(
         const pngResult = validatePngBuffer(buffer);
         if (!pngResult.valid) {
           errors.push(`Downloaded data for node '${nodeId}' is not a valid PNG: ${pngResult.reason}`);
+          imagesFailed++;
           continue;
         }
 
@@ -666,6 +821,7 @@ export async function executeOneShotCapture(
 
         if (!isPathInsideDirectory(tempFilePath, outputDir) || !isPathInsideDirectory(finalFilePath, outputDir)) {
           errors.push(`Path traversal blocked during cache write for node '${nodeId}'`);
+          imagesFailed++;
           continue;
         }
 
@@ -714,16 +870,18 @@ export async function executeOneShotCapture(
           },
         };
 
-        // 9. Frame-by-frame commit (Method A): Register entry and save manifest immediately!
-        registerCacheEntry(manifest, entry);
-        saveCacheManifest(manifest, manifestPath);
+        // 9. Frame-by-frame commit: Register entry and save manifest immediately!
+        registerCacheEntry(activeManifest, entry);
+        saveCacheManifest(activeManifest, manifestPath);
         capturedEntries.push(entry);
+        imagesDownloadedSuccessfully++;
 
         // 10. Clean up journal after successful manifest commit
         removeJournalEntry(journalFilePath);
         journalFilePath = null;
       } catch (dlErr: any) {
         errors.push(`Error downloading image for node '${nodeId}': ${dlErr.message}`);
+        imagesFailed++;
       } finally {
         // Cleanup leftover temp file on error
         if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -746,17 +904,27 @@ export async function executeOneShotCapture(
     finalStatus = capturedEntries.length > 0 ? "PARTIAL_SUCCESS" : "FAILED";
   }
 
+  const totalAttempted = budgetManager.totalHttpRequestsAttempted;
+
   return {
     status: finalStatus,
     success: errors.length === 0 && !abortedDueToRateLimit && !abortedDueToAuth && !budgetExceeded,
     dryRun: false,
     plan,
-    actualFigmaApiCalls: apiCallsCount,
-    actualCdnDownloads: cdnDownloadsCount,
-    totalHttpRequests: apiCallsCount + cdnDownloadsCount,
+    apiHttpRequestsAttempted: budgetManager.apiHttpRequestsAttempted,
+    cdnHttpRequestsAttempted: budgetManager.cdnHttpRequestsAttempted,
+    totalHttpRequestsAttempted: totalAttempted,
+    cdnRedirectHops: budgetManager.cdnRedirectHops,
+    imagesDownloadedSuccessfully,
+    imagesFailed,
+    imagesReusedFromCache: plan.cachedFramesCount,
+    actualFigmaApiCalls: budgetManager.apiHttpRequestsAttempted,
+    actualCdnDownloads: budgetManager.cdnHttpRequestsAttempted,
+    totalHttpRequests: totalAttempted,
     capturedEntries,
     errors: errors.map((e) => redactSecretFromText(e, options.accessToken)),
     abortedDueToRateLimit,
+    abortedDueToAuth,
     budgetExceeded,
   };
 }

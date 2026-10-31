@@ -1,0 +1,211 @@
+{
+  "targetFrames": 17,
+  "validCached": 0,
+  "recoverableFromJournal": 0,
+  "toFetch": 17,
+  "figmaApiRequestsPlanned": 1,
+  "cdnHttpRequestsBaseline": 17,
+  "totalHttpRequestsBaseline": 18,
+  "apiHttpBudget": 5,
+  "cdnHttpBudget": 25,
+  "totalHttpBudget": 30,
+  "redirectOverhead": "UNKNOWN (Dependent on CDN edge routing)",
+  "versionMatch": "UNVERIFIED",
+  "realExternalHttpRequests": 0,
+  "dryRunStatus": "DRY_RUN",
+  "dryRunSuccess": true,
+  "dryRunHttpCalls": {
+    "apiHttpRequestsAttempted": 0,
+    "cdnHttpRequestsAttempted": 0,
+    "totalHttpRequestsAttempted": 0
+  },
+  "frameAudits": [
+    {
+      "index": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "width": 1920,
+      "height": 1080,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 2,
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "width": 1920,
+      "height": 1080,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 3,
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "width": 1440,
+      "height": 1024,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 4,
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 5,
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "width": 1449,
+      "height": 1580,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 6,
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "width": 1449,
+      "height": 1083,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 7,
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "width": 1449,
+      "height": 1083,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 8,
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 9,
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "width": 1178,
+      "height": 1291,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 10,
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "width": 504,
+      "height": 613,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 12,
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "width": 1178,
+      "height": 1291,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "width": 504,
+      "height": 935,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 14,
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 16,
+      "nodeId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "width": 1920,
+      "height": 1221,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    },
+    {
+      "index": 17,
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "cacheStatus": "MISSING",
+      "entryFound": false,
+      "hasDiskFile": false,
+      "reason": "No entry found in manifest"
+    }
+  ]
+}
