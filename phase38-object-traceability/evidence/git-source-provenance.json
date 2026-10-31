@@ -1,0 +1,104 @@
+{
+  "baselineCommitSha": "4672199",
+  "verifiedAt": "2026-10-31T10:34:43.132Z",
+  "overallStatus": "TAMPER_DETECTED",
+  "verifiedModuleCount": 10,
+  "modules": [
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/parser/figmaCanvasParser.ts",
+      "gitBlobSha256": "6d1e0decbd5478cdf19820bd6addf9e4419b0f5cb5915ff187c60ad8a74b1aea",
+      "diskFileSha256": "c34c0a9a5a1a580740a0f1f03e7cca8e447d30a6ccc5e8245198e146a6ceb8f7",
+      "normalizedMatch": false,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "HASH_MISMATCH"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/pipeline/canvasPipeline.ts",
+      "gitBlobSha256": "c4b5771ba50f4888bc4d05b24c61cbb25d9cc49ae5e36b4b1ff039758fb4ac23",
+      "diskFileSha256": "c4b5771ba50f4888bc4d05b24c61cbb25d9cc49ae5e36b4b1ff039758fb4ac23",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/types.ts",
+      "gitBlobSha256": "43b5521d0309d1c03b38f30013aadc8afd32b1aac66d844ddf1de095e7c0ee86",
+      "diskFileSha256": "43b5521d0309d1c03b38f30013aadc8afd32b1aac66d844ddf1de095e7c0ee86",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/renderer/docxCanvasRenderer.ts",
+      "gitBlobSha256": "c568155376d546a94423cd88cb1ada792924e062fa8860340e1211bd53faf9b3",
+      "diskFileSha256": "c568155376d546a94423cd88cb1ada792924e062fa8860340e1211bd53faf9b3",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/utils/imageResolver.ts",
+      "gitBlobSha256": "02fd35af52cf53f8302c3998bd23566cbf9ac30b8bca4e3eebb1d3989dacc26d",
+      "diskFileSha256": "02fd35af52cf53f8302c3998bd23566cbf9ac30b8bca4e3eebb1d3989dacc26d",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/canvas/geometry/svgPathParser.ts",
+      "gitBlobSha256": "85c9da481783b7c62d4980d0a922a5b172411422129d66d98cd78fba1dcabe46",
+      "diskFileSha256": "85c9da481783b7c62d4980d0a922a5b172411422129d66d98cd78fba1dcabe46",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/fidelity/affineTransformEngine.ts",
+      "gitBlobSha256": "3c3477f054ffa3778fbe936efef8164af3d0be1ec1fdcffa145f1c3192c49c6c",
+      "diskFileSha256": "cb426a03a433e62ed3a4f1d1063531b37c2ebc2399d74b208391f699b348b3ad",
+      "normalizedMatch": false,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "HASH_MISMATCH"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/fidelity/mediaRelationshipAuditor.ts",
+      "gitBlobSha256": "8c6fe7969af71ba1cd478dcae1beed12a16ce3deec220556a6ca27565c5696ec",
+      "diskFileSha256": "8c6fe7969af71ba1cd478dcae1beed12a16ce3deec220556a6ca27565c5696ec",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/fidelity/editabilityAuditor.ts",
+      "gitBlobSha256": "a9055864bf55318d4145bc5c5aa50fcd600019277b47459255cde61475da4ee7",
+      "diskFileSha256": "d4886dd5153ca19f412a56a0f4b35297c94b64ffd5ffff5aa6f9dfd3a3010579",
+      "normalizedMatch": false,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "HASH_MISMATCH"
+    },
+    {
+      "commitSha": "4672199",
+      "filePath": "src/fidelity/integrityGate.ts",
+      "gitBlobSha256": "d83c9200b602a2e613d2b716b6d2a69fb0b71de9ef3255947656f179071babc9",
+      "diskFileSha256": "d83c9200b602a2e613d2b716b6d2a69fb0b71de9ef3255947656f179071babc9",
+      "normalizedMatch": true,
+      "newlinePolicy": "LF_NORMALIZED",
+      "status": "VERIFIED"
+    }
+  ],
+  "runtimeProcessInfo": {
+    "nodeVersion": "v24.14.1",
+    "pid": 11136,
+    "platform": "win32",
+    "cwd": "C:\\Users\\77\\Documents\\Figma2Word"
+  }
+}

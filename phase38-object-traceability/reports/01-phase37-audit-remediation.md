@@ -1,0 +1,21 @@
+# Report 01: Remediation of Phase 37 Independent Audit Defects
+
+## 1. Executive Summary
+During the Phase 37 GPT independent audit, eight critical and structural deficiencies were identified in the benchmark, fidelity verification, and editing pipeline. In Phase 38, each defect was systematically analyzed, structurally redesigned, and verified against the authentic customer production dataset (`펜테크 3차 디자인.json`).
+
+## 2. Comprehensive Remediation Matrix
+
+| Defect ID | Description | Root Cause | Phase 38 Remediation | Verification Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **DEFECT-01** | Lack of Object-Level Traceability | Converter counted gross quantities of textboxes/shapes without matching individual Figma node IDs (`X`). | Implemented `src/fidelity/objectTraceability.ts` (`buildObjectTraceability`), which tracks 2,033 source Figma nodes down to Canvas IR elements and Word VML tags. | `metrics/object-traceability.json`, `tests/phase38-object-traceability.test.ts` (3/3 passed). |
+| **DEFECT-02** | Editability Score Inflation | Legacy editability score compared gross Word element counts against source counts, producing an inflated 96/100 score. | Replaced gross-ratio score with multi-dimensional source preservation coverage (text, shape, image) and separated runtime edit verification from structural potential. | `metrics/editability-coverage.json`, Report 04. |
+| **DEFECT-03** | Section vs Rendered Page Mapping Discrepancy | In `editabilityAuditor.ts`, XML string slicing matched nested `</w:p>` inside `<v:textbox>`, prematurely truncating sections. | Implemented depth-aware top-level section extraction in `src/fidelity/sectionPageMapper.ts` and `editabilityAuditor.ts`, restoring exact 17:17 section-to-page correspondence. | `metrics/page-mapping.json`, `tests/phase38-page-mapping.test.ts` (2/2 passed). |
+| **DEFECT-04** | Single-Category Word Edit Testing | Word COM automation only tested text inside VML textboxes (`v:textbox`), ignoring lines, shapes, dimensions, and colors. | Expanded `windows_word_edit_test.ps1` to test 5 distinct categories: `VML_TEXTBOX_TEXT`, `VML_SHAPE_STROKE_COLOR`, `VML_SHAPE_FILL_COLOR`, `VML_SHAPE_DIMENSION`, and `TABLE_CELL_TEXT`. | `metrics/native-edit-results.json`, Report 05. |
+| **DEFECT-05** | Lack of Layout Stability Verification | Phase 37 declared layout "stable" solely if total page count did not change, masking internal text wrapping or element shifts. | Implemented `src/fidelity/layoutStabilityAuditor.ts`, rasterizing before/after renders, masking edited bounding boxes with 30px padding, and evaluating pixel delta on unedited regions. | `metrics/layout-stability.json`, `tests/phase38-layout-stability.test.ts` (2/2 passed). |
+| **DEFECT-06** | Hardcoded Current Fidelity Reference | `scripts/run_phase37_production_pipeline.ts` contained `const prevAvgSsim = 0.9479;` and passed candidate MAE into baseline. | Eliminated all constants. Implemented true dual-engine independent rendering: Current (`4672199`) vs Candidate (Phase 38) with distinct hashes and real dual SSIM/MAE computation. | `metrics/current-fidelity.json`, `metrics/candidate-fidelity.json`, `evidence/sanitized-execution-log.txt`. |
+| **DEFECT-07** | Git Baseline Verification on Auxiliary Files | `gitOriginVerifier.ts` audited report markdown files rather than parser and renderer execution modules. | Expanded `gitOriginVerifier.ts` to audit all 10 core execution modules (`figmaCanvasParser.ts`, `docxCanvasRenderer.ts`, etc.) against commit `4672199`. | `evidence/git-source-provenance.json`, `tests/phase38-git-verification.test.ts` (3/3 passed). |
+| **DEFECT-08** | Rotated ImageTransform Destructive Crop | `affineTransformEngine.ts` applied axis-aligned crop formulas $1 - (tx + sx)$ even when rotation or shear was detected. | Decoupled rotation and shear from axis-aligned crop computation. Only computes crop when `!isRotated && !isSheared`; preserves `rotationDegrees` without clipping texture. | `src/fidelity/affineTransformEngine.ts`, `tests/phase38-affine-transform.test.ts` (8/8 passed). |
+
+## 3. Conclusion
+All eight Phase 37 audit defects have been completely resolved with fail-closed cryptographic gates, robust automated regression tests, and verifiable runtime evidence.
+

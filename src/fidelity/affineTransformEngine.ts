@@ -176,10 +176,12 @@ export function analyzeFigmaImageTransform(
   }
 
   // 6. Crop calculation
-  // Handle float32 rounding tolerances where sx = 1.000163, tx = -0.000163
+  // IMPORTANT (Phase 38 Remediation H-02): Crop calculation MUST NOT be applied to ROTATED or SHEARED matrices.
+  // Axis-aligned crop using m00/m11 is strictly invalid when the coordinate axes are rotated.
+  // For ROTATED matrices, rotationDegrees is provided for native Word rotation without destructive axis-aligned clipping.
   let crop: AnalyzedAffineTransform["crop"] | undefined;
 
-  if (!isSheared) {
+  if (!isRotated && !isSheared) {
     const effectiveSx = Math.abs(m00);
     const effectiveSy = Math.abs(m11);
     const effectiveTx = m02;

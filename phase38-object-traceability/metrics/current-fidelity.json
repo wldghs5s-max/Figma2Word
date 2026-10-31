@@ -1,0 +1,171 @@
+{
+  "commit": "4672199",
+  "docxSha256": "f6ae25c0debc0950f1f4ed233ddc52e4c81953b212900d34aa0f5501820339f1",
+  "pdfSha256": "78a4ce3ce9cecf4e878618e17f9cc01ef90bbe60193754fed2701d2adb8accfc",
+  "averageSsim": 0.9479,
+  "averageMae": 2.62,
+  "averageRmse": 15.09,
+  "averageMismatchRatio": 0.0329,
+  "pages": [
+    {
+      "pageNumber": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9446,
+      "mae": 3.09,
+      "rmse": 23.16,
+      "mismatchRatio": 0.0238
+    },
+    {
+      "pageNumber": 2,
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9586,
+      "mae": 2.12,
+      "rmse": 18.46,
+      "mismatchRatio": 0.0179
+    },
+    {
+      "pageNumber": 3,
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9933,
+      "mae": 1.18,
+      "rmse": 3.37,
+      "mismatchRatio": 0.0204
+    },
+    {
+      "pageNumber": 4,
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.949,
+      "mae": 2.42,
+      "rmse": 14.22,
+      "mismatchRatio": 0.032
+    },
+    {
+      "pageNumber": 5,
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9797,
+      "mae": 1.18,
+      "rmse": 9.57,
+      "mismatchRatio": 0.025
+    },
+    {
+      "pageNumber": 6,
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9643,
+      "mae": 2.29,
+      "rmse": 9.45,
+      "mismatchRatio": 0.0385
+    },
+    {
+      "pageNumber": 7,
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9916,
+      "mae": 0.82,
+      "rmse": 3.65,
+      "mismatchRatio": 0.0166
+    },
+    {
+      "pageNumber": 8,
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.942,
+      "mae": 3.02,
+      "rmse": 17.75,
+      "mismatchRatio": 0.0412
+    },
+    {
+      "pageNumber": 9,
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9683,
+      "mae": 1.96,
+      "rmse": 9.59,
+      "mismatchRatio": 0.0436
+    },
+    {
+      "pageNumber": 10,
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9356,
+      "mae": 3.11,
+      "rmse": 16.14,
+      "mismatchRatio": 0.0289
+    },
+    {
+      "pageNumber": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9115,
+      "mae": 4.35,
+      "rmse": 25.06,
+      "mismatchRatio": 0.0461
+    },
+    {
+      "pageNumber": 12,
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9592,
+      "mae": 2,
+      "rmse": 12.11,
+      "mismatchRatio": 0.0418
+    },
+    {
+      "pageNumber": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.8629,
+      "mae": 6.56,
+      "rmse": 30.62,
+      "mismatchRatio": 0.0647
+    },
+    {
+      "pageNumber": 14,
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9457,
+      "mae": 2.61,
+      "rmse": 13.55,
+      "mismatchRatio": 0.0243
+    },
+    {
+      "pageNumber": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.9339,
+      "mae": 2.49,
+      "rmse": 17.43,
+      "mismatchRatio": 0.0308
+    },
+    {
+      "pageNumber": 17,
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "status": "VALID_BENCHMARK",
+      "ssim": 0.927,
+      "mae": 2.73,
+      "rmse": 17.33,
+      "mismatchRatio": 0.0309
+    }
+  ]
+}

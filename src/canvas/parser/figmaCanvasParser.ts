@@ -544,6 +544,12 @@ export class FigmaCanvasParser {
             sourceNodeId: child.id,
             sourceNodeType: child.type,
           });
+
+          // If this node is a container with children (e.g. frame with image background and text overlays),
+          // recurse into its children so overlay elements are not omitted
+          if (child.children && Array.isArray(child.children) && child.children.length > 0) {
+            processChildren(child, effectiveOpacity);
+          }
         } else if (child.type === "TEXT") {
           const textRuns = this.extractTextRuns(child, scaleX);
           const style = this.extractStyle(child, scaleX);

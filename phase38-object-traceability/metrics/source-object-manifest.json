@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-10-31T10:35:28.759Z",
+  "sourceDocumentSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
+  "totalSourceNodes": 2033,
+  "sourceTextsCount": 628,
+  "sourceShapesCount": 327,
+  "sourceImagesCount": 19,
+  "sourceContainersCount": 1059,
+  "frames": [
+    {
+      "frameId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "pageNumber": 1
+    },
+    {
+      "frameId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "pageNumber": 2
+    },
+    {
+      "frameId": "757:88",
+      "frameName": "Desktop - 1",
+      "pageNumber": 3
+    },
+    {
+      "frameId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "pageNumber": 4
+    },
+    {
+      "frameId": "757:92",
+      "frameName": "Desktop - 2",
+      "pageNumber": 5
+    },
+    {
+      "frameId": "757:142",
+      "frameName": "촬영계획",
+      "pageNumber": 6
+    },
+    {
+      "frameId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "pageNumber": 7
+    },
+    {
+      "frameId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "pageNumber": 8
+    },
+    {
+      "frameId": "757:124",
+      "frameName": "필터 팝업",
+      "pageNumber": 9
+    },
+    {
+      "frameId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "pageNumber": 10
+    },
+    {
+      "frameId": "766:2289",
+      "frameName": "필터",
+      "pageNumber": 11
+    },
+    {
+      "frameId": "757:118",
+      "frameName": "Frame 1",
+      "pageNumber": 12
+    },
+    {
+      "frameId": "766:2942",
+      "frameName": "사업정보 수정",
+      "pageNumber": 13
+    },
+    {
+      "frameId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "pageNumber": 14
+    },
+    {
+      "frameId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "pageNumber": 15
+    },
+    {
+      "frameId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "pageNumber": 16
+    },
+    {
+      "frameId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "pageNumber": 17
+    }
+  ]
+}

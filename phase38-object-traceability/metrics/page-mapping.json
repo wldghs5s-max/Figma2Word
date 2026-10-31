@@ -1,0 +1,351 @@
+{
+  "totalTargetFrames": 17,
+  "totalCanvasPages": 17,
+  "totalDocxSections": 17,
+  "totalWordRenderedPages": 17,
+  "verifiedMappingsCount": 17,
+  "unverifiedMappingsCount": 0,
+  "mappingVerdict": "VERIFIED",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "figmaNodeId": "763:5068",
+      "canvasPageId": "763:5068",
+      "docxSectionIndex": 1,
+      "renderedPageIndex": 1,
+      "pdfPageNumber": 1,
+      "hasContent": true,
+      "traceableTextsCount": 44,
+      "traceableShapesCount": 73,
+      "traceableImagesCount": 0,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 16200,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 1 verified: Frame 763:5068 -> Section 1 -> Rendered Page 1"
+    },
+    {
+      "pageNumber": 2,
+      "figmaNodeId": "766:256",
+      "canvasPageId": "766:256",
+      "docxSectionIndex": 2,
+      "renderedPageIndex": 2,
+      "pdfPageNumber": 2,
+      "hasContent": true,
+      "traceableTextsCount": 30,
+      "traceableShapesCount": 50,
+      "traceableImagesCount": 0,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 16200,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 2 verified: Frame 766:256 -> Section 2 -> Rendered Page 2"
+    },
+    {
+      "pageNumber": 3,
+      "figmaNodeId": "757:88",
+      "canvasPageId": "757:88",
+      "docxSectionIndex": 3,
+      "renderedPageIndex": 3,
+      "pdfPageNumber": 3,
+      "hasContent": true,
+      "traceableTextsCount": 0,
+      "traceableShapesCount": 2,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 21600,
+        "heightTwips": 15360,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 3 verified: Frame 757:88 -> Section 3 -> Rendered Page 3"
+    },
+    {
+      "pageNumber": 4,
+      "figmaNodeId": "759:759",
+      "canvasPageId": "759:759",
+      "docxSectionIndex": 4,
+      "renderedPageIndex": 4,
+      "pdfPageNumber": 4,
+      "hasContent": true,
+      "traceableTextsCount": 50,
+      "traceableShapesCount": 92,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 4 verified: Frame 759:759 -> Section 4 -> Rendered Page 4"
+    },
+    {
+      "pageNumber": 5,
+      "figmaNodeId": "757:92",
+      "canvasPageId": "757:92",
+      "docxSectionIndex": 5,
+      "renderedPageIndex": 5,
+      "pdfPageNumber": 5,
+      "hasContent": true,
+      "traceableTextsCount": 3,
+      "traceableShapesCount": 10,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 21735,
+        "heightTwips": 23700,
+        "orientation": "portrait"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 5 verified: Frame 757:92 -> Section 5 -> Rendered Page 5"
+    },
+    {
+      "pageNumber": 6,
+      "figmaNodeId": "757:142",
+      "canvasPageId": "757:142",
+      "docxSectionIndex": 6,
+      "renderedPageIndex": 6,
+      "pdfPageNumber": 6,
+      "hasContent": true,
+      "traceableTextsCount": 6,
+      "traceableShapesCount": 5,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 21735,
+        "heightTwips": 16245,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 6 verified: Frame 757:142 -> Section 6 -> Rendered Page 6"
+    },
+    {
+      "pageNumber": 7,
+      "figmaNodeId": "757:158",
+      "canvasPageId": "757:158",
+      "docxSectionIndex": 7,
+      "renderedPageIndex": 7,
+      "pdfPageNumber": 7,
+      "hasContent": true,
+      "traceableTextsCount": 0,
+      "traceableShapesCount": 2,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 21735,
+        "heightTwips": 16245,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 7 verified: Frame 757:158 -> Section 7 -> Rendered Page 7"
+    },
+    {
+      "pageNumber": 8,
+      "figmaNodeId": "759:911",
+      "canvasPageId": "759:911",
+      "docxSectionIndex": 8,
+      "renderedPageIndex": 8,
+      "pdfPageNumber": 8,
+      "hasContent": true,
+      "traceableTextsCount": 53,
+      "traceableShapesCount": 99,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 8 verified: Frame 759:911 -> Section 8 -> Rendered Page 8"
+    },
+    {
+      "pageNumber": 9,
+      "figmaNodeId": "757:124",
+      "canvasPageId": "757:124",
+      "docxSectionIndex": 9,
+      "renderedPageIndex": 9,
+      "pdfPageNumber": 9,
+      "hasContent": true,
+      "traceableTextsCount": 2,
+      "traceableShapesCount": 5,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 17670,
+        "heightTwips": 19365,
+        "orientation": "portrait"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 9 verified: Frame 757:124 -> Section 9 -> Rendered Page 9"
+    },
+    {
+      "pageNumber": 10,
+      "figmaNodeId": "759:1076",
+      "canvasPageId": "759:1076",
+      "docxSectionIndex": 10,
+      "renderedPageIndex": 10,
+      "pdfPageNumber": 10,
+      "hasContent": true,
+      "traceableTextsCount": 73,
+      "traceableShapesCount": 133,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 10 verified: Frame 759:1076 -> Section 10 -> Rendered Page 10"
+    },
+    {
+      "pageNumber": 11,
+      "figmaNodeId": "766:2289",
+      "canvasPageId": "766:2289",
+      "docxSectionIndex": 11,
+      "renderedPageIndex": 11,
+      "pdfPageNumber": 11,
+      "hasContent": true,
+      "traceableTextsCount": 32,
+      "traceableShapesCount": 62,
+      "traceableImagesCount": 0,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 7560,
+        "heightTwips": 9195,
+        "orientation": "portrait"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 11 verified: Frame 766:2289 -> Section 11 -> Rendered Page 11"
+    },
+    {
+      "pageNumber": 12,
+      "figmaNodeId": "757:118",
+      "canvasPageId": "757:118",
+      "docxSectionIndex": 12,
+      "renderedPageIndex": 12,
+      "pdfPageNumber": 12,
+      "hasContent": true,
+      "traceableTextsCount": 5,
+      "traceableShapesCount": 7,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 17670,
+        "heightTwips": 19365,
+        "orientation": "portrait"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 12 verified: Frame 757:118 -> Section 12 -> Rendered Page 12"
+    },
+    {
+      "pageNumber": 13,
+      "figmaNodeId": "766:2942",
+      "canvasPageId": "766:2942",
+      "docxSectionIndex": 13,
+      "renderedPageIndex": 13,
+      "pdfPageNumber": 13,
+      "hasContent": true,
+      "traceableTextsCount": 60,
+      "traceableShapesCount": 70,
+      "traceableImagesCount": 0,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 7560,
+        "heightTwips": 14025,
+        "orientation": "portrait"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 13 verified: Frame 766:2942 -> Section 13 -> Rendered Page 13"
+    },
+    {
+      "pageNumber": 14,
+      "figmaNodeId": "759:1314",
+      "canvasPageId": "759:1314",
+      "docxSectionIndex": 14,
+      "renderedPageIndex": 14,
+      "pdfPageNumber": 14,
+      "hasContent": true,
+      "traceableTextsCount": 75,
+      "traceableShapesCount": 129,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 14 verified: Frame 759:1314 -> Section 14 -> Rendered Page 14"
+    },
+    {
+      "pageNumber": 15,
+      "figmaNodeId": "759:1858",
+      "canvasPageId": "759:1858",
+      "docxSectionIndex": 15,
+      "renderedPageIndex": 15,
+      "pdfPageNumber": 15,
+      "hasContent": true,
+      "traceableTextsCount": 96,
+      "traceableShapesCount": 169,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 15 verified: Frame 759:1858 -> Section 15 -> Rendered Page 15"
+    },
+    {
+      "pageNumber": 16,
+      "figmaNodeId": "759:1533",
+      "canvasPageId": "759:1533",
+      "docxSectionIndex": 16,
+      "renderedPageIndex": 16,
+      "pdfPageNumber": 16,
+      "hasContent": true,
+      "traceableTextsCount": 92,
+      "traceableShapesCount": 159,
+      "traceableImagesCount": 1,
+      "sectionBreakType": "nextPage",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 18315,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 16 verified: Frame 759:1533 -> Section 16 -> Rendered Page 16"
+    },
+    {
+      "pageNumber": 17,
+      "figmaNodeId": "768:3434",
+      "canvasPageId": "768:3434",
+      "docxSectionIndex": 17,
+      "renderedPageIndex": 17,
+      "pdfPageNumber": 17,
+      "hasContent": true,
+      "traceableTextsCount": 43,
+      "traceableShapesCount": 73,
+      "traceableImagesCount": 2,
+      "sectionBreakType": "bodyFinal",
+      "pageSize": {
+        "widthTwips": 28800,
+        "heightTwips": 17550,
+        "orientation": "landscape"
+      },
+      "status": "PAGE_MAPPING_VERIFIED",
+      "diagnostics": "Page 17 verified: Frame 768:3434 -> Section 17 -> Rendered Page 17"
+    }
+  ]
+}

@@ -100,44 +100,55 @@ export async function auditDocxEditability(
   const bodyMatch = docXml.match(/<w:body[^>]*>([\s\S]*?)<\/w:body>/);
   const bodyContent = bodyMatch ? bodyMatch[1] : docXml;
 
+  // Phase 38 Fix: Depth-aware splitting of sections/pages to prevent nested <w:p> inside <v:textbox>
+  // from falsely terminating top-level document sections and causing off-by-one page shifts.
+  let depth = 0;
   const rawSections: string[] = [];
-  let searchPos = 0;
+  let currentSectionBuffer = "";
+  let curPStart = -1;
+  const pRegex = /<\/?w:p\b[^>]*>/g;
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
 
-  while (searchPos < bodyContent.length) {
-    const sectPrIdx = bodyContent.indexOf("<w:sectPr", searchPos);
-    if (sectPrIdx === -1) {
-      const trailing = bodyContent.substring(searchPos);
-      if (trailing.trim().length > 0) {
-        if (rawSections.length > 0) {
-          rawSections[rawSections.length - 1] += trailing;
-        } else {
-          rawSections.push(trailing);
+  while ((m = pRegex.exec(bodyContent)) !== null) {
+    if (m[0].startsWith("</")) {
+      depth--;
+      if (depth === 0 && curPStart !== -1) {
+        const topLevelP = bodyContent.substring(curPStart, pRegex.lastIndex);
+        currentSectionBuffer += topLevelP;
+        curPStart = -1;
+        lastIndex = pRegex.lastIndex;
+
+        // Check if this top-level paragraph contained a section break (<w:sectPr)
+        if (topLevelP.includes("<w:sectPr")) {
+          rawSections.push(currentSectionBuffer);
+          currentSectionBuffer = "";
         }
       }
-      break;
-    }
-
-    const sectPrCloseIdx = bodyContent.indexOf("</w:sectPr>", sectPrIdx);
-    if (sectPrCloseIdx === -1) break;
-    const sectPrEnd = sectPrCloseIdx + "</w:sectPr>".length;
-
-    // Check if this sectPr is inside an active <w:p>
-    const lastPBeforeSectPr = bodyContent.lastIndexOf("<w:p", sectPrIdx);
-    const lastPCloseBeforeSectPr = bodyContent.lastIndexOf("</w:p>", sectPrIdx);
-    const isInsideP =
-      lastPBeforeSectPr >= searchPos &&
-      (lastPCloseBeforeSectPr === -1 || lastPBeforeSectPr > lastPCloseBeforeSectPr);
-
-    let chunkEnd = sectPrEnd;
-    if (isInsideP) {
-      const pCloseIdx = bodyContent.indexOf("</w:p>", sectPrEnd);
-      if (pCloseIdx !== -1) {
-        chunkEnd = pCloseIdx + "</w:p>".length;
+    } else {
+      if (depth === 0) {
+        if (m.index > lastIndex) {
+          const intermediate = bodyContent.substring(lastIndex, m.index);
+          if (intermediate.includes("<w:sectPr")) {
+            currentSectionBuffer += intermediate;
+            rawSections.push(currentSectionBuffer);
+            currentSectionBuffer = "";
+          } else {
+            currentSectionBuffer += intermediate;
+          }
+        }
+        curPStart = m.index;
       }
+      depth++;
     }
+  }
 
-    rawSections.push(bodyContent.substring(searchPos, chunkEnd));
-    searchPos = chunkEnd;
+  const trailing = bodyContent.substring(lastIndex);
+  if (trailing.length > 0 || currentSectionBuffer.length > 0) {
+    currentSectionBuffer += trailing;
+    if (currentSectionBuffer.trim().length > 0) {
+      rawSections.push(currentSectionBuffer);
+    }
   }
 
   const sectionChunks = rawSections.length > 0 ? rawSections : [bodyContent];
@@ -217,6 +228,11 @@ export async function auditDocxEditability(
     let hasFullPageCoverImage = false;
     let coverImageDetails: string | undefined;
 
+    const sourceRef = sourceElements?.find((s) => s.pageNumber === pageNum);
+    const isLegitimateSourceImage = sourceRef
+      ? sourceRef.textCount <= 2 && sourceRef.imageCount >= 1
+      : false;
+
     const vmlRectFullMatch = chunk.match(/width:([0-9.]+)pt;height:([0-9.]+)pt/g) || [];
     for (const style of vmlRectFullMatch) {
       const wSub = style.match(/width:([0-9.]+)pt/);
@@ -226,7 +242,7 @@ export async function auditDocxEditability(
         const sh = parseFloat(hSub[1]);
         const coversWidth = sw >= widthPt * 0.90;
         const coversHeight = sh >= heightPt * 0.90;
-        if (coversWidth && coversHeight && textNodeCount <= 2 && mediaReferencesCount >= 1) {
+        if (coversWidth && coversHeight && textNodeCount <= 2 && mediaReferencesCount >= 1 && !isLegitimateSourceImage) {
           hasFullPageCoverImage = true;
           coverImageDetails = `VML Shape ${sw}pt x ${sh}pt covers full page (${widthPt}x${heightPt}pt) with only ${textNodeCount} text nodes`;
           break;
@@ -235,7 +251,6 @@ export async function auditDocxEditability(
     }
 
     // 4. Source element comparison (if provided)
-    const sourceRef = sourceElements?.find((s) => s.pageNumber === pageNum);
     let textPreservationCoverage: number | undefined;
     let vectorShapePreservation: number | undefined;
     let imageAssetPreservation: number | undefined;

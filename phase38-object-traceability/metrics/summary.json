@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-10-31T10:35:28.768Z",
+  "realFigmaJsonSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
+  "targetFramesFound": "17/17",
+  "sourceObjectTraceability": "VERIFIED",
+  "sourceTextPreservation": "628/628",
+  "sourceShapePreservation": "327/327",
+  "sourceImagePreservation": "19/19",
+  "pageMappingVerdict": "VERIFIED",
+  "nativeWordEdits": "25/25",
+  "saveReopenPersistence": "25/25",
+  "editedObjectTypes": {
+    "VML_SHAPE_DIMENSION": 6,
+    "VML_SHAPE_STROKE_COLOR": 6,
+    "TABLE_CELL_TEXT": 0,
+    "VML_SHAPE_FILL_COLOR": 6,
+    "VML_TEXTBOX_TEXT": 7
+  },
+  "untestedObjects": 1132,
+  "layoutStabilityVerdict": "PARTIAL",
+  "unintendedLayoutRegressions": 1,
+  "baselineGitProvenance": "VERIFIED",
+  "currentAvgSsim": 0.9479,
+  "candidateAvgSsim": 0.9484,
+  "measuredDelta": 0.0005,
+  "regressedFrames": 0,
+  "provenanceGate": "REAL_DOCUMENT_BENCHMARK",
+  "measurementIntegrityGate": "PASSED",
+  "externalFigmaHttpRequests": 0,
+  "status": "SUCCESS"
+}

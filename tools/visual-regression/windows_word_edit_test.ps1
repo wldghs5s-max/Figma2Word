@@ -74,40 +74,138 @@ try {
 
     # 2. Perform Native Edits across Shapes, Textboxes, and Paragraphs
     $editOperations = @()
+    $editedBoundingBoxes = @()
     $attemptedEdits = 0
     $successfulEdits = 0
 
-    # Edit Shapes / TextFrames
+    # Distribute edits across multiple distinct categories:
+    # Cat 1: VML_TEXTBOX_TEXT (Shape TextFrame text modification)
+    # Cat 2: VML_SHAPE_STROKE_COLOR (Line stroke color and weight modification)
+    # Cat 3: VML_SHAPE_FILL_COLOR (Shape fill color modification)
+    # Cat 4: VML_SHAPE_DIMENSION (Shape width expansion)
+    # Cat 5: NATIVE_PARAGRAPH_TEXT (Document body paragraph mutation)
+    # Cat 6: TABLE_CELL_TEXT (Table cell mutation if tables exist)
+
     for ($i = 1; $i -le $initShapes; $i++) {
         if ($attemptedEdits -ge $MaxEdits) { break }
         try {
             $shape = $doc.Shapes.Item($i)
-            if ($shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
+            $leftPt = [double]$shape.Left
+            $topPt = [double]$shape.Top
+            $widthPt = [double]$shape.Width
+            $heightPt = [double]$shape.Height
+            
+            $shapePage = 1
+            try {
+                $shapePage = [int]$shape.Anchor.Information(3) # wdActiveEndPageNumber
+            } catch {
+                $shapePage = [Math]::Max(1, [Math]::Min($initPages, [Math]::Floor(($i - 1) / [Math]::Max(1, ($initShapes / $initPages))) + 1))
+            }
+
+            $catSelector = $attemptedEdits % 4
+
+            if ($catSelector -eq 0 -and $shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
+                # Category 1: VML_TEXTBOX_TEXT
                 $textRange = $shape.TextFrame.TextRange
                 $origText = $textRange.Text
                 if ($origText -and $origText.Trim().Length -gt 0) {
                     $attemptedEdits++
-                    $targetMarker = "[PHASE37_EDIT_VERIFIED_SHAPE_$attemptedEdits]"
-                    $textHash = (Compute-Sha256 ([System.IO.Path]::GetTempFileName())) # non-sensitive hash
-
-                    # Modify text
+                    $targetMarker = "[PHASE38_EDIT_TEXTBOX_$attemptedEdits]"
                     $textRange.Text = $targetMarker
-
-                    # Modify visual property (border color to blue, line weight to 1.5pt)
-                    try {
-                        $shape.Line.ForeColor.RGB = 0xFF0000 # Blue in BGR
-                        $shape.Line.Weight = 1.5
-                    } catch {}
 
                     $successfulEdits++
                     $editOperations += @{
                         editIndex = $attemptedEdits
-                        category = "VML_TEXTBOX_SHAPE"
+                        category = "VML_TEXTBOX_TEXT"
                         targetShapeIndex = $i
                         marker = $targetMarker
+                        page = $shapePage
                         appliedSuccessfully = $true
-                        originalTextLength = $origText.Length
                     }
+                    $editedBoundingBoxes += @{
+                        page = $shapePage
+                        leftPt = $leftPt
+                        topPt = $topPt
+                        widthPt = $widthPt
+                        heightPt = $heightPt
+                        category = "VML_TEXTBOX_TEXT"
+                        marker = $targetMarker
+                    }
+                }
+            } elseif ($catSelector -eq 1) {
+                # Category 2: VML_SHAPE_STROKE_COLOR
+                $attemptedEdits++
+                $targetMarker = "[PHASE38_EDIT_STROKE_$attemptedEdits]"
+                $shape.Line.ForeColor.RGB = 0x0000FF # Pure Red in BGR
+                $shape.Line.Weight = 2.0
+
+                $successfulEdits++
+                $editOperations += @{
+                    editIndex = $attemptedEdits
+                    category = "VML_SHAPE_STROKE_COLOR"
+                    targetShapeIndex = $i
+                    marker = $targetMarker
+                    page = $shapePage
+                    appliedSuccessfully = $true
+                }
+                $editedBoundingBoxes += @{
+                    page = $shapePage
+                    leftPt = $leftPt
+                    topPt = $topPt
+                    widthPt = $widthPt
+                    heightPt = $heightPt
+                    category = "VML_SHAPE_STROKE_COLOR"
+                    marker = $targetMarker
+                }
+            } elseif ($catSelector -eq 2) {
+                # Category 3: VML_SHAPE_FILL_COLOR
+                $attemptedEdits++
+                $targetMarker = "[PHASE38_EDIT_FILL_$attemptedEdits]"
+                $shape.Fill.ForeColor.RGB = 0x00FF00 # Pure Green in BGR
+
+                $successfulEdits++
+                $editOperations += @{
+                    editIndex = $attemptedEdits
+                    category = "VML_SHAPE_FILL_COLOR"
+                    targetShapeIndex = $i
+                    marker = $targetMarker
+                    page = $shapePage
+                    appliedSuccessfully = $true
+                }
+                $editedBoundingBoxes += @{
+                    page = $shapePage
+                    leftPt = $leftPt
+                    topPt = $topPt
+                    widthPt = $widthPt
+                    heightPt = $heightPt
+                    category = "VML_SHAPE_FILL_COLOR"
+                    marker = $targetMarker
+                }
+            } elseif ($catSelector -eq 3) {
+                # Category 4: VML_SHAPE_DIMENSION
+                $attemptedEdits++
+                $targetMarker = "[PHASE38_EDIT_DIMENSION_$attemptedEdits]"
+                $origWidth = $widthPt
+                $shape.Width = $widthPt + 4.0
+
+                $successfulEdits++
+                $editOperations += @{
+                    editIndex = $attemptedEdits
+                    category = "VML_SHAPE_DIMENSION"
+                    targetShapeIndex = $i
+                    marker = $targetMarker
+                    page = $shapePage
+                    origWidth = $origWidth
+                    appliedSuccessfully = $true
+                }
+                $editedBoundingBoxes += @{
+                    page = $shapePage
+                    leftPt = $leftPt
+                    topPt = $topPt
+                    widthPt = $widthPt + 4.0
+                    heightPt = $heightPt
+                    category = "VML_SHAPE_DIMENSION"
+                    marker = $targetMarker
                 }
             }
         } catch {}
@@ -122,16 +220,16 @@ try {
                 $cell = $table.Cell(1, 1)
                 $origCellText = $cell.Range.Text
                 $attemptedEdits++
-                $marker = "[PHASE37_EDIT_VERIFIED_TABLE_$attemptedEdits]"
+                $marker = "[PHASE38_EDIT_TABLE_$attemptedEdits]"
                 $cell.Range.Text = $marker
                 $successfulEdits++
                 $editOperations += @{
                     editIndex = $attemptedEdits
-                    category = "TABLE_CELL"
+                    category = "TABLE_CELL_TEXT"
                     targetTableIndex = $t
                     marker = $marker
+                    page = 1
                     appliedSuccessfully = $true
-                    originalTextLength = $origCellText.Length
                 }
             } catch {}
         }
@@ -171,12 +269,20 @@ try {
     # Verify Persistence of Each Edited Marker
     $persistedCount = 0
     $verifiedEdits = @()
+    $categoryCounts = @{
+        VML_TEXTBOX_TEXT = 0
+        VML_SHAPE_STROKE_COLOR = 0
+        VML_SHAPE_FILL_COLOR = 0
+        VML_SHAPE_DIMENSION = 0
+        TABLE_CELL_TEXT = 0
+    }
 
     foreach ($op in $editOperations) {
         $marker = $op.marker
+        $cat = $op.category
         $persisted = $false
 
-        if ($op.category -eq "VML_TEXTBOX_SHAPE") {
+        if ($cat -eq "VML_TEXTBOX_TEXT") {
             $sIdx = $op.targetShapeIndex
             try {
                 $shape = $doc2.Shapes.Item($sIdx)
@@ -184,16 +290,45 @@ try {
                     $currentText = $shape.TextFrame.TextRange.Text
                     if ($currentText -and $currentText.Contains($marker)) {
                         $persisted = $true
+                        $categoryCounts["VML_TEXTBOX_TEXT"]++
                     }
                 }
             } catch {}
-        } elseif ($op.category -eq "TABLE_CELL") {
+        } elseif ($cat -eq "VML_SHAPE_STROKE_COLOR") {
+            $sIdx = $op.targetShapeIndex
+            try {
+                $shape = $doc2.Shapes.Item($sIdx)
+                if ($shape.Line.ForeColor.RGB -eq 0x0000FF -and $shape.Line.Weight -ge 1.9) {
+                    $persisted = $true
+                    $categoryCounts["VML_SHAPE_STROKE_COLOR"]++
+                }
+            } catch {}
+        } elseif ($cat -eq "VML_SHAPE_FILL_COLOR") {
+            $sIdx = $op.targetShapeIndex
+            try {
+                $shape = $doc2.Shapes.Item($sIdx)
+                if ($shape.Fill.ForeColor.RGB -eq 0x00FF00) {
+                    $persisted = $true
+                    $categoryCounts["VML_SHAPE_FILL_COLOR"]++
+                }
+            } catch {}
+        } elseif ($cat -eq "VML_SHAPE_DIMENSION") {
+            $sIdx = $op.targetShapeIndex
+            try {
+                $shape = $doc2.Shapes.Item($sIdx)
+                if ($shape.Width -ge ($op.origWidth + 3.0)) {
+                    $persisted = $true
+                    $categoryCounts["VML_SHAPE_DIMENSION"]++
+                }
+            } catch {}
+        } elseif ($cat -eq "TABLE_CELL_TEXT") {
             $tIdx = $op.targetTableIndex
             try {
                 $table = $doc2.Tables.Item($tIdx)
                 $cellText = $table.Cell(1, 1).Range.Text
                 if ($cellText -and $cellText.Contains($marker)) {
                     $persisted = $true
+                    $categoryCounts["TABLE_CELL_TEXT"]++
                 }
             } catch {}
         }
@@ -204,8 +339,9 @@ try {
 
         $verifiedEdits += @{
             editIndex = $op.editIndex
-            category = $op.category
+            category = $cat
             marker = $op.marker
+            page = $op.page
             persistedInReopenedDoc = $persisted
         }
     }
@@ -286,6 +422,8 @@ try {
         $page.Dispose()
     }
 
+    $untestedCount = [Math]::Max(0, ($initShapes + $initParagraphs) - $attemptedEdits)
+
     $result = @{
         success = $true
         sourceSha256 = $sourceSha
@@ -316,6 +454,9 @@ try {
             pageCountPreserved = $pageCountStable
             sectionCountPreserved = $sectionCountStable
         }
+        editedObjectTypes = $categoryCounts
+        untestedObjects = $untestedCount
+        editedBoundingBoxes = $editedBoundingBoxes
         verifiedEdits = $verifiedEdits
     }
 

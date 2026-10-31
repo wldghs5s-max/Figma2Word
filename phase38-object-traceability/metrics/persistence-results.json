@@ -1,0 +1,199 @@
+{
+  "editStatistics": {
+    "persistenceRatePercent": 100,
+    "attempted": 25,
+    "verdict": "PASSED",
+    "successful": 25,
+    "persisted": 25
+  },
+  "editedObjectTypes": {
+    "VML_SHAPE_DIMENSION": 6,
+    "VML_SHAPE_STROKE_COLOR": 6,
+    "TABLE_CELL_TEXT": 0,
+    "VML_SHAPE_FILL_COLOR": 6,
+    "VML_TEXTBOX_TEXT": 7
+  },
+  "untestedObjects": 1132,
+  "reopenedMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1140
+  },
+  "verifiedEdits": [
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_1]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 4,
+      "editIndex": 1,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_2]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 5,
+      "editIndex": 2,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_3]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 6,
+      "editIndex": 3,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_4]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 7,
+      "editIndex": 4,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_5]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 8,
+      "editIndex": 5,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_6]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 9,
+      "editIndex": 6,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_7]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 10,
+      "editIndex": 7,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_8]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 11,
+      "editIndex": 8,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_9]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 16,
+      "editIndex": 9,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_10]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 1,
+      "editIndex": 10,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_11]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 2,
+      "editIndex": 11,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_12]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 4,
+      "editIndex": 12,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_13]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 6,
+      "editIndex": 13,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_14]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 8,
+      "editIndex": 14,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_15]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 9,
+      "editIndex": 15,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_16]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 10,
+      "editIndex": 16,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_17]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 11,
+      "editIndex": 17,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_18]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 12,
+      "editIndex": 18,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_19]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 13,
+      "editIndex": 19,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_20]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 14,
+      "editIndex": 20,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_21]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 15,
+      "editIndex": 21,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_STROKE_22]",
+      "category": "VML_SHAPE_STROKE_COLOR",
+      "page": 16,
+      "editIndex": 22,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_FILL_23]",
+      "category": "VML_SHAPE_FILL_COLOR",
+      "page": 17,
+      "editIndex": 23,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_DIMENSION_24]",
+      "category": "VML_SHAPE_DIMENSION",
+      "page": 1,
+      "editIndex": 24,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE38_EDIT_TEXTBOX_25]",
+      "category": "VML_TEXTBOX_TEXT",
+      "page": 2,
+      "editIndex": 25,
+      "persistedInReopenedDoc": true
+    }
+  ]
+}
