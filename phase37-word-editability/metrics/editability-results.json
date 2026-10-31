@@ -1,0 +1,990 @@
+{
+  "docxPath": "C:\\Users\\77\\Documents\\Figma2Word\\debug\\phase37-production\\candidate\\document.docx",
+  "docxSha256": "f6ae25c0debc0950f1f4ed233ddc52e4c81953b212900d34aa0f5501820339f1",
+  "totalSections": 17,
+  "globalSummary": {
+    "totalTextNodes": 661,
+    "totalParagraphs": 642,
+    "totalTables": 0,
+    "totalVmlShapes": 1134,
+    "totalVmlTextboxes": 625,
+    "totalDrawings": 0,
+    "totalMediaImages": 11,
+    "totalImageReferencesInDoc": 19,
+    "fullPageCoverCheatCount": 0,
+    "brokenRelationshipsCount": 0,
+    "textPreservationRate": 0.5621,
+    "vectorShapePreservationRate": 0.7243,
+    "imageIntegrityVerdict": "PASSED",
+    "layoutStabilityVerdict": "STABLE",
+    "averageEditabilityScore": 96,
+    "overallVerdict": "PASSED",
+    "runtimeEditSuccessRate": "25/25",
+    "runtimePersistenceRate": "25/25"
+  },
+  "mediaAudit": {
+    "totalMediaFilesInZip": 11,
+    "totalImageRelationships": 11,
+    "totalImageElementsInDoc": 19,
+    "totalDuplicateUsages": 8,
+    "brokenRelationshipsCount": 0,
+    "unreferencedMediaCount": 0,
+    "embeddedImagesCount": 11,
+    "linkedImagesCount": 0,
+    "mediaFiles": [
+      {
+        "zipPath": "word/media/image1.png",
+        "sizeBytes": 2491945,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId2"
+        ]
+      },
+      {
+        "zipPath": "word/media/image2.png",
+        "sizeBytes": 3190387,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId3"
+        ]
+      },
+      {
+        "zipPath": "word/media/image3.png",
+        "sizeBytes": 27997,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId4"
+        ]
+      },
+      {
+        "zipPath": "word/media/image4.png",
+        "sizeBytes": 554394,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId5"
+        ]
+      },
+      {
+        "zipPath": "word/media/image5.png",
+        "sizeBytes": 264716,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId6"
+        ]
+      },
+      {
+        "zipPath": "word/media/image6.png",
+        "sizeBytes": 2764581,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId7"
+        ]
+      },
+      {
+        "zipPath": "word/media/image7.png",
+        "sizeBytes": 1042180,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId8"
+        ]
+      },
+      {
+        "zipPath": "word/media/image8.png",
+        "sizeBytes": 1865339,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId9"
+        ]
+      },
+      {
+        "zipPath": "word/media/image9.png",
+        "sizeBytes": 1153185,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId10"
+        ]
+      },
+      {
+        "zipPath": "word/media/image10.png",
+        "sizeBytes": 319014,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId11"
+        ]
+      },
+      {
+        "zipPath": "word/media/image11.png",
+        "sizeBytes": 2441801,
+        "isReferenced": true,
+        "referencingRelIds": [
+          "rId12"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "relId": "rId2",
+        "target": "media/image1.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image1.png",
+        "fileSizeBytes": 2491945,
+        "usageCount": 1,
+        "referencingSections": [
+          3
+        ]
+      },
+      {
+        "relId": "rId3",
+        "target": "media/image2.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image2.png",
+        "fileSizeBytes": 3190387,
+        "usageCount": 1,
+        "referencingSections": [
+          5
+        ]
+      },
+      {
+        "relId": "rId4",
+        "target": "media/image3.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image3.png",
+        "fileSizeBytes": 27997,
+        "usageCount": 7,
+        "referencingSections": [
+          5,
+          9,
+          11,
+          15,
+          16,
+          17
+        ]
+      },
+      {
+        "relId": "rId5",
+        "target": "media/image4.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image4.png",
+        "fileSizeBytes": 554394,
+        "usageCount": 1,
+        "referencingSections": [
+          5
+        ]
+      },
+      {
+        "relId": "rId6",
+        "target": "media/image5.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image5.png",
+        "fileSizeBytes": 264716,
+        "usageCount": 1,
+        "referencingSections": [
+          5
+        ]
+      },
+      {
+        "relId": "rId7",
+        "target": "media/image6.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image6.png",
+        "fileSizeBytes": 2764581,
+        "usageCount": 1,
+        "referencingSections": [
+          6
+        ]
+      },
+      {
+        "relId": "rId8",
+        "target": "media/image7.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image7.png",
+        "fileSizeBytes": 1042180,
+        "usageCount": 1,
+        "referencingSections": [
+          7
+        ]
+      },
+      {
+        "relId": "rId9",
+        "target": "media/image8.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image8.png",
+        "fileSizeBytes": 1865339,
+        "usageCount": 3,
+        "referencingSections": [
+          9,
+          11,
+          15
+        ]
+      },
+      {
+        "relId": "rId10",
+        "target": "media/image9.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image9.png",
+        "fileSizeBytes": 1153185,
+        "usageCount": 1,
+        "referencingSections": [
+          9
+        ]
+      },
+      {
+        "relId": "rId11",
+        "target": "media/image10.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image10.png",
+        "fileSizeBytes": 319014,
+        "usageCount": 1,
+        "referencingSections": [
+          12
+        ]
+      },
+      {
+        "relId": "rId12",
+        "target": "media/image11.png",
+        "targetMode": "Internal",
+        "mediaType": "EMBEDDED_IMAGE",
+        "fileName": "image11.png",
+        "fileSizeBytes": 2441801,
+        "usageCount": 1,
+        "referencingSections": [
+          17
+        ]
+      }
+    ],
+    "perSectionUsage": [
+      {
+        "sectionIndex": 0,
+        "pageNumber": 1,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 1,
+        "pageNumber": 2,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 2,
+        "pageNumber": 3,
+        "vmlImageCount": 1,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 1,
+        "referencedRelIds": [
+          "rId2"
+        ]
+      },
+      {
+        "sectionIndex": 3,
+        "pageNumber": 4,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 4,
+        "pageNumber": 5,
+        "vmlImageCount": 4,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 4,
+        "referencedRelIds": [
+          "rId3",
+          "rId4",
+          "rId5",
+          "rId6"
+        ]
+      },
+      {
+        "sectionIndex": 5,
+        "pageNumber": 6,
+        "vmlImageCount": 1,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 1,
+        "referencedRelIds": [
+          "rId7"
+        ]
+      },
+      {
+        "sectionIndex": 6,
+        "pageNumber": 7,
+        "vmlImageCount": 1,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 1,
+        "referencedRelIds": [
+          "rId8"
+        ]
+      },
+      {
+        "sectionIndex": 7,
+        "pageNumber": 8,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 8,
+        "pageNumber": 9,
+        "vmlImageCount": 3,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 3,
+        "referencedRelIds": [
+          "rId9",
+          "rId4",
+          "rId10"
+        ]
+      },
+      {
+        "sectionIndex": 9,
+        "pageNumber": 10,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 10,
+        "pageNumber": 11,
+        "vmlImageCount": 2,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 2,
+        "referencedRelIds": [
+          "rId9",
+          "rId4"
+        ]
+      },
+      {
+        "sectionIndex": 11,
+        "pageNumber": 12,
+        "vmlImageCount": 1,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 1,
+        "referencedRelIds": [
+          "rId11"
+        ]
+      },
+      {
+        "sectionIndex": 12,
+        "pageNumber": 13,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 13,
+        "pageNumber": 14,
+        "vmlImageCount": 0,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 0,
+        "referencedRelIds": []
+      },
+      {
+        "sectionIndex": 14,
+        "pageNumber": 15,
+        "vmlImageCount": 2,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 2,
+        "referencedRelIds": [
+          "rId9",
+          "rId4"
+        ]
+      },
+      {
+        "sectionIndex": 15,
+        "pageNumber": 16,
+        "vmlImageCount": 1,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 1,
+        "referencedRelIds": [
+          "rId4"
+        ]
+      },
+      {
+        "sectionIndex": 16,
+        "pageNumber": 17,
+        "vmlImageCount": 3,
+        "drawingMlImageCount": 0,
+        "totalImageElements": 3,
+        "referencedRelIds": [
+          "rId4",
+          "rId12",
+          "rId4"
+        ]
+      }
+    ],
+    "reconciliationNotes": "DOCX contains 11 media files in word/media/, which are mapped to 11 OpenXML Relationships. These relationships are referenced 19 times across 17 sections (8 duplicate usages across multiple pages/shapes). Broken relationships: 0, Unreferenced media files: 0."
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "sectionIndex": 0,
+      "widthPt": 1440,
+      "heightPt": 810,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 12,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 3,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 44,
+        "shapeCount": 11,
+        "imageCount": 0
+      },
+      "textPreservationCoverage": 0.022727272727272728,
+      "vectorShapePreservation": 0.2727272727272727,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 85,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Sparse native layout: 1 text node(s), 3 vector shape(s)"
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "sectionIndex": 1,
+      "widthPt": 1440,
+      "heightPt": 810,
+      "orientation": "landscape",
+      "textNodeCount": 44,
+      "totalTextLength": 593,
+      "paragraphCount": 45,
+      "tableCount": 0,
+      "vmlShapeCount": 73,
+      "vmlTextboxCount": 44,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 30,
+        "shapeCount": 2,
+        "imageCount": 0
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 44 text nodes (593 chars), 73 shapes"
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "sectionIndex": 2,
+      "widthPt": 1080,
+      "heightPt": 768,
+      "orientation": "landscape",
+      "textNodeCount": 29,
+      "totalTextLength": 266,
+      "paragraphCount": 30,
+      "tableCount": 0,
+      "vmlShapeCount": 49,
+      "vmlTextboxCount": 29,
+      "drawingCount": 0,
+      "mediaReferencesCount": 1,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 0,
+        "shapeCount": 1,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9873,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 29 text nodes, 49 vector shapes, 1 image(s)",
+        "VML image references: 1"
+      ]
+    },
+    {
+      "pageNumber": 4,
+      "sectionIndex": 3,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 4,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 2,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 50,
+        "shapeCount": 16,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 0.02,
+      "vectorShapePreservation": 0.125,
+      "imageAssetPreservation": 0,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 85,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Sparse native layout: 1 text node(s), 2 vector shape(s)"
+      ]
+    },
+    {
+      "pageNumber": 5,
+      "sectionIndex": 4,
+      "widthPt": 1086.75,
+      "heightPt": 1185,
+      "orientation": "portrait",
+      "textNodeCount": 50,
+      "totalTextLength": 283,
+      "paragraphCount": 51,
+      "tableCount": 0,
+      "vmlShapeCount": 94,
+      "vmlTextboxCount": 50,
+      "drawingCount": 0,
+      "mediaReferencesCount": 4,
+      "vmlImageCount": 4,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 3,
+        "shapeCount": 6,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.973,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 50 text nodes, 94 vector shapes, 4 image(s)",
+        "VML image references: 4"
+      ]
+    },
+    {
+      "pageNumber": 6,
+      "sectionIndex": 5,
+      "widthPt": 1086.75,
+      "heightPt": 812.25,
+      "orientation": "landscape",
+      "textNodeCount": 4,
+      "totalTextLength": 55,
+      "paragraphCount": 4,
+      "tableCount": 0,
+      "vmlShapeCount": 9,
+      "vmlTextboxCount": 3,
+      "drawingCount": 0,
+      "mediaReferencesCount": 1,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 3,
+        "shapeCount": 1,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9286,
+      "editabilityScore": 93,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 4 text nodes, 9 vector shapes, 1 image(s)",
+        "VML image references: 1"
+      ]
+    },
+    {
+      "pageNumber": 7,
+      "sectionIndex": 6,
+      "widthPt": 1086.75,
+      "heightPt": 812.25,
+      "orientation": "landscape",
+      "textNodeCount": 4,
+      "totalTextLength": 69,
+      "paragraphCount": 3,
+      "tableCount": 0,
+      "vmlShapeCount": 4,
+      "vmlTextboxCount": 2,
+      "drawingCount": 0,
+      "mediaReferencesCount": 1,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 0,
+        "shapeCount": 1,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.8889,
+      "editabilityScore": 89,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 4 text nodes, 4 vector shapes, 1 image(s)",
+        "VML image references: 1"
+      ]
+    },
+    {
+      "pageNumber": 8,
+      "sectionIndex": 7,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 1,
+      "totalTextLength": 4,
+      "paragraphCount": 2,
+      "tableCount": 0,
+      "vmlShapeCount": 2,
+      "vmlTextboxCount": 1,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 53,
+        "shapeCount": 18,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 0.018867924528301886,
+      "vectorShapePreservation": 0.1111111111111111,
+      "imageAssetPreservation": 0,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 85,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Sparse native layout: 1 text node(s), 2 vector shape(s)"
+      ]
+    },
+    {
+      "pageNumber": 9,
+      "sectionIndex": 8,
+      "widthPt": 883.5,
+      "heightPt": 968.25,
+      "orientation": "portrait",
+      "textNodeCount": 50,
+      "totalTextLength": 294,
+      "paragraphCount": 51,
+      "tableCount": 0,
+      "vmlShapeCount": 95,
+      "vmlTextboxCount": 50,
+      "drawingCount": 0,
+      "mediaReferencesCount": 3,
+      "vmlImageCount": 3,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 2,
+        "shapeCount": 2,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9797,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 50 text nodes, 95 vector shapes, 3 image(s)",
+        "VML image references: 3"
+      ]
+    },
+    {
+      "pageNumber": 10,
+      "sectionIndex": 9,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 2,
+      "totalTextLength": 23,
+      "paragraphCount": 3,
+      "tableCount": 0,
+      "vmlShapeCount": 4,
+      "vmlTextboxCount": 2,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 73,
+        "shapeCount": 32,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 0.0273972602739726,
+      "vectorShapePreservation": 0.125,
+      "imageAssetPreservation": 0,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 95,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Sparse native layout: 2 text node(s), 4 vector shape(s)"
+      ]
+    },
+    {
+      "pageNumber": 11,
+      "sectionIndex": 10,
+      "widthPt": 378,
+      "heightPt": 459.75,
+      "orientation": "portrait",
+      "textNodeCount": 73,
+      "totalTextLength": 527,
+      "paragraphCount": 74,
+      "tableCount": 0,
+      "vmlShapeCount": 133,
+      "vmlTextboxCount": 73,
+      "drawingCount": 0,
+      "mediaReferencesCount": 2,
+      "vmlImageCount": 2,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 32,
+        "shapeCount": 33,
+        "imageCount": 0
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9904,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 73 text nodes, 133 vector shapes, 2 image(s)",
+        "VML image references: 2"
+      ]
+    },
+    {
+      "pageNumber": 12,
+      "sectionIndex": 11,
+      "widthPt": 883.5,
+      "heightPt": 968.25,
+      "orientation": "portrait",
+      "textNodeCount": 32,
+      "totalTextLength": 157,
+      "paragraphCount": 33,
+      "tableCount": 0,
+      "vmlShapeCount": 62,
+      "vmlTextboxCount": 32,
+      "drawingCount": 0,
+      "mediaReferencesCount": 1,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 5,
+        "shapeCount": 1,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9895,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 32 text nodes, 62 vector shapes, 1 image(s)",
+        "VML image references: 1"
+      ]
+    },
+    {
+      "pageNumber": 13,
+      "sectionIndex": 12,
+      "widthPt": 378,
+      "heightPt": 701.25,
+      "orientation": "portrait",
+      "textNodeCount": 5,
+      "totalTextLength": 70,
+      "paragraphCount": 6,
+      "tableCount": 0,
+      "vmlShapeCount": 7,
+      "vmlTextboxCount": 5,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 38,
+        "shapeCount": 35,
+        "imageCount": 0
+      },
+      "textPreservationCoverage": 0.13157894736842105,
+      "vectorShapePreservation": 0.2,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 5 text nodes (70 chars), 7 shapes"
+      ]
+    },
+    {
+      "pageNumber": 14,
+      "sectionIndex": 13,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 60,
+      "totalTextLength": 230,
+      "paragraphCount": 39,
+      "tableCount": 0,
+      "vmlShapeCount": 70,
+      "vmlTextboxCount": 38,
+      "drawingCount": 0,
+      "mediaReferencesCount": 0,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 70,
+        "shapeCount": 24,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 0.8571428571428571,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 0,
+      "wordNativeElementRatio": 1,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Pure native editable content: 60 text nodes (230 chars), 70 shapes"
+      ]
+    },
+    {
+      "pageNumber": 15,
+      "sectionIndex": 14,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 76,
+      "totalTextLength": 454,
+      "paragraphCount": 71,
+      "tableCount": 0,
+      "vmlShapeCount": 128,
+      "vmlTextboxCount": 70,
+      "drawingCount": 0,
+      "mediaReferencesCount": 2,
+      "vmlImageCount": 2,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 93,
+        "shapeCount": 76,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 0.8172043010752689,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9903,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 76 text nodes, 128 vector shapes, 2 image(s)",
+        "VML image references: 2"
+      ]
+    },
+    {
+      "pageNumber": 16,
+      "sectionIndex": 15,
+      "widthPt": 1440,
+      "heightPt": 915.75,
+      "orientation": "landscape",
+      "textNodeCount": 95,
+      "totalTextLength": 529,
+      "paragraphCount": 94,
+      "tableCount": 0,
+      "vmlShapeCount": 169,
+      "vmlTextboxCount": 93,
+      "drawingCount": 0,
+      "mediaReferencesCount": 1,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 90,
+        "shapeCount": 66,
+        "imageCount": 1
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9962,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 95 text nodes, 169 vector shapes, 1 image(s)",
+        "VML image references: 1"
+      ]
+    },
+    {
+      "pageNumber": 17,
+      "sectionIndex": 16,
+      "widthPt": 1440,
+      "heightPt": 877.5,
+      "orientation": "landscape",
+      "textNodeCount": 134,
+      "totalTextLength": 957,
+      "paragraphCount": 132,
+      "tableCount": 0,
+      "vmlShapeCount": 230,
+      "vmlTextboxCount": 131,
+      "drawingCount": 0,
+      "mediaReferencesCount": 3,
+      "vmlImageCount": 3,
+      "drawingMlImageCount": 0,
+      "hasFullPageCoverImage": false,
+      "sourceFigmaElements": {
+        "textCount": 42,
+        "shapeCount": 16,
+        "imageCount": 2
+      },
+      "textPreservationCoverage": 1,
+      "vectorShapePreservation": 1,
+      "imageAssetPreservation": 1,
+      "wordNativeElementRatio": 0.9918,
+      "editabilityScore": 100,
+      "classification": "FULLY_EDITABLE",
+      "findings": [
+        "Rich editable typography: 134 text nodes, 230 vector shapes, 3 image(s)",
+        "VML image references: 3"
+      ]
+    }
+  ]
+}

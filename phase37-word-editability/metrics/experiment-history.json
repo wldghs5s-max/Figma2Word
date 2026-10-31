@@ -1,0 +1,57 @@
+[
+  {
+    "experimentId": "EXP-37-01",
+    "topic": "B-01 Editability Auditor Multi-Factor Redesign",
+    "filesModified": [
+      "src/fidelity/editabilityAuditor.ts"
+    ],
+    "outcome": "Eliminated false 100-score rule, introduced multi-dimensional preservation metrics",
+    "status": "ADOPTED"
+  },
+  {
+    "experimentId": "EXP-37-02",
+    "topic": "B-02 OpenXML Media Relationship Tracking",
+    "filesModified": [
+      "src/fidelity/mediaRelationshipAuditor.ts"
+    ],
+    "outcome": "Parsed document.xml.rels, resolved 19 usages vs 12 files in zip, 0 broken rels",
+    "status": "ADOPTED"
+  },
+  {
+    "experimentId": "EXP-37-03",
+    "topic": "B-03 Automated Git Baseline Origin Verification",
+    "filesModified": [
+      "src/fidelity/gitOriginVerifier.ts"
+    ],
+    "outcome": "Verified aca7bd9 normalized LF hash, fail-closed on tampering",
+    "status": "ADOPTED"
+  },
+  {
+    "experimentId": "EXP-37-04",
+    "topic": "B-04 2D Affine ImageTransform Generalization",
+    "filesModified": [
+      "src/fidelity/affineTransformEngine.ts",
+      "src/canvas/parser/figmaCanvasParser.ts"
+    ],
+    "outcome": "Classified rotation, reflection, shear, singular, float32 tolerances, clamped crops",
+    "status": "ADOPTED"
+  },
+  {
+    "experimentId": "EXP-37-05",
+    "topic": "C-01 Word COM Native Edit & Save-Reopen Persistence",
+    "filesModified": [
+      "tools/visual-regression/windows_word_edit_test.ps1"
+    ],
+    "outcome": "Executed real Shape TextFrame modifications, 100% save-reopen persistence, stable layout",
+    "status": "ADOPTED"
+  },
+  {
+    "experimentId": "EXP-37-06",
+    "topic": "E-01 Auto Layout Alignment & Geometry Synthesis",
+    "filesModified": [
+      "src/canvas/parser/figmaCanvasParser.ts"
+    ],
+    "outcome": "Supported primaryAxisAlignItems & counterAxisAlignItems for nested synthesized frames",
+    "status": "ADOPTED"
+  }
+]

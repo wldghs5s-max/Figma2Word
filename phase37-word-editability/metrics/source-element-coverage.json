@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-10-31T09:09:26.525Z",
+  "totalSourceTextNodes": 628,
+  "totalSourceVectorShapes": 341,
+  "totalSourceImageAssets": 19,
+  "totalWordTextNodes": 661,
+  "totalWordVectorShapes": 1134,
+  "totalWordImageElements": 19,
+  "textPreservationRate": 1.0525,
+  "vectorShapePreservationRate": 3.3255,
+  "pages": [
+    {
+      "pageNumber": 1,
+      "nodeId": "763:5068",
+      "sourceTextCount": 44,
+      "sourceShapeCount": 11,
+      "sourceImageCount": 0,
+      "wordTextNodes": 1,
+      "wordVectorShapes": 3,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 2,
+      "nodeId": "766:256",
+      "sourceTextCount": 30,
+      "sourceShapeCount": 2,
+      "sourceImageCount": 0,
+      "wordTextNodes": 44,
+      "wordVectorShapes": 73,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 3,
+      "nodeId": "757:88",
+      "sourceTextCount": 0,
+      "sourceShapeCount": 1,
+      "sourceImageCount": 1,
+      "wordTextNodes": 29,
+      "wordVectorShapes": 49,
+      "wordImageElements": 1
+    },
+    {
+      "pageNumber": 4,
+      "nodeId": "759:759",
+      "sourceTextCount": 50,
+      "sourceShapeCount": 16,
+      "sourceImageCount": 2,
+      "wordTextNodes": 1,
+      "wordVectorShapes": 2,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 5,
+      "nodeId": "757:92",
+      "sourceTextCount": 3,
+      "sourceShapeCount": 6,
+      "sourceImageCount": 2,
+      "wordTextNodes": 50,
+      "wordVectorShapes": 94,
+      "wordImageElements": 4
+    },
+    {
+      "pageNumber": 6,
+      "nodeId": "757:142",
+      "sourceTextCount": 3,
+      "sourceShapeCount": 1,
+      "sourceImageCount": 1,
+      "wordTextNodes": 4,
+      "wordVectorShapes": 9,
+      "wordImageElements": 1
+    },
+    {
+      "pageNumber": 7,
+      "nodeId": "757:158",
+      "sourceTextCount": 0,
+      "sourceShapeCount": 1,
+      "sourceImageCount": 1,
+      "wordTextNodes": 4,
+      "wordVectorShapes": 4,
+      "wordImageElements": 1
+    },
+    {
+      "pageNumber": 8,
+      "nodeId": "759:911",
+      "sourceTextCount": 53,
+      "sourceShapeCount": 18,
+      "sourceImageCount": 2,
+      "wordTextNodes": 1,
+      "wordVectorShapes": 2,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 9,
+      "nodeId": "757:124",
+      "sourceTextCount": 2,
+      "sourceShapeCount": 2,
+      "sourceImageCount": 1,
+      "wordTextNodes": 50,
+      "wordVectorShapes": 95,
+      "wordImageElements": 3
+    },
+    {
+      "pageNumber": 10,
+      "nodeId": "759:1076",
+      "sourceTextCount": 73,
+      "sourceShapeCount": 32,
+      "sourceImageCount": 2,
+      "wordTextNodes": 2,
+      "wordVectorShapes": 4,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 11,
+      "nodeId": "766:2289",
+      "sourceTextCount": 32,
+      "sourceShapeCount": 33,
+      "sourceImageCount": 0,
+      "wordTextNodes": 73,
+      "wordVectorShapes": 133,
+      "wordImageElements": 2
+    },
+    {
+      "pageNumber": 12,
+      "nodeId": "757:118",
+      "sourceTextCount": 5,
+      "sourceShapeCount": 1,
+      "sourceImageCount": 1,
+      "wordTextNodes": 32,
+      "wordVectorShapes": 62,
+      "wordImageElements": 1
+    },
+    {
+      "pageNumber": 13,
+      "nodeId": "766:2942",
+      "sourceTextCount": 38,
+      "sourceShapeCount": 35,
+      "sourceImageCount": 0,
+      "wordTextNodes": 5,
+      "wordVectorShapes": 7,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 14,
+      "nodeId": "759:1314",
+      "sourceTextCount": 70,
+      "sourceShapeCount": 24,
+      "sourceImageCount": 2,
+      "wordTextNodes": 60,
+      "wordVectorShapes": 70,
+      "wordImageElements": 0
+    },
+    {
+      "pageNumber": 15,
+      "nodeId": "759:1858",
+      "sourceTextCount": 93,
+      "sourceShapeCount": 76,
+      "sourceImageCount": 1,
+      "wordTextNodes": 76,
+      "wordVectorShapes": 128,
+      "wordImageElements": 2
+    },
+    {
+      "pageNumber": 16,
+      "nodeId": "759:1533",
+      "sourceTextCount": 90,
+      "sourceShapeCount": 66,
+      "sourceImageCount": 1,
+      "wordTextNodes": 95,
+      "wordVectorShapes": 169,
+      "wordImageElements": 1
+    },
+    {
+      "pageNumber": 17,
+      "nodeId": "768:3434",
+      "sourceTextCount": 42,
+      "sourceShapeCount": 16,
+      "sourceImageCount": 2,
+      "wordTextNodes": 134,
+      "wordVectorShapes": 230,
+      "wordImageElements": 3
+    }
+  ]
+}

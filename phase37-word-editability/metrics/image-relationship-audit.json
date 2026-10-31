@@ -1,0 +1,409 @@
+{
+  "totalMediaFilesInZip": 11,
+  "totalImageRelationships": 11,
+  "totalImageElementsInDoc": 19,
+  "totalDuplicateUsages": 8,
+  "brokenRelationshipsCount": 0,
+  "unreferencedMediaCount": 0,
+  "embeddedImagesCount": 11,
+  "linkedImagesCount": 0,
+  "mediaFiles": [
+    {
+      "zipPath": "word/media/image1.png",
+      "sizeBytes": 2491945,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId2"
+      ]
+    },
+    {
+      "zipPath": "word/media/image2.png",
+      "sizeBytes": 3190387,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId3"
+      ]
+    },
+    {
+      "zipPath": "word/media/image3.png",
+      "sizeBytes": 27997,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId4"
+      ]
+    },
+    {
+      "zipPath": "word/media/image4.png",
+      "sizeBytes": 554394,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId5"
+      ]
+    },
+    {
+      "zipPath": "word/media/image5.png",
+      "sizeBytes": 264716,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId6"
+      ]
+    },
+    {
+      "zipPath": "word/media/image6.png",
+      "sizeBytes": 2764581,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId7"
+      ]
+    },
+    {
+      "zipPath": "word/media/image7.png",
+      "sizeBytes": 1042180,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId8"
+      ]
+    },
+    {
+      "zipPath": "word/media/image8.png",
+      "sizeBytes": 1865339,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId9"
+      ]
+    },
+    {
+      "zipPath": "word/media/image9.png",
+      "sizeBytes": 1153185,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId10"
+      ]
+    },
+    {
+      "zipPath": "word/media/image10.png",
+      "sizeBytes": 319014,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId11"
+      ]
+    },
+    {
+      "zipPath": "word/media/image11.png",
+      "sizeBytes": 2441801,
+      "isReferenced": true,
+      "referencingRelIds": [
+        "rId12"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relId": "rId2",
+      "target": "media/image1.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image1.png",
+      "fileSizeBytes": 2491945,
+      "usageCount": 1,
+      "referencingSections": [
+        3
+      ]
+    },
+    {
+      "relId": "rId3",
+      "target": "media/image2.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image2.png",
+      "fileSizeBytes": 3190387,
+      "usageCount": 1,
+      "referencingSections": [
+        5
+      ]
+    },
+    {
+      "relId": "rId4",
+      "target": "media/image3.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image3.png",
+      "fileSizeBytes": 27997,
+      "usageCount": 7,
+      "referencingSections": [
+        5,
+        9,
+        11,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "relId": "rId5",
+      "target": "media/image4.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image4.png",
+      "fileSizeBytes": 554394,
+      "usageCount": 1,
+      "referencingSections": [
+        5
+      ]
+    },
+    {
+      "relId": "rId6",
+      "target": "media/image5.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image5.png",
+      "fileSizeBytes": 264716,
+      "usageCount": 1,
+      "referencingSections": [
+        5
+      ]
+    },
+    {
+      "relId": "rId7",
+      "target": "media/image6.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image6.png",
+      "fileSizeBytes": 2764581,
+      "usageCount": 1,
+      "referencingSections": [
+        6
+      ]
+    },
+    {
+      "relId": "rId8",
+      "target": "media/image7.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image7.png",
+      "fileSizeBytes": 1042180,
+      "usageCount": 1,
+      "referencingSections": [
+        7
+      ]
+    },
+    {
+      "relId": "rId9",
+      "target": "media/image8.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image8.png",
+      "fileSizeBytes": 1865339,
+      "usageCount": 3,
+      "referencingSections": [
+        9,
+        11,
+        15
+      ]
+    },
+    {
+      "relId": "rId10",
+      "target": "media/image9.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image9.png",
+      "fileSizeBytes": 1153185,
+      "usageCount": 1,
+      "referencingSections": [
+        9
+      ]
+    },
+    {
+      "relId": "rId11",
+      "target": "media/image10.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image10.png",
+      "fileSizeBytes": 319014,
+      "usageCount": 1,
+      "referencingSections": [
+        12
+      ]
+    },
+    {
+      "relId": "rId12",
+      "target": "media/image11.png",
+      "targetMode": "Internal",
+      "mediaType": "EMBEDDED_IMAGE",
+      "fileName": "image11.png",
+      "fileSizeBytes": 2441801,
+      "usageCount": 1,
+      "referencingSections": [
+        17
+      ]
+    }
+  ],
+  "perSectionUsage": [
+    {
+      "sectionIndex": 0,
+      "pageNumber": 1,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 1,
+      "pageNumber": 2,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 2,
+      "pageNumber": 3,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 1,
+      "referencedRelIds": [
+        "rId2"
+      ]
+    },
+    {
+      "sectionIndex": 3,
+      "pageNumber": 4,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 4,
+      "pageNumber": 5,
+      "vmlImageCount": 4,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 4,
+      "referencedRelIds": [
+        "rId3",
+        "rId4",
+        "rId5",
+        "rId6"
+      ]
+    },
+    {
+      "sectionIndex": 5,
+      "pageNumber": 6,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 1,
+      "referencedRelIds": [
+        "rId7"
+      ]
+    },
+    {
+      "sectionIndex": 6,
+      "pageNumber": 7,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 1,
+      "referencedRelIds": [
+        "rId8"
+      ]
+    },
+    {
+      "sectionIndex": 7,
+      "pageNumber": 8,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 8,
+      "pageNumber": 9,
+      "vmlImageCount": 3,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 3,
+      "referencedRelIds": [
+        "rId9",
+        "rId4",
+        "rId10"
+      ]
+    },
+    {
+      "sectionIndex": 9,
+      "pageNumber": 10,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 10,
+      "pageNumber": 11,
+      "vmlImageCount": 2,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 2,
+      "referencedRelIds": [
+        "rId9",
+        "rId4"
+      ]
+    },
+    {
+      "sectionIndex": 11,
+      "pageNumber": 12,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 1,
+      "referencedRelIds": [
+        "rId11"
+      ]
+    },
+    {
+      "sectionIndex": 12,
+      "pageNumber": 13,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 13,
+      "pageNumber": 14,
+      "vmlImageCount": 0,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 0,
+      "referencedRelIds": []
+    },
+    {
+      "sectionIndex": 14,
+      "pageNumber": 15,
+      "vmlImageCount": 2,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 2,
+      "referencedRelIds": [
+        "rId9",
+        "rId4"
+      ]
+    },
+    {
+      "sectionIndex": 15,
+      "pageNumber": 16,
+      "vmlImageCount": 1,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 1,
+      "referencedRelIds": [
+        "rId4"
+      ]
+    },
+    {
+      "sectionIndex": 16,
+      "pageNumber": 17,
+      "vmlImageCount": 3,
+      "drawingMlImageCount": 0,
+      "totalImageElements": 3,
+      "referencedRelIds": [
+        "rId4",
+        "rId12",
+        "rId4"
+      ]
+    }
+  ],
+  "reconciliationNotes": "DOCX contains 11 media files in word/media/, which are mapped to 11 OpenXML Relationships. These relationships are referenced 19 times across 17 sections (8 duplicate usages across multiple pages/shapes). Broken relationships: 0, Unreferenced media files: 0."
+}

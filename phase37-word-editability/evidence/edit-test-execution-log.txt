@@ -1,0 +1,183 @@
+{
+  "editStatistics": {
+    "persistenceRatePercent": 100,
+    "attempted": 25,
+    "verdict": "PASSED",
+    "successful": 25,
+    "persisted": 25
+  },
+  "reopenedMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1134
+  },
+  "savedDocxSha256": "0836df0970f9c1a7eb85bd71c9d64e4751d6fd8f858dca1e6a763d48555bec2a",
+  "verifiedEdits": [
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_1]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 1,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_2]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 2,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_3]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 3,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_4]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 4,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_5]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 5,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_6]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 6,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_7]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 7,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_8]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 8,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_9]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 9,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_10]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 10,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_11]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 11,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_12]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 12,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_13]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 13,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_14]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 14,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_15]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 15,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_16]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 16,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_17]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 17,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_18]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 18,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_19]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 19,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_20]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 20,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_21]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 21,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_22]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 22,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_23]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 23,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_24]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 24,
+      "persistedInReopenedDoc": true
+    },
+    {
+      "marker": "[PHASE37_EDIT_VERIFIED_SHAPE_25]",
+      "category": "VML_TEXTBOX_SHAPE",
+      "editIndex": 25,
+      "persistedInReopenedDoc": true
+    }
+  ],
+  "beforePdfSha256": "fa65c4d2cdbcf00f50346d2762f4decad36e27e746ef119ce24b17ea0a47a4f4",
+  "success": true,
+  "initialMetrics": {
+    "pages": 17,
+    "sections": 17,
+    "shapes": 1134,
+    "paragraphs": 17,
+    "tables": 0
+  },
+  "afterPdfSha256": "b4414588b30e08bbc2695b469c93cc9aa4eebcbefee61fa1bb357305c5cd06fc",
+  "sourceSha256": "f6ae25c0debc0950f1f4ed233ddc52e4c81953b212900d34aa0f5501820339f1",
+  "layoutStability": {
+    "verdict": "STABLE",
+    "sectionCountPreserved": true,
+    "pageCountPreserved": true
+  }
+}

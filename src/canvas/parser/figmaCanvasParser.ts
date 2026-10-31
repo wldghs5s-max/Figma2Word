@@ -12,6 +12,7 @@ import { FigmaNode, FigmaFileResponse, FigmaColor, FigmaPaint } from "../../pars
 import { isA4Ratio } from "../../pipeline/index.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
 import { decodeBase64, decodeDataUrl } from "../utils/binaryUtils.js";
+import { analyzeFigmaImageTransform } from "../../fidelity/affineTransformEngine.js";
 
 export interface FigmaCanvasParserOptions {
   imageMap?: Record<string, string>;
@@ -283,6 +284,8 @@ export class FigmaCanvasParser {
     const pb = (parent as any).paddingBottom || 0;
     const gap = (parent as any).itemSpacing || 12;
     const layoutMode = (parent as any).layoutMode || "VERTICAL";
+    const primaryAlign = (parent as any).primaryAxisAlignItems || "MIN";
+    const counterAlign = (parent as any).counterAxisAlignItems || "MIN";
 
     const innerX = parentBox.x + pl;
     const innerY = parentBox.y + pt;
@@ -293,7 +296,6 @@ export class FigmaCanvasParser {
     if (visChildren.length === 0) return;
 
     if (layoutMode === "HORIZONTAL") {
-      let cursorX = innerX;
       const missingCount = visChildren.filter((c) => !c.absoluteBoundingBox).length;
       const usedW = visChildren.reduce(
         (acc, c) => acc + (c.absoluteBoundingBox ? c.absoluteBoundingBox.width + gap : 0),
@@ -305,6 +307,13 @@ export class FigmaCanvasParser {
           ? Math.max(40, (remW - gap * Math.max(0, missingCount - 1)) / missingCount)
           : innerW;
 
+      let cursorX = innerX;
+      if (primaryAlign === "CENTER" && usedW < innerW) {
+        cursorX = innerX + (innerW - usedW) / 2;
+      } else if (primaryAlign === "MAX" && usedW < innerW) {
+        cursorX = innerX + (innerW - usedW);
+      }
+
       for (const child of visChildren) {
         if (!child.absoluteBoundingBox) {
           let cw = defaultColW;
@@ -314,9 +323,15 @@ export class FigmaCanvasParser {
             const lh = child.style?.lineHeightPx || Math.round(fs * 1.35);
             ch = Math.min(innerH, Math.max(lh + 4, innerH));
           }
+          let childY = innerY;
+          if (counterAlign === "CENTER") {
+            childY = innerY + Math.max(0, (innerH - ch) / 2);
+          } else if (counterAlign === "MAX") {
+            childY = innerY + Math.max(0, innerH - ch);
+          }
           (child as any).absoluteBoundingBox = {
             x: cursorX,
-            y: innerY,
+            y: childY,
             width: cw,
             height: ch,
           };
@@ -385,8 +400,15 @@ export class FigmaCanvasParser {
             }
           }
 
+          let childX = innerX;
+          if (counterAlign === "CENTER") {
+            childX = innerX + Math.max(0, (innerW - cw) / 2);
+          } else if (counterAlign === "MAX") {
+            childX = innerX + Math.max(0, innerW - cw);
+          }
+
           (child as any).absoluteBoundingBox = {
-            x: innerX,
+            x: childX,
             y: cursorY,
             width: cw,
             height: ch,
@@ -497,32 +519,15 @@ export class FigmaCanvasParser {
           const transform = (imageFill as any).imageTransform as
             | [[number, number, number], [number, number, number]]
             | undefined;
-          if (
-            Array.isArray(transform) &&
-            transform.length === 2 &&
-            Array.isArray(transform[0]) &&
-            Array.isArray(transform[1])
-          ) {
-            const sx = transform[0][0] ?? 1;
-            const tx = transform[0][2] ?? 0;
-            const sy = transform[1][1] ?? 1;
-            const ty = transform[1][2] ?? 0;
-            let left = Math.max(0, Math.min(0.95, tx));
-            let top = Math.max(0, Math.min(0.95, ty));
-            let right = Math.max(0, Math.min(0.95, 1 - (tx + sx)));
-            let bottom = Math.max(0, Math.min(0.95, 1 - (ty + sy)));
-
-            if (left === 0 && right === 0 && top === 0 && bottom === 0 && sx > 0 && sy > 0 && (sx !== 1 || sy !== 1)) {
-              left = Math.max(0, Math.min(0.95, -tx / sx));
-              top = Math.max(0, Math.min(0.95, -ty / sy));
-              right = Math.max(0, Math.min(0.95, 1 - (1 - tx) / sx));
-              bottom = Math.max(0, Math.min(0.95, 1 - (1 - ty) / sy));
-            }
-
-            if (left > 0.001 || top > 0.001 || right > 0.001 || bottom > 0.001) {
-              imageCrop = { top, bottom, left, right };
+          let affineAnalysis: ReturnType<typeof analyzeFigmaImageTransform> | undefined;
+          if (transform) {
+            affineAnalysis = analyzeFigmaImageTransform(transform);
+            if (affineAnalysis.crop) {
+              imageCrop = affineAnalysis.crop;
             }
           }
+
+          const elemRotation = affineAnalysis?.rotationDegrees ?? (child as any).rotation;
 
           elements.push({
             id: child.id,
@@ -530,7 +535,7 @@ export class FigmaCanvasParser {
             type: "image",
             bounds: { x: xPt, y: yPt, width: wPt, height: hPt },
             zIndex: currentZIndex++,
-            rotation: (child as any).rotation,
+            rotation: elemRotation,
             opacity: finalElemOpacity,
             style: this.extractStyle(child, scaleX),
             imageRef: resId,
