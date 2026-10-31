@@ -1,0 +1,178 @@
+{
+  "timestamp": "2026-10-31T03:46:11.081Z",
+  "fileKey": "PQADsFQSbkiVHFWeJQavEf",
+  "status": "PARTIAL_SUCCESS",
+  "success": false,
+  "actualFigmaApiCalls": 1,
+  "actualCdnDownloads": 16,
+  "totalHttpRequests": 17,
+  "cdnRedirectHops": 0,
+  "imagesDownloadedSuccessfully": 16,
+  "imagesFailed": 1,
+  "imagesReusedFromCache": 0,
+  "capturedNodes": [
+    {
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "width": 1920,
+      "height": 1080,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_763_5068.png",
+      "sha256Hash": "1c90deef35c9dc8340e6c9264b8c9f77551ddfb1b10d293f641f68f91d93b47a",
+      "fileSizeBytes": 87466,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "766:256",
+      "frameName": "디자인 시스템 2",
+      "width": 1920,
+      "height": 1080,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_256.png",
+      "sha256Hash": "63d5e5713051b24ba1919e42b6514ff7e32e500e7040595b49b1810f3678f199",
+      "fileSizeBytes": 60068,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:88",
+      "frameName": "Desktop - 1",
+      "width": 1440,
+      "height": 1024,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_88.png",
+      "sha256Hash": "4f8a79bd21df14bf636f5cf7c9af7494f9d396adf12a6ef4e6b56d60817b0359",
+      "fileSizeBytes": 668414,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "759:759",
+      "frameName": "Desktop - 대시보드 (지도뷰)",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_759.png",
+      "sha256Hash": "6fb16eb9c38ac08c742e286edb1bc92e18f56cc0656fe1d8833a716aef8dcef4",
+      "fileSizeBytes": 1018254,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:92",
+      "frameName": "Desktop - 2",
+      "width": 1449,
+      "height": 1580,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_92.png",
+      "sha256Hash": "b55cf8667db71a008093b4e1518443468f9c2c0258410e6831330b3098bb1a31",
+      "fileSizeBytes": 306017,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:142",
+      "frameName": "촬영계획",
+      "width": 1449,
+      "height": 1083,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_142.png",
+      "sha256Hash": "27a0b1a644ba786112ad9456d1037bd9084ea6478549936e448701ab12850f2f",
+      "fileSizeBytes": 803885,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:158",
+      "frameName": "촬영계획 - 건물을 선택시",
+      "width": 1449,
+      "height": 1083,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_158.png",
+      "sha256Hash": "9995edc3df7e4717dbede0f00f8cdaa85321c9d2c61dfeeefcdb0e98587cecec",
+      "fileSizeBytes": 266011,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "759:911",
+      "frameName": "사업목록 선택된 화면",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_911.png",
+      "sha256Hash": "f631cc648dc6364c7490753b764f4c609fb10882f1d234d992e2d9e8ba492b4b",
+      "fileSizeBytes": 601263,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:124",
+      "frameName": "필터 팝업",
+      "width": 1178,
+      "height": 1291,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_124.png",
+      "sha256Hash": "94c09686459f73cdc4f0d485d673e449a0c4f46b540c09f50f44e4e311b66a15",
+      "fileSizeBytes": 343067,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "759:1076",
+      "frameName": "신규등록 - 1",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1076.png",
+      "sha256Hash": "6e8b0efdac225d979b739aadf19599617a713fd7564f292277595250df6218c4",
+      "fileSizeBytes": 371841,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "width": 504,
+      "height": 613,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_2289.png",
+      "sha256Hash": "3fb6f3ea0c4e89239a038972145a7ad5caea6f28be210e34666b9b4a8b47a855",
+      "fileSizeBytes": 22524,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "757:118",
+      "frameName": "Frame 1",
+      "width": 1178,
+      "height": 1291,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_118.png",
+      "sha256Hash": "6119112e4e4a36f7b83390663cc62cdf61c3ce676398eeeb59ef07531cfcefc1",
+      "fileSizeBytes": 127158,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "width": 504,
+      "height": 935,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_2942.png",
+      "sha256Hash": "3a90bc30c4d3a5c8328611b9fe24dfb8b64f3846e1541dd314ff41cba7c7262d",
+      "fileSizeBytes": 48604,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "759:1314",
+      "frameName": "신규등록 - 2",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1314.png",
+      "sha256Hash": "047573e9a12139cd82db5c3a1417ec8c1f14798ca539e185ccd7af42aac82c87",
+      "fileSizeBytes": 400550,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1858.png",
+      "sha256Hash": "2d7a238c329799e7eb33c63e857f87a43c825eaf62a914e2e73f96aacc533626",
+      "fileSizeBytes": 129332,
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "nodeId": "768:3434",
+      "frameName": "사업목록 클릭 시",
+      "width": 1920,
+      "height": 1170,
+      "imagePath": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_768_3434.png",
+      "sha256Hash": "3144e6a9cd6109e6917d8888d0a830029a480fc9dca032b080806d0fb4540710",
+      "fileSizeBytes": 719151,
+      "verificationStatus": "VERIFIED"
+    }
+  ],
+  "errors": [
+    "Figma returned no image URL for node '759:1533'"
+  ]
+}

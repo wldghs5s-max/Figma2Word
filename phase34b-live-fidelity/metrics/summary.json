@@ -1,0 +1,70 @@
+{
+  "project": "Figma2Word — Phase 34B Visual Fidelity Benchmark",
+  "targetFileKey": "PQADsFQSbkiVHFWeJQavEf",
+  "evaluatedAt": "2026-10-31T04:02:31.911Z",
+  "targetFramesCount": 17,
+  "capturedReferencesCount": 16,
+  "missingReferencesCount": 1,
+  "actualFigmaApiCalls": 1,
+  "actualCdnDownloads": 16,
+  "cdnRedirectHops": 0,
+  "totalHttpRequests": 17,
+  "httpBudgetLimit": 30,
+  "httpBudgetRemaining": 13,
+  "networkModeRestored": "offline",
+  "versionConsistency": "VERSION_MATCH_UNVERIFIED",
+  "versionConsistencyReason": "16 frames matched layout and dimensions 100%, but node 759:1533 returned null from Figma API, confirming recent cloud deletions/modifications since the snapshot date.",
+  "wordDocxSectionsCount": 17,
+  "wordPdfPagesCount": 17,
+  "evaluatedFramesCount": 16,
+  "averageSsim": 0.9931,
+  "averageMae": 0.11,
+  "averageRmse": 1.11,
+  "top5DiscrepancyFrames": [
+    {
+      "pageNumber": 16,
+      "nodeId": "759:1533",
+      "frameName": "사업목록 클릭 시 - 탭디자인1",
+      "ssim": "NOT_EVALUATED (MISSING)",
+      "mae": "N/A",
+      "defect": "MISSING_IN_CLOUD",
+      "details": "Node returned null by Figma API (deleted or hidden in live cloud version)"
+    },
+    {
+      "pageNumber": 15,
+      "nodeId": "759:1858",
+      "frameName": "사업목록 클릭 시",
+      "ssim": 0.9637,
+      "mae": 0.26,
+      "defect": "FONT_METRICS",
+      "details": "Complex composite table header with 228 elements and font expansion"
+    },
+    {
+      "pageNumber": 11,
+      "nodeId": "766:2289",
+      "frameName": "필터",
+      "ssim": 0.9841,
+      "mae": 0.45,
+      "defect": "PAGE_GEOMETRY",
+      "details": "Compact 504x613 modal component rendered on standalone Word page"
+    },
+    {
+      "pageNumber": 1,
+      "nodeId": "763:5068",
+      "frameName": "디자인 시스템 1",
+      "ssim": 0.9859,
+      "mae": 0.21,
+      "defect": "FONT_METRICS",
+      "details": "Color chip label text right-margin breathing room and badge corner radius"
+    },
+    {
+      "pageNumber": 13,
+      "nodeId": "766:2942",
+      "frameName": "사업정보 수정",
+      "ssim": 0.9898,
+      "mae": 0.31,
+      "defect": "PAGE_GEOMETRY",
+      "details": "Narrow vertical form modal (504x935) on standalone Word page"
+    }
+  ]
+}

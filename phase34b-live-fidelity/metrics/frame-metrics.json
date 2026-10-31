@@ -1,0 +1,621 @@
+[
+  {
+    "pageNumber": 1,
+    "nodeId": "763:5068",
+    "frameName": "디자인 시스템 1",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1080
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 810
+    },
+    "elementCount": 72,
+    "shapeCount": 28,
+    "textboxCount": 44,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_763_5068.png",
+      "fileSizeBytes": 87466,
+      "sha256": "1c90deef35c9dc8340e6c9264b8c9f77551ddfb1b10d293f641f68f91d93b47a"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9859,
+      "mae": 0.21,
+      "rmse": 2.14,
+      "mismatchRatio": 0.008,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "FONT_METRICS",
+    "defectDetails": "Color chip label text right-margin breathing room and badge corner radius"
+  },
+  {
+    "pageNumber": 2,
+    "nodeId": "766:256",
+    "frameName": "디자인 시스템 2",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1080
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 810
+    },
+    "elementCount": 50,
+    "shapeCount": 20,
+    "textboxCount": 30,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_256.png",
+      "fileSizeBytes": 60068,
+      "sha256": "63d5e5713051b24ba1919e42b6514ff7e32e500e7040595b49b1810f3678f199"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9913,
+      "mae": 0.1,
+      "rmse": 1.45,
+      "mismatchRatio": 0.0036,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "STYLE_MISMATCH",
+    "defectDetails": "Button and input field corner radius VML arcsize rendering"
+  },
+  {
+    "pageNumber": 3,
+    "nodeId": "757:88",
+    "frameName": "Desktop - 1",
+    "figmaSizePx": {
+      "width": 1440,
+      "height": 1024
+    },
+    "canvasSizePt": {
+      "width": 841.89,
+      "height": 595.28
+    },
+    "elementCount": 1,
+    "shapeCount": 1,
+    "textboxCount": 0,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_88.png",
+      "fileSizeBytes": 668414,
+      "sha256": "4f8a79bd21df14bf636f5cf7c9af7494f9d396adf12a6ef4e6b56d60817b0359"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "PAGE_GEOMETRY",
+    "defectDetails": "Full dashboard image view scaled to fit A4 Landscape canvas"
+  },
+  {
+    "pageNumber": 4,
+    "nodeId": "759:759",
+    "frameName": "Desktop - 대시보드 (지도뷰)",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 100,
+    "shapeCount": 50,
+    "textboxCount": 50,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_759.png",
+      "fileSizeBytes": 1018254,
+      "sha256": "6fb16eb9c38ac08c742e286edb1bc92e18f56cc0656fe1d8833a716aef8dcef4"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9973,
+      "mae": 0.05,
+      "rmse": 0.88,
+      "mismatchRatio": 0.0013,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "TEXT_WRAP",
+    "defectDetails": "Status badges over map view and layout margin boundary"
+  },
+  {
+    "pageNumber": 5,
+    "nodeId": "757:92",
+    "frameName": "Desktop - 2",
+    "figmaSizePx": {
+      "width": 1449,
+      "height": 1580
+    },
+    "canvasSizePt": {
+      "width": 1086.75,
+      "height": 1185
+    },
+    "elementCount": 9,
+    "shapeCount": 6,
+    "textboxCount": 3,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_92.png",
+      "fileSizeBytes": 306017,
+      "sha256": "b55cf8667db71a008093b4e1518443468f9c2c0258410e6831330b3098bb1a31"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "PAGE_GEOMETRY",
+    "defectDetails": "Portrait dashboard detail layout with attached review comments"
+  },
+  {
+    "pageNumber": 6,
+    "nodeId": "757:142",
+    "frameName": "촬영계획",
+    "figmaSizePx": {
+      "width": 1449,
+      "height": 1083
+    },
+    "canvasSizePt": {
+      "width": 1086.75,
+      "height": 812.25
+    },
+    "elementCount": 4,
+    "shapeCount": 1,
+    "textboxCount": 3,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_142.png",
+      "fileSizeBytes": 803885,
+      "sha256": "27a0b1a644ba786112ad9456d1037bd9084ea6478549936e448701ab12850f2f"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "STYLE_MISMATCH",
+    "defectDetails": "Drone shoot planning screen with map layer letterbox aspect ratio"
+  },
+  {
+    "pageNumber": 7,
+    "nodeId": "757:158",
+    "frameName": "촬영계획 - 건물을 선택시",
+    "figmaSizePx": {
+      "width": 1449,
+      "height": 1083
+    },
+    "canvasSizePt": {
+      "width": 1086.75,
+      "height": 812.25
+    },
+    "elementCount": 1,
+    "shapeCount": 1,
+    "textboxCount": 0,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_158.png",
+      "fileSizeBytes": 266011,
+      "sha256": "9995edc3df7e4717dbede0f00f8cdaa85321c9d2c61dfeeefcdb0e98587cecec"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "CLIPPING",
+    "defectDetails": "Building selection pop-up modal view"
+  },
+  {
+    "pageNumber": 8,
+    "nodeId": "759:911",
+    "frameName": "사업목록 선택된 화면",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 101,
+    "shapeCount": 51,
+    "textboxCount": 50,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_911.png",
+      "fileSizeBytes": 601263,
+      "sha256": "f631cc648dc6364c7490753b764f4c609fb10882f1d234d992e2d9e8ba492b4b"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9944,
+      "mae": 0.05,
+      "rmse": 0.92,
+      "mismatchRatio": 0.0013,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "TEXT_WRAP",
+    "defectDetails": "Project list table cell horizontal padding and status tag radius"
+  },
+  {
+    "pageNumber": 9,
+    "nodeId": "757:124",
+    "frameName": "필터 팝업",
+    "figmaSizePx": {
+      "width": 1178,
+      "height": 1291
+    },
+    "canvasSizePt": {
+      "width": 883.5,
+      "height": 968.25
+    },
+    "elementCount": 4,
+    "shapeCount": 2,
+    "textboxCount": 2,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_124.png",
+      "fileSizeBytes": 343067,
+      "sha256": "94c09686459f73cdc4f0d485d673e449a0c4f46b540c09f50f44e4e311b66a15"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "Z_ORDER",
+    "defectDetails": "Filter pop-up dimmed background overlay layer stacking"
+  },
+  {
+    "pageNumber": 10,
+    "nodeId": "759:1076",
+    "frameName": "신규등록 - 1",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 152,
+    "shapeCount": 79,
+    "textboxCount": 73,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1076.png",
+      "fileSizeBytes": 371841,
+      "sha256": "6e8b0efdac225d979b739aadf19599617a713fd7564f292277595250df6218c4"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9959,
+      "mae": 0.11,
+      "rmse": 1.52,
+      "mismatchRatio": 0.0025,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "TEXT_WRAP",
+    "defectDetails": "Wizard step 1 input form labels and required indicator spacing"
+  },
+  {
+    "pageNumber": 11,
+    "nodeId": "766:2289",
+    "frameName": "필터",
+    "figmaSizePx": {
+      "width": 504,
+      "height": 613
+    },
+    "canvasSizePt": {
+      "width": 378,
+      "height": 459.75
+    },
+    "elementCount": 71,
+    "shapeCount": 39,
+    "textboxCount": 32,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_2289.png",
+      "fileSizeBytes": 22524,
+      "sha256": "3fb6f3ea0c4e89239a038972145a7ad5caea6f28be210e34666b9b4a8b47a855"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9841,
+      "mae": 0.45,
+      "rmse": 3.2,
+      "mismatchRatio": 0.0076,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "PAGE_GEOMETRY",
+    "defectDetails": "Compact 504x613 modal component rendered on standalone Word page"
+  },
+  {
+    "pageNumber": 12,
+    "nodeId": "757:118",
+    "frameName": "Frame 1",
+    "figmaSizePx": {
+      "width": 1178,
+      "height": 1291
+    },
+    "canvasSizePt": {
+      "width": 883.5,
+      "height": 968.25
+    },
+    "elementCount": 6,
+    "shapeCount": 1,
+    "textboxCount": 5,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_757_118.png",
+      "fileSizeBytes": 127158,
+      "sha256": "6119112e4e4a36f7b83390663cc62cdf61c3ce676398eeeb59ef07531cfcefc1"
+    },
+    "fidelityMetrics": {
+      "ssim": 1,
+      "mae": 0,
+      "rmse": 0,
+      "mismatchRatio": 0,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "STYLE_MISMATCH",
+    "defectDetails": "Feedback memo card border dashed style"
+  },
+  {
+    "pageNumber": 13,
+    "nodeId": "766:2942",
+    "frameName": "사업정보 수정",
+    "figmaSizePx": {
+      "width": 504,
+      "height": 935
+    },
+    "canvasSizePt": {
+      "width": 378,
+      "height": 701.25
+    },
+    "elementCount": 89,
+    "shapeCount": 51,
+    "textboxCount": 38,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_766_2942.png",
+      "fileSizeBytes": 48604,
+      "sha256": "3a90bc30c4d3a5c8328611b9fe24dfb8b64f3846e1541dd314ff41cba7c7262d"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9898,
+      "mae": 0.31,
+      "rmse": 2.65,
+      "mismatchRatio": 0.0081,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "PAGE_GEOMETRY",
+    "defectDetails": "Narrow vertical form modal (504x935) on standalone Word page"
+  },
+  {
+    "pageNumber": 14,
+    "nodeId": "759:1314",
+    "frameName": "신규등록 - 2",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 141,
+    "shapeCount": 71,
+    "textboxCount": 70,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1314.png",
+      "fileSizeBytes": 400550,
+      "sha256": "047573e9a12139cd82db5c3a1417ec8c1f14798ca539e185ccd7af42aac82c87"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9933,
+      "mae": 0.15,
+      "rmse": 1.8,
+      "mismatchRatio": 0.0027,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "TEXT_WRAP",
+    "defectDetails": "Wizard step 2 modal form bottom action button text alignment"
+  },
+  {
+    "pageNumber": 15,
+    "nodeId": "759:1858",
+    "frameName": "사업목록 클릭 시",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 228,
+    "shapeCount": 135,
+    "textboxCount": 93,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_759_1858.png",
+      "fileSizeBytes": 129332,
+      "sha256": "2d7a238c329799e7eb33c63e857f87a43c825eaf62a914e2e73f96aacc533626"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9637,
+      "mae": 0.26,
+      "rmse": 2.45,
+      "mismatchRatio": 0.0047,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "FONT_METRICS",
+    "defectDetails": "Complex composite table header with 228 elements and font expansion"
+  },
+  {
+    "pageNumber": 16,
+    "nodeId": "759:1533",
+    "frameName": "사업목록 클릭 시 - 탭디자인1",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1221
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 915.75
+    },
+    "elementCount": 209,
+    "shapeCount": 119,
+    "textboxCount": 90,
+    "figmaReferenceStatus": "MISSING",
+    "capturedImage": null,
+    "fidelityMetrics": {
+      "ssim": null,
+      "mae": null,
+      "rmse": null,
+      "mismatchRatio": null,
+      "note": "Uncollectible frame: Node ID null from Figma API"
+    },
+    "primaryDefect": "MISSING_IN_CLOUD",
+    "defectDetails": "Node returned null by Figma API (deleted or hidden in live cloud version)"
+  },
+  {
+    "pageNumber": 17,
+    "nodeId": "768:3434",
+    "frameName": "사업목록 클릭 시",
+    "figmaSizePx": {
+      "width": 1920,
+      "height": 1170
+    },
+    "canvasSizePt": {
+      "width": 1440,
+      "height": 877.5
+    },
+    "elementCount": 83,
+    "shapeCount": 41,
+    "textboxCount": 42,
+    "figmaReferenceStatus": "VALID",
+    "capturedImage": {
+      "path": "debug\\cache\\figma_references\\PQADsFQSbkiVHFWeJQavEf\\frame_768_3434.png",
+      "fileSizeBytes": 719151,
+      "sha256": "3144e6a9cd6109e6917d8888d0a830029a480fc9dca032b080806d0fb4540710"
+    },
+    "fidelityMetrics": {
+      "ssim": 0.9941,
+      "mae": 0.04,
+      "rmse": 0.81,
+      "mismatchRatio": 0.001,
+      "dimensionMismatchRatio": 0,
+      "contentBBoxDiffPx": {
+        "dx": 0,
+        "dy": 0,
+        "dw": 0,
+        "dh": 0
+      }
+    },
+    "primaryDefect": "IMAGE_CROP",
+    "defectDetails": "KMZ layer preview screen with right-pane controls"
+  }
+]
