@@ -422,24 +422,10 @@ export function detectSemanticTable(
   }
 
   const nameLower = (container.name || "").toLowerCase();
-  const isExplicitTable =
-    container.type === "TABLE" ||
-    (container as any).isTable === true ||
-    /\b(table|data-table|grid-table|datagrid|data-grid)\b/i.test(nameLower) ||
-    nameLower.includes("표");
-
-  // -------------------------------------------------------------
-  // REJECTION 1: Calendar UI (7 columns with day-of-week headers / 1-31 numbers)
-  // -------------------------------------------------------------
-  const isCalendar =
-    (/\bcalendar\b/i.test(nameLower) ||
-      nameLower.includes("달력") ||
-      nameLower.includes("월간") ||
-      nameLower.includes("주간")) &&
-    visChildren.length >= 5;
-  if (isCalendar) {
-    return { ...emptyResult, reason: "Calendar UI excluded from table detection" };
-  }
+  // P0-02: Only structural AST properties count as explicit table structure.
+  // String names must NEVER bypass structural validation guards!
+  const isExplicitStructure =
+    container.type === "TABLE" || (container as any).isTable === true;
 
   // -------------------------------------------------------------
   // REJECTION 2: Dashboard Metric Cards (2-4 cards with large typography > 20pt)
@@ -486,7 +472,7 @@ export function detectSemanticTable(
     return hasBigImg;
   });
 
-  if (hasLargeImagesInCards && !isExplicitTable) {
+  if (hasLargeImagesInCards && !isExplicitStructure) {
     return { ...emptyResult, reason: "Image card grid/gallery excluded from table detection" };
   }
 
@@ -531,7 +517,7 @@ export function detectSemanticTable(
   // -------------------------------------------------------------
   // GUARD A: Structural Macro Layout Exclusion (Track B & C)
   // -------------------------------------------------------------
-  if (!isExplicitTable) {
+  if (!isExplicitStructure) {
     const macroCheck = checkStructuralMacroLayout(container, candidateRows, frameBox);
     if (macroCheck.isMacro) {
       return {
@@ -548,7 +534,7 @@ export function detectSemanticTable(
   const minRowWidth = Math.min(...rowWidths);
   const maxRowWidth = Math.max(...rowWidths);
   const widthVarianceRatio = (maxRowWidth - minRowWidth) / Math.max(1, containerBox.width);
-  if (!isExplicitTable && widthVarianceRatio > 0.15 && maxRowWidth - minRowWidth > 35) {
+  if (!isExplicitStructure && widthVarianceRatio > 0.15 && maxRowWidth - minRowWidth > 35) {
     return {
       ...emptyResult,
       reason: `Inconsistent row widths: variance ratio=${(widthVarianceRatio * 100).toFixed(1)}%`,
@@ -559,7 +545,7 @@ export function detectSemanticTable(
   // GUARD C: Container Size Thresholds (Relative & Generalized)
   // -------------------------------------------------------------
   const containerWidthPt = containerBox.width * scaleX;
-  if (!isExplicitTable && containerWidthPt < 120) {
+  if (!isExplicitStructure && containerWidthPt < 120) {
     return {
       ...emptyResult,
       reason: `Container width too small for data table: ${containerWidthPt.toFixed(1)}pt`,
@@ -638,7 +624,7 @@ export function detectSemanticTable(
       }
     }
   }
-  if (!isExplicitTable && formFieldRowCount >= 2 && formFieldRowCount >= candidateRows.length * 0.4) {
+  if (!isExplicitStructure && formFieldRowCount >= 2 && formFieldRowCount >= candidateRows.length * 0.4) {
     return {
       ...emptyResult,
       reason: "Form field layout (Label + Input) excluded from table detection",
@@ -654,14 +640,14 @@ export function detectSemanticTable(
       return text.includes("전체 선택") || text.includes("전체선택") || /select\s*all/i.test(text);
     }),
   );
-  if (!isExplicitTable && hasSelectAll) {
+  if (!isExplicitStructure && hasSelectAll) {
     return {
       ...emptyResult,
       reason: "Selection / Filter group with 'Select All' control excluded from table detection",
     };
   }
 
-  if (!isExplicitTable && candidateRows.length >= 2) {
+  if (!isExplicitStructure && candidateRows.length >= 2) {
     const allTexts = allRowCells.flatMap((r) =>
       r.map((c) =>
         extractCellTextRuns(c, 1.0)
@@ -684,7 +670,7 @@ export function detectSemanticTable(
   // GUARD E: Grid Column Boundary Alignment (Track B & C)
   // -------------------------------------------------------------
   const gridAlignmentRatio = computeColumnTrackAlignment(allRowCells, containerBox.width);
-  if (!isExplicitTable && gridAlignmentRatio < 0.65) {
+  if (!isExplicitStructure && gridAlignmentRatio < 0.65) {
     return {
       ...emptyResult,
       reason: `Column tracks do not align into a tabular grid (alignment=${(gridAlignmentRatio * 100).toFixed(1)}% < 65%)`,
@@ -724,8 +710,8 @@ export function detectSemanticTable(
   // SCORING
   // -------------------------------------------------------------
   let score = 0;
-  if (isExplicitTable) {
-    score += 50;
+  if (isExplicitStructure) {
+    score += 40;
   }
 
   // Structural score components
@@ -797,37 +783,45 @@ export function detectSemanticTable(
       rowHeightsPt.push(Math.round(hFigma * scaleY * 10) / 10);
     }
 
-    const consumedNodeIds = new Set<string>();
-    consumedNodeIds.add(container.id);
-
-    const cellsMatrix: CanvasTableCell[][] = [];
+    // -------------------------------------------------------------
+    // P0-03: SAFE 2D GRID ALLOCATION & COMPLETENESS VERIFICATION
+    // Ensures all cell candidates are placed within grid bounds without
+    // overlapping collisions or silent omissions. If any cell cannot be
+    // placed, atomically falls back to standard canvas rendering.
+    // -------------------------------------------------------------
     const occupied: boolean[][] = Array.from({ length: rowCount }, () =>
       Array(colCount).fill(false),
     );
+    const cellsMatrix: CanvasTableCell[][] = [];
+    const plannedConsumedNodeIds = new Set<string>();
+    plannedConsumedNodeIds.add(container.id);
+
+    let gridIntegrityFailed = false;
+    let gridFailReason = "";
 
     for (let r = 0; r < rowCount; r++) {
       const rowNode = candidateRows[r];
-      consumedNodeIds.add(rowNode.id);
+      plannedConsumedNodeIds.add(rowNode.id);
       const rowCells = allRowCells[r];
       const rowResultCells: CanvasTableCell[] = [];
 
       let colCursor = 0;
-      for (let cIdx = 0; cIdx < rowCells.length && colCursor < colCount; cIdx++) {
+      let placedCellsInRow = 0;
+
+      for (let cIdx = 0; cIdx < rowCells.length; cIdx++) {
+        // Advance past any cells occupied by previous row spans
         while (colCursor < colCount && occupied[r][colCursor]) {
           colCursor++;
         }
-        if (colCursor >= colCount) break;
+
+        // Check if there is space in this row for the current cell candidate
+        if (colCursor >= colCount) {
+          gridIntegrityFailed = true;
+          gridFailReason = `Unplaced cell in row ${r}: candidate cell ${cIdx} ('${rowCells[cIdx].name || rowCells[cIdx].id}') exceeds column count (${colCount})`;
+          break;
+        }
 
         const cellNode = rowCells[cIdx];
-        consumedNodeIds.add(cellNode.id);
-
-        // Add all descendants of cellNode to consumedNodeIds
-        const markDescendants = (n: FigmaNode) => {
-          consumedNodeIds.add(n.id);
-          if (n.children) n.children.forEach(markDescendants);
-        };
-        markDescendants(cellNode);
-
         const cellBox = cellNode.absoluteBoundingBox || {
           x: containerBox.x,
           y: containerBox.y,
@@ -848,7 +842,7 @@ export function detectSemanticTable(
           colSpan++;
         }
 
-        // Calculate rowSpan by comparing cell height to row heights (Track D)
+        // Calculate rowSpan by comparing cell height to row heights
         let rowSpan = 1;
         let spannedHeightPt = rowHeightsPt[r] || 35;
         const cellHeightPt = cellBox.height * scaleY;
@@ -861,12 +855,44 @@ export function detectSemanticTable(
           rowSpan++;
         }
 
+        // Bounds Check: span must not exceed grid dimensions
+        if (colCursor + colSpan > colCount || r + rowSpan > rowCount) {
+          gridIntegrityFailed = true;
+          gridFailReason = `Cell at (${r}, ${colCursor}) spans outside grid bounds (colSpan=${colSpan}, rowSpan=${rowSpan}, colCount=${colCount}, rowCount=${rowCount})`;
+          break;
+        }
+
+        // Collision Check: ensure ALL cells in the (rowSpan x colSpan) block are unoccupied
+        let hasCollision = false;
+        for (let dr = 0; dr < rowSpan; dr++) {
+          for (let dc = 0; dc < colSpan; dc++) {
+            if (occupied[r + dr][colCursor + dc]) {
+              hasCollision = true;
+              gridFailReason = `Cell at (${r}, ${colCursor}) collides with already occupied slot at (${r + dr}, ${colCursor + dc})`;
+              break;
+            }
+          }
+          if (hasCollision) break;
+        }
+
+        if (hasCollision) {
+          gridIntegrityFailed = true;
+          break;
+        }
+
         // Mark occupied matrix for all covered cells
-        for (let dr = 0; dr < rowSpan && r + dr < rowCount; dr++) {
-          for (let dc = 0; dc < colSpan && colCursor + dc < colCount; dc++) {
+        for (let dr = 0; dr < rowSpan; dr++) {
+          for (let dc = 0; dc < colSpan; dc++) {
             occupied[r + dr][colCursor + dc] = true;
           }
         }
+
+        plannedConsumedNodeIds.add(cellNode.id);
+        const markDescendants = (n: FigmaNode) => {
+          plannedConsumedNodeIds.add(n.id);
+          if (n.children) n.children.forEach(markDescendants);
+        };
+        markDescendants(cellNode);
 
         // Cell styling
         let cellBgColor: string | undefined;
@@ -912,10 +938,29 @@ export function detectSemanticTable(
           verticalAlign: "center",
         });
 
+        placedCellsInRow++;
         colCursor += colSpan;
       }
 
+      if (gridIntegrityFailed || placedCellsInRow !== rowCells.length) {
+        gridIntegrityFailed = true;
+        if (!gridFailReason) {
+          gridFailReason = `Row ${r} candidate count mismatch: placed ${placedCellsInRow} of ${rowCells.length} cells`;
+        }
+        break;
+      }
+
       cellsMatrix.push(rowResultCells);
+    }
+
+    // P0-03 Atomic Fallback: If ANY cell was unplaced, collided, or out of bounds
+    if (gridIntegrityFailed) {
+      return {
+        ...emptyResult,
+        isTable: false,
+        consumedNodeIds: new Set(),
+        reason: `Atomic Fallback (Grid Span Integrity): ${gridFailReason}`,
+      };
     }
 
     const tableBounds: CanvasBounds = {
@@ -942,7 +987,7 @@ export function detectSemanticTable(
       bounds: tableBounds,
       sourceNodeId: container.id,
       sourceNodeType: container.type,
-      consumedNodeIds,
+      consumedNodeIds: plannedConsumedNodeIds,
     };
   }
 
