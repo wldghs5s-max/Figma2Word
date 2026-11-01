@@ -157,5 +157,69 @@ describe("Phase 39: Object Traceability Failure Injection & Negative Suite", () 
     expect(mapping?.contentVerified).toBe(false);
     expect(rep.summary.contentVerifiedCount).toBe(0);
   });
+
+  it("4. Rejects empty VML path or generic shape without geometry (Phase 41 A-02)", () => {
+    const rawFigma = {
+      figmaNode: {
+        id: "10:1",
+        name: "Test Frame",
+        type: "FRAME",
+        children: [
+          {
+            id: "10:3",
+            name: "Icon Vector",
+            type: "VECTOR",
+            visible: true,
+          },
+        ],
+      },
+    };
+
+    const canvasDoc: CanvasDocument = {
+      version: "1.0",
+      metadata: { title: "Test Doc", created: new Date().toISOString() },
+      pages: [
+        {
+          id: "p1",
+          name: "Page 1",
+          elements: [
+            {
+              id: "10:3",
+              sourceNodeId: "10:3",
+              name: "Icon Vector",
+              type: "vector",
+              bounds: { x: 10, y: 10, width: 24, height: 24 },
+              zIndex: 1,
+              style: {},
+            },
+          ],
+        },
+      ],
+      resources: {},
+    };
+
+    // Case 1: Empty <v:path/> child tag inside <v:shape>
+    const docxXmlEmptyVPath = `<w:document><w:body><w:p><w:r><w:pict><v:shape id="s_v" alt="10:3" strokecolor="#FF0000"><v:path/></v:shape></w:pict></w:r></w:p></w:body></w:document>`;
+    const rep1 = buildObjectTraceability(rawFigma, ["10:1"], canvasDoc, docxXmlEmptyVPath, "sha1");
+    const m1 = rep1.mappings.find((m) => m.sourceNodeId === "10:3");
+    expect(m1?.contentVerified).toBe(false);
+    expect(m1?.contentState).toBe("CONTENT_UNVERIFIED");
+    expect(rep1.summary.preservedShapesCount).toBe(0);
+
+    // Case 2: Empty path attribute inside <v:shape>
+    const docxXmlEmptyPathAttr = `<w:document><w:body><w:p><w:r><w:pict><v:shape id="s_v" alt="10:3" path="" fillcolor="#00FF00"/></w:pict></w:r></w:p></w:body></w:document>`;
+    const rep2 = buildObjectTraceability(rawFigma, ["10:1"], canvasDoc, docxXmlEmptyPathAttr, "sha2");
+    const m2 = rep2.mappings.find((m) => m.sourceNodeId === "10:3");
+    expect(m2?.contentVerified).toBe(false);
+    expect(m2?.contentState).toBe("CONTENT_UNVERIFIED");
+
+    // Case 3: Valid vector path inside <v:shape>
+    const docxXmlValidPath = `<w:document><w:body><w:p><w:r><w:pict><v:shape id="s_v" alt="10:3" path="m 100 200 l 300 400 e" strokecolor="#000"/></w:pict></w:r></w:p></w:body></w:document>`;
+    const rep3 = buildObjectTraceability(rawFigma, ["10:1"], canvasDoc, docxXmlValidPath, "sha3");
+    const m3 = rep3.mappings.find((m) => m.sourceNodeId === "10:3");
+    expect(m3?.contentVerified).toBe(true);
+    expect(m3?.contentState).toBe("CONTENT_VERIFIED");
+    expect(rep3.summary.preservedShapesCount).toBe(1);
+  });
 });
 

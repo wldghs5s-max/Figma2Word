@@ -1,10 +1,10 @@
 # Project Handoff Document
 ## Figma2Word Engineering Architecture & Production Capability Status
 
-- **버전**: Phase 40.5 Visual Fidelity Breakthrough & Editable DOCX Quality Improvement
+- **버전**: Phase 41 Critical Fixes & HWPX Engine Vertical Slice
 - **저장소**: `wldghs5s-max/Figma2Word`
 - **브랜치**: `master`
-- **기준 Git HEAD**: `2030b8f2f453c9524e05faeeb65f4764b811de80`
+- **기준 Git HEAD**: `87b644a95cad400844e2878244b84e5ab1ccc862`
 - **독립 감사자 / 엔지니어링 작업자 대상**: AI Engineering Collaborators (ChatGPT, Codex, Gemini)
 
 ---
@@ -56,7 +56,12 @@
    │   - `alt="${elem.sourceNodeId}"` 및 `o:title` 원본 식별자 영속 바인딩
    │   - 단일 라인 텍스트박스 인라인 줄바꿈 방지 (`mso-wrap-style:none`)
    │   - 미디어 관계(`word/_rels/document.xml.rels`) 및 바이너리 매핑
-   └─► HWPX Renderer (Canvas IR 기반 HWPX 확장 준비 완료)
+   └─► HWPX Renderer (`src/canvas/renderer/hwpxCanvasRenderer.ts`)
+       - OWPML KS X 6101 표준 준수 ZIP 패키징 (`application/hwp+zip` uncompressed mimetype)
+       - `Contents/section0.xml` (<hp:secPr>, <hp:p>, <hp:run>, <hp:rect>, <hp:oval/ellipse>, <hp:line>, <hp:pic>)
+       - `Contents/header.xml` (동적 7-Language Font Registry, charPr/paraPr 스타일 레지스트리)
+       - `BinData/` (이미지 바이너리 패키징 및 고유 매핑)
+       - 한컴오피스 2024 뷰어(`HwpViewer.exe`) 실제 열기 무결성 검증 완료
         │
         ▼
 4. Verification & Fidelity Engine (`src/fidelity/`)
@@ -69,46 +74,55 @@
 
 ---
 
-## 3. Phase 40.5 주요 개선 사항 및 실측 성과
+## 3. Phase 41 주요 엔지니어링 성과
 
-### 3.1 최저 충실도 페이지 (Page 13) 돌파 및 아이콘 기하학적 복원
-1. **P13-01: `circle-check` 라디오 버튼 단일 벡터 원형 복원**:
-   - Page 13 등에서 미선택 상태 라디오 버튼 12개 이상이 자식 벡터가 1개라는 이유로 `if (totalSiblings > 1)`을 벗어나 일반 체크 규칙에 걸려 체크마크로 왜곡되던 심각한 버그 규명.
-   - 단일 벡터(`totalSiblings <= 1`) 또는 원형 크기(`wPt > 6 && hPt > 6`)일 때 정밀 원형 외곽선(`M 500 100 C 720 100 900 280 ...`, `LOCALLY_RECOVERED_GEOMETRY`)을 합성하도록 교정.
-   - **실측 결과**: 라디오 버튼 국소 ROI SSIM **0.9882** 달성, Page 13 SSIM **0.8679 -> 0.8840 (+0.0161, +1.61%p 상승)**, MAE **6.28 -> 5.62 (-0.66 개선, -10.5%)**, RMSE **29.77 -> 27.82 (-1.95 개선)**.
-2. **D-01: 선 기반 검색(`search`) 아이콘 이중선 왜곡 교정**:
-   - `hasFill === false`인 선 기반 검색 아이콘에서 이중 윤곽선 대신 단일 원형 렌즈와 대각선 손잡이 스트로크로 정밀 분해 합성.
-3. **E-01: VML 제로 너비/높이 벡터 shape 소실 방지**:
-   - 너비나 높이가 0인 수평·수직선 벡터가 Word에서 소실되지 않도록 style에서 최소 선 두께(`Math.max(0.75, strokeWidth)`)를 보장.
-4. **회귀 전무 (Zero Regression)**:
-   - 16개 프레임 전수 평가 결과 단 1개의 프레임도 SSIM이 하락하지 않고 전원 유지 또는 개선.
-   - 전체 평균 SSIM: **0.9492 -> 0.9502 (+0.0010 상승)**.
+### 3.1 Track A: 핵심 결함 교정
+1. **A-01: Stress 한글 전체 문자열 검증 및 개행 정규화**:
+   - `Normalize-WordText`를 통해 Word COM 제어문자(`\x07`, `\x0c`) 제거 및 개행 통일.
+   - 부분 일치(`.Contains()`)를 배제하고 전체 문자열 완전 일치(`normActual === normExpected`)를 적용하여 순서 교체, 줄 누락, 내용 중복, 인코딩 손실 차단.
+2. **A-02: 빈 VML Path 허위 성공 차단**:
+   - 표준 프리미티브(`rect`, `oval`, `line`, `roundrect`)와 커스텀 벡터(`v:shape`) 구분.
+   - 유효 좌표 명령(`m`, `l`, `c`, `x`, `e`)이 없는 빈 `<v:path/>`나 속성 없는 shape는 `CONTENT_UNVERIFIED`로 엄격 처리.
+3. **A-03: 대형 전경 객체(Modal/Card) 선택 보호**:
+   - 텍스트 포함 객체는 크기와 무관하게 전경으로 인식. 텍스트가 없는 원점 앵커 전체 백드롭만 배경으로 제외.
+4. **A-04: Word COM 프로세스 소유권 안전 회수**:
+   - 실행 시점 고유 신규 PID 대조 및 생성 시간 검증으로 `IsOwned = true` 인스턴스만 타깃 종료. 미확인/타 사용자 프로세스 강제 종료 원천 차단.
 
-### 3.2 최신 핵심 벤치마크 지표 요약
+### 3.2 Track B: HWPX 변환 엔진 첫 번째 실구현 (Vertical Slice)
+1. **단일 Canvas IR 기반 이중 렌더러 아키텍처 가동**:
+   - Figma JSON -> FigmaCanvasParser -> Canvas IR -> DOCX / HWPX Renderer.
+2. **합성 및 실제 프레임 HWPX 생성 완료**:
+   - `debug/hwpx-phase41/phase41-synthetic-vertical-slice.hwpx` (제목, 본문 2단락, 카드, 선, 타원, 이미지 1개).
+   - `debug/hwpx-phase41/phase41-real-figma-frame.hwpx` (실제 Figma 프레임 HWPX 변환).
+   - `debug/hwpx-phase41/phase41-customer-frame-759-844.hwpx` (고객사 로그인 화면 프레임).
+3. **OWPML / KS X 6101 패키지 무결성 검증**:
+   - 무압축 STORED `mimetype` 첫 번째 엔트리, 7개 언어 글꼴 레지스트리, BinData 이미지 참조, `Contents/section0.xml`.
+4. **한컴오피스 2024 뷰어(`HwpViewer.exe`) 실제 열기 확인**:
+   - 합성 및 고객사 프레임 문서 모두 `HwpViewer.exe`에서 에러 없이 정상 표시 확인 (`PASS`).
+   - 단, 뷰어 특성상 인터랙티브 편집/저장은 Fail-Closed 원칙에 따라 `NOT_VERIFIED`로 정직하게 기록.
 
-| 지표 항목 | Phase 40.4 Baseline | Phase 40.5 Current | 판정 기준 | 최종 상태 |
+### 3.3 최신 핵심 벤치마크 지표 요약
+
+| 지표 항목 | Phase 40.5 Baseline | Phase 41 Current | 판정 기준 | 최종 상태 |
 |---|:---:|:---:|:---:|:---:|
-| **평균 SSIM (16개 프레임)** | 0.9492 | **0.9502** | >= 0.9400 | **PASSED** |
-| **평균 MAE / RMSE** | 2.51 / 14.88 | **2.49 / 14.65** | 최적화 개선 | **PASSED** |
-| **Page 13 SSIM / MAE** | 0.8679 / 6.28 | **0.8840 / 5.62** | 최저점 집중 개선 | **BREAKTHROUGH** |
+| **평균 SSIM (16개 프레임)** | 0.9502 | **0.9502** | >= 0.9400 | **PASSED (보존)** |
 | **Normal Edit Persistence** | 25 / 25 (100%) | **25 / 25 (100%)** | 100% 지속 (한글 완전 일치) | **PASSED** |
-| **Stress Edit Persistence** | 25 / 25 (100%) | **25 / 25 (100%)** | 100% 지속 (3단락 한글 완전 일치) | **PASSED** |
-| **Normal Layout Stability** | 0 Regressions | **0 Regressions (0.0000%)** | 0 회귀 | **VERIFIED** |
-| **Stress Layout Stability** | 0 Regressions | **0 Regressions (0.0000%)** | 0 회귀 | **VERIFIED** |
-| **Source-to-Word Traceability** | 2,033 / 2,033 | **2,033 / 2,033 (100%)** | 누락 0건 | **VERIFIED** |
-| **Unresolved Objects in DOCX** | 0 건 | **0 건** | 0건 | **VERIFIED** |
-| **전체 회귀 단위 테스트** | 703 passed | **707 passed (100%)** | 전원 통과 필수 | **PASSED** |
-| **9대 필수 게이트 통과율** | 9 / 9 (100%) | **9 / 9 (100%)** | 전원 통과 필수 | **APPROVED (Exit 0)** |
+| **Stress Edit Persistence** | 25 / 25 (100%) | **25 / 25 (100%)** | 100% 지속 (전체 문자열 완전 일치) | **HARDENED** |
+| **빈 Shape 허위 성공 차단** | - | **차단 완료** | 빈 <v:path/> 거부 | **VERIFIED** |
+| **대형 전경 객체 선택률** | - | **정상 선택** | 텍스트 포함 카드/모달 보존 | **VERIFIED** |
+| **HWPX 패키지 무결성** | - | **100% 준수** | KS X 6101 / OWPML 규격 | **VERIFIED** |
+| **HWPX 뷰어 실제 열기** | - | **PASS** | 한컴오피스 2024 뷰어 정상 표시 | **VERIFIED** |
+| **전체 단위/통합 테스트** | 707 passed | **717 passed (100%)** | 104개 파일 전원 통과 | **PASSED** |
+| **TypeScript / Web 빌드** | 0 errors | **0 errors (336ms)** | 컴파일/빌드 성공 | **PASSED** |
 
 ---
 
-## 4. 알려진 한계 및 다음 Phase 권고사항
+## 4. 알려진 한계 및 다음 Phase 개발 계획
 
-1. **OS 시스템 폰트 Fallback에 따른 한계**:
-   - Figma 원본은 `Pretendard` 서체를 사용하나, 대상 시스템에 미설치 시 Word는 `맑은 고딕`으로 fallback합니다.
-   - 글리프 너비 차이로 인한 텍스트 엣지 미세 오차는 시스템 폰트 설치 여부에 종속적입니다.
-2. **모달 프레임 코너 라운딩**:
-   - 모달 다이얼로그의 `cornerRadius: 24`는 Word DOCX 페이지 레벨에서는 직사각형 캔버스로 출력되므로 네 귀퉁이 배경 차이가 발생합니다.
+1. **HWPX 편집기 인터랙티브 편집 검증 (상용 한글 라이선스 필요)**:
+   * 로컬에 설치된 프로그램이 `HwpViewer.exe`(뷰어)이므로, 열기 및 렌더링은 확인되었으나 COM을 통한 자동 편집 및 저장은 `NOT_VERIFIED`입니다.
+2. **HWPX 다중 페이지 및 오토레이아웃 고도화**:
+   * 현재 17개 전체 페이지 렌더링이 가능하나, 페이지 간 구분선 및 섹션 브레이크 속성을 더욱 정밀화할 계획입니다.
 3. **다음 개발 권고**:
-   - Page 11, 10, 15 등의 다단 폼 입력 컴포넌트 내부 여백 및 텍스트박스 인셋(inset) 최적화
-   - HWPX 렌더러 구현 본격 확장 (동일 Canvas IR 활용)
+   * HWPX 테이블(표) 네이티브 요소(`<hp:tbl>`) 렌더링 지원 추가.
+   * DOCX 폼 입력란 및 텍스트박스 내부 여백(inset) 미세 보정.

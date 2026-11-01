@@ -554,20 +554,32 @@ export function buildObjectTraceability(
         } else if (elementKind === "SHAPE") {
           const primaryDocxShape = matchedDocxShapes[0];
           const snippet = primaryDocxShape?.rawSnippet || "";
-          const hasValidGeometry =
-            !!primaryDocxShape &&
-            !!primaryDocxShape.id &&
-            !!primaryDocxShape.tag &&
-            // Standard primitive tag with style/geometry
-            (["rect", "oval", "line", "roundrect", "v:rect", "v:oval", "v:line", "v:roundrect"].includes(
-              primaryDocxShape.tag.toLowerCase(),
-            ) ||
-              // Vector shape with valid path attribute or child
-              /path="[^"]{3,}"/i.test(snippet) ||
-              /<v:path\b/i.test(snippet) ||
-              // Or explicit stroked/filled visual styling
-              /strokecolor="/i.test(snippet) ||
-              /fillcolor="/i.test(snippet));
+          
+          let hasValidGeometry = false;
+          if (primaryDocxShape && primaryDocxShape.id && primaryDocxShape.tag) {
+            const tagLower = primaryDocxShape.tag.toLowerCase().replace(/^v:/, "");
+            const isStandardPrimitive = ["rect", "oval", "line", "roundrect"].includes(tagLower);
+
+            if (isStandardPrimitive) {
+              // Standard primitive tag (rect, oval, line, roundrect) defines intrinsic geometry
+              hasValidGeometry = true;
+            } else {
+              // Vector / generic shape (v:shape): must have explicit, non-empty geometry commands
+              const pathAttrMatch = /\bpath="([^"]+)"/i.exec(snippet);
+              const vPathTagMatch = /<v:path\b([^>]*)\/?>/i.exec(snippet);
+              let vAttrVal = "";
+              if (vPathTagMatch) {
+                const vMatch = /\bv="([^"]+)"/i.exec(vPathTagMatch[1]);
+                if (vMatch) {
+                  vAttrVal = vMatch[1].trim();
+                }
+              }
+
+              const pathCandidate = (pathAttrMatch ? pathAttrMatch[1].trim() : "") || vAttrVal;
+              // Must contain actual coordinate commands (m, l, c, wa, wr, at, al, x, e followed by coordinates)
+              hasValidGeometry = pathCandidate.length >= 3 && /[mlcwaeqx]\s*-?\d+/i.test(pathCandidate);
+            }
+          }
 
           if (hasValidGeometry) {
             contentVerified = true;

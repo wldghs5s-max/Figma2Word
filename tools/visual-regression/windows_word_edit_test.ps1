@@ -49,18 +49,29 @@ function Compute-Sha256($filePath) {
     return [BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
 }
 
-# Safe Word COM instance launcher tracking specific PID
+# Safe Word COM instance launcher tracking specific PID and verifying ownership
 function Start-WordComSafe {
     $beforePids = @(Get-Process -Name WINWORD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
+    $startTimeMark = Get-Date
     $w = New-Object -ComObject Word.Application
     $w.Visible = $false
     $w.DisplayAlerts = 0
     $afterPids = @(Get-Process -Name WINWORD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
-    $newPid = $afterPids | Where-Object { $beforePids -notcontains $_ } | Select-Object -First 1
-    return @{ Application = $w; ProcessId = $newPid }
+    $newPids = @($afterPids | Where-Object { $beforePids -notcontains $_ })
+    
+    $ownedPid = $null
+    $isOwned = $false
+    if ($newPids.Count -eq 1) {
+        $p = Get-Process -Id $newPids[0] -ErrorAction SilentlyContinue
+        if ($p -and $p.StartTime -ge $startTimeMark.AddSeconds(-2)) {
+            $ownedPid = $newPids[0]
+            $isOwned = $true
+        }
+    }
+    return @{ Application = $w; ProcessId = $ownedPid; IsOwned = $isOwned }
 }
 
-# Safe Word COM instance cleanup terminating ONLY test's own PID if lingering
+# Safe Word COM instance cleanup terminating ONLY test's own confirmed PID if lingering
 function Stop-WordComSafe($bundle, $docObj) {
     if ($docObj) {
         try { $docObj.Close([ref]$false) } catch {}
@@ -72,13 +83,27 @@ function Stop-WordComSafe($bundle, $docObj) {
     }
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
-    if ($bundle -and $bundle.ProcessId) {
+
+    # Never kill if ownership was unconfirmed or process is not strictly owned by this test instance
+    if ($bundle -and $bundle.IsOwned -and $bundle.ProcessId) {
         Start-Sleep -Milliseconds 200
         $proc = Get-Process -Id $bundle.ProcessId -ErrorAction SilentlyContinue
-        if ($proc -and -not $proc.HasExited) {
+        if ($proc -and -not $proc.HasExited -and $proc.ProcessName -eq "WINWORD") {
             try { Stop-Process -Id $bundle.ProcessId -Force -ErrorAction SilentlyContinue } catch {}
         }
     }
+}
+
+# Text normalization for Word COM TextRange comparisons
+function Normalize-WordText($rawText) {
+    if (-not $rawText) { return "" }
+    # Remove Word control artifacts: end-of-cell (\x07), page break (\x0c), null (\x00)
+    $t = $rawText -replace "[\x00\x07\x0c]", ""
+    # Normalize Word paragraph/line breaks (\r\n, \r, \v) to \n
+    $t = $t -replace "`r`n", "`n" -replace "`r", "`n" -replace "`v", "`n"
+    # Normalize per-line whitespace while preserving line structure
+    $lines = @($t -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+    return ($lines -join "`n")
 }
 
 $com1 = $null
@@ -156,8 +181,13 @@ try {
             try { $shapeName = $shape.Name } catch { $shapeName = "" }
             try { $shapeTitle = $shape.Title } catch { $shapeTitle = "" }
 
-            # Background canvas filter: only ignore full-page canvas rectangles
-            $isFullPageBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or $altText -like "bg_*") -or ($widthPt -gt 500 -and $heightPt -gt 500)
+            # Background canvas filter: prioritize explicit metadata, use geometry only for empty origin-anchored backdrops
+            $hasText = $false
+            try { $hasText = ($shape.TextFrame -and $shape.TextFrame.HasText -ne 0) } catch {}
+            $isExplicitBg = ($shapeName -like "bg_*" -or $shapeTitle -like "bg_*" -or $altText -like "bg_*" -or $shapeName -like "*background*" -or $shapeTitle -like "*background*")
+            # Only full-page backdrops covering entire page from origin without text are excluded
+            $isCanvasBackdrop = (-not $hasText) -and ($widthPt -ge 550 -and $heightPt -ge 750) -and ($leftPt -le 15 -and $topPt -le 15)
+            $isFullPageBg = $isExplicitBg -or $isCanvasBackdrop
             if ($isFullPageBg) { continue }
 
             $isLargeForeground = ($widthPt -gt 300 -or $heightPt -gt 300)
@@ -527,32 +557,35 @@ try {
                 $shape = Find-Shape $doc2 $op
                 if ($shape -and $shape.TextFrame -and $shape.TextFrame.HasText -ne 0) {
                     $currentText = $shape.TextFrame.TextRange.Text
-                    # Normalize Word paragraph/line breaks (\r\n, \r, \v -> \n)
-                    $cleanCurrent = $currentText -replace "`r`n", "`n" -replace "`r", "`n" -replace "`v", "`n"
-                    
-                    # 1. Full content containment check: every single expected line must be present
-                    $allLinesPreserved = $true
-                    $missingLines = @()
-                    foreach ($line in $op.expectedLines) {
-                        $tLine = $line.Trim()
-                        if ($tLine.Length -gt 0 -and -not $cleanCurrent.Contains($tLine)) {
-                            $allLinesPreserved = $false
-                            $missingLines += $tLine
-                        }
-                    }
+                    $normActual = Normalize-WordText $currentText
+                    $normExpected = Normalize-WordText ($op.expectedLines -join "`n")
+                    $actualLines = @($normActual -split "`n")
+                    $expectedLines = @($normExpected -split "`n")
 
-                    # 2. Encoding corruption check: check for replacement chars or unexpected question marks
-                    $hasCorruptedChars = $cleanCurrent.Contains([char]0xFFFD) -or ($cleanCurrent -match "\?\?\?")
+                    # 1. Encoding corruption check: check for replacement chars or unexpected question marks
+                    $hasCorruptedChars = $currentText.Contains([char]0xFFFD) -or ($currentText -match "\?\?\?")
 
-                    if ($allLinesPreserved -and -not $hasCorruptedChars) {
+                    # 2. Strict whole-string & line-by-line order/count match (rejects partial contains, swaps, duplicates)
+                    $isExactMatch = ($normActual -eq $normExpected)
+
+                    if ($isExactMatch -and -not $hasCorruptedChars) {
                         $persisted = $true
                         $categoryCounts["VML_TEXTBOX_TEXT"]++
                         if ($op.isLargeForeground) { $largeForegroundPersisted++ }
                     } else {
-                        $errorMsg = if ($hasCorruptedChars) {
-                            "Korean encoding corruption detected in reopened text"
+                        if ($hasCorruptedChars) {
+                            $errorMsg = "Korean encoding corruption detected in reopened text"
+                        } elseif ($actualLines.Count -ne $expectedLines.Count) {
+                            $errorMsg = "Line count mismatch: expected $($expectedLines.Count), received $($actualLines.Count)"
                         } else {
-                            "Incomplete text preservation: missing lines: " + ($missingLines -join " | ")
+                            $mismatchIdx = 0
+                            for ($k = 0; $k -le $expectedLines.Count; $k++) {
+                                if ($actualLines[$k] -ne $expectedLines[$k]) {
+                                    $mismatchIdx = $k + 1
+                                    break
+                                }
+                            }
+                            $errorMsg = "Content/order mismatch at line $mismatchIdx: expected '$($expectedLines[$mismatchIdx - 1])', received '$($actualLines[$mismatchIdx - 1])'"
                         }
                     }
                 } else {

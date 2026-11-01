@@ -9,7 +9,12 @@ import {
   CanvasResource,
   GeometryProvenance,
 } from "../types.js";
-import { FigmaNode, FigmaFileResponse, FigmaColor, FigmaPaint } from "../../parser/types.js";
+import {
+  FigmaNode,
+  FigmaFileResponse,
+  FigmaColor,
+  FigmaPaint,
+} from "../../parser/types.js";
 import { isA4Ratio } from "../../pipeline/index.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
 import { decodeBase64, decodeDataUrl } from "../utils/binaryUtils.js";
@@ -28,7 +33,10 @@ export interface SynthesizedVectorResult {
   toString(): string;
 }
 
-function makeVectorResult(path: string, provenance: GeometryProvenance): SynthesizedVectorResult {
+function makeVectorResult(
+  path: string,
+  provenance: GeometryProvenance,
+): SynthesizedVectorResult {
   return {
     path,
     provenance,
@@ -48,7 +56,7 @@ export function synthesizeVectorIconPath(
   context?: {
     siblingIndex?: number;
     totalVectorSiblings?: number;
-  }
+  },
 ): SynthesizedVectorResult {
   const nameLower = (parentName + " " + nodeName).toLowerCase();
   const totalSiblings = context?.totalVectorSiblings ?? 1;
@@ -58,36 +66,60 @@ export function synthesizeVectorIconPath(
   if (totalSiblings > 1) {
     // 1. Extreme thin strokes in composite icons are always lines
     if ((wPt <= 2.5 && hPt > 2.5) || (wPt <= 1.0 && hPt >= 1.0)) {
-      return makeVectorResult("M 500 0 L 500 1000", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 500 0 L 500 1000",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
     if ((hPt <= 2.5 && wPt > 2.5) || (hPt <= 1.0 && wPt >= 1.0)) {
-      return makeVectorResult("M 0 500 L 1000 500", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 0 500 L 1000 500",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
 
     // 2. Tiny elements (dots, pupils, arrowhead hooks, check hooks)
     if (wPt <= 4.5 && hPt <= 4.5) {
       if (/\b(ccw|rotate-ccw)\b/i.test(nameLower)) {
         // CCW Arrowhead hook at top-left
-        return makeVectorResult("M 100 900 L 100 100 L 900 100", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 100 900 L 100 100 L 900 100",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (/\b(cw|rotate-cw)\b/i.test(nameLower)) {
         // CW Arrowhead hook at top-right
-        return makeVectorResult("M 900 900 L 900 100 L 100 100", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 900 900 L 900 100 L 100 100",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (/\b(rotate|refresh|reload|update)\b/i.test(nameLower)) {
         // Default Arrowhead hook at top-left
-        return makeVectorResult("M 100 900 L 100 100 L 900 100", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 100 900 L 100 100 L 900 100",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (/\b(eye|view|visible)\b/i.test(nameLower)) {
         // Pupil circle
-        return makeVectorResult("M 500 200 C 665 200 800 335 800 500 C 800 665 665 800 500 800 C 335 800 200 665 200 500 C 200 335 335 200 500 200 Z", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 500 200 C 665 200 800 335 800 500 C 800 665 665 800 500 800 C 335 800 200 665 200 500 C 200 335 335 200 500 200 Z",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (/\b(check|tick)\b/i.test(nameLower)) {
         // Checkmark hook
-        return makeVectorResult("M 150 520 L 400 780 L 880 180", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 520 L 400 780 L 880 180",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       // General bullet / dot
-      return makeVectorResult("M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
 
     // 2b. Composite search / magnifier (lens circle + diagonal handle bar)
@@ -96,91 +128,142 @@ export function synthesizeVectorIconPath(
         // Lens circle
         return makeVectorResult(
           "M 420 180 C 552 180 660 288 660 420 C 660 552 552 660 420 660 C 288 660 180 552 180 420 C 180 288 288 180 420 180 Z",
-          "LOCALLY_RECOVERED_GEOMETRY"
+          "LOCALLY_RECOVERED_GEOMETRY",
         );
       } else {
         // Diagonal handle bar
-        return makeVectorResult("M 590 590 L 850 850", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 590 590 L 850 850",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 3. Composite 'x' close icon (two diagonal crossed lines)
     if (/\b(x|close|cancel)\b/i.test(parentName) || /\bx\b/i.test(nodeName)) {
       if (siblingIdx % 2 === 0) {
-        return makeVectorResult("M 100 100 L 900 900", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 100 100 L 900 900",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       } else {
-        return makeVectorResult("M 900 100 L 100 900", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 900 100 L 100 900",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 4. Composite calendar (outer box + divider lines + binding rings)
     if (/\b(calendar|date)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 150 200 L 850 200 L 850 880 L 150 880 Z", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 200 L 850 200 L 850 880 L 150 880 Z",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 5. Composite rotate-ccw / rotate-cw (arc + arrowhead hook)
     if (/\b(ccw|rotate-ccw)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 500 150 A 350 350 0 1 0 800 500", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 500 150 A 350 350 0 1 0 800 500",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
     if (/\b(cw|rotate-cw)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 500 150 A 350 350 0 1 1 200 500", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 500 150 A 350 350 0 1 1 200 500",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
     if (/\b(rotate|refresh|reload|update)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 250 400 A 350 350 0 1 1 200 600", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 250 400 A 350 350 0 1 1 200 600",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 6. Composite table / grid (outer box + horizontal / vertical dividers)
     if (/\b(table|grid)\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 150 150 L 850 150 L 850 850 L 150 850 Z", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 150 L 850 150 L 850 850 L 150 850 Z",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 7. Composite upload / download
     if (/\bupload\b/i.test(parentName)) {
       if (wPt > 5 && hPt <= 5) {
-        return makeVectorResult("M 150 200 L 150 800 L 850 800 L 850 200", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 200 L 150 800 L 850 800 L 850 200",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (wPt > 2.5 && hPt > 2.5) {
-        return makeVectorResult("M 150 700 L 500 300 L 850 700", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 700 L 500 300 L 850 700",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
     if (/\bdownload\b/i.test(parentName)) {
       if (wPt > 5 && hPt <= 5) {
-        return makeVectorResult("M 150 200 L 150 800 L 850 800 L 850 200", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 200 L 150 800 L 850 800 L 850 200",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
       if (wPt > 2.5 && hPt > 2.5) {
-        return makeVectorResult("M 150 300 L 500 700 L 850 300", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 150 300 L 500 700 L 850 300",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
     }
 
     // 8. Composite pencil
     if (/\bpencil\b/i.test(parentName)) {
       if (wPt > 5 && hPt > 5) {
-        return makeVectorResult("M 180 820 L 180 660 L 640 200 L 800 360 L 340 820 Z", "LOCALLY_RECOVERED_GEOMETRY");
+        return makeVectorResult(
+          "M 180 820 L 180 660 L 640 200 L 800 360 L 340 820 Z",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
-      return makeVectorResult("M 600 240 L 760 400", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 600 240 L 760 400",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
 
     // 9. Composite eye
     if (/\beye\b/i.test(parentName)) {
-      return makeVectorResult("M 80 500 C 250 250 750 250 920 500 C 750 750 250 750 80 500 Z", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 80 500 C 250 250 750 250 920 500 C 750 750 250 750 80 500 Z",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
 
     // 10. Composite circle-check (when inside multi-vector component)
     if (/\b(circle-check)\b/i.test(parentName)) {
-      if ((siblingIdx === 0 && (wPt > 6 && hPt > 6)) || (wPt > 8 && hPt > 8)) {
-        return makeVectorResult("M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z", "LOCALLY_RECOVERED_GEOMETRY");
+      if ((siblingIdx === 0 && wPt > 6 && hPt > 6) || (wPt > 8 && hPt > 8)) {
+        return makeVectorResult(
+          "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z",
+          "LOCALLY_RECOVERED_GEOMETRY",
+        );
       }
-      return makeVectorResult("M 150 520 L 400 780 L 880 180", "LOCALLY_RECOVERED_GEOMETRY");
+      return makeVectorResult(
+        "M 150 520 L 400 780 L 880 180",
+        "LOCALLY_RECOVERED_GEOMETRY",
+      );
     }
   }
 
@@ -189,7 +272,7 @@ export function synthesizeVectorIconPath(
   if (/\b(profile|user|person|avatar|account)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 180 C 580 180 640 240 640 320 C 640 400 580 460 500 460 C 420 460 360 400 360 320 C 360 240 420 180 500 180 Z M 240 820 C 240 660 360 580 500 580 C 640 580 760 660 760 820 Z",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -197,31 +280,43 @@ export function synthesizeVectorIconPath(
   if (/\b(alert|warn|warning|triangle)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 60 L 950 920 L 50 920 Z M 500 380 L 500 640 M 500 780 L 500 840",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
   // 2c. Circle-check (handles single unselected circle vectors where totalSiblings <= 1)
-  if (/\b(circle-check)\b/i.test(parentName) || /\b(circle-check)\b/i.test(nodeName)) {
+  if (
+    /\b(circle-check)\b/i.test(parentName) ||
+    /\b(circle-check)\b/i.test(nodeName)
+  ) {
     if (totalSiblings <= 1 || (wPt > 6 && hPt > 6)) {
       return makeVectorResult(
         "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z",
-        "LOCALLY_RECOVERED_GEOMETRY"
+        "LOCALLY_RECOVERED_GEOMETRY",
       );
     }
-    return makeVectorResult("M 150 520 L 400 780 L 880 180", "LOCALLY_RECOVERED_GEOMETRY");
+    return makeVectorResult(
+      "M 150 520 L 400 780 L 880 180",
+      "LOCALLY_RECOVERED_GEOMETRY",
+    );
   }
 
   // 3. Check / Tick (standalone checkmarks, excluding circle-check)
-  if (/\b(check|tick)\b/i.test(nameLower) && !/\bcircle-check\b/i.test(nameLower)) {
-    return makeVectorResult("M 150 520 L 400 780 L 880 180", "SEMANTIC_APPROXIMATION");
+  if (
+    /\b(check|tick)\b/i.test(nameLower) &&
+    !/\bcircle-check\b/i.test(nameLower)
+  ) {
+    return makeVectorResult(
+      "M 150 520 L 400 780 L 880 180",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
 
   // 4. Info
   if (/\b(info|information)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 50 C 748 50 950 252 950 500 C 950 748 748 950 500 950 C 252 950 50 748 50 500 C 50 252 252 50 500 50 Z M 500 280 L 500 340 M 500 460 L 500 740",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -229,7 +324,7 @@ export function synthesizeVectorIconPath(
   if (/\b(file|doc|document)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 200 80 L 620 80 L 820 280 L 820 920 L 200 920 Z M 620 80 L 620 280 L 820 280 M 340 480 L 680 480 M 340 640 L 680 640",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -238,12 +333,12 @@ export function synthesizeVectorIconPath(
     if (!hasFill) {
       return makeVectorResult(
         "M 420 180 C 552 180 660 288 660 420 C 660 552 552 660 420 660 C 288 660 180 552 180 420 C 180 288 288 180 420 180 Z M 590 590 L 850 850",
-        "SEMANTIC_APPROXIMATION"
+        "SEMANTIC_APPROXIMATION",
       );
     }
     return makeVectorResult(
       "M 420 150 C 569 150 690 271 690 420 C 690 485 667 544 629 591 L 860 822 C 875 837 875 862 860 877 C 845 892 820 892 805 877 L 574 646 C 530 679 476 700 417 700 C 268 700 147 579 147 430 C 147 281 268 160 417 160 Z M 417 240 C 312 240 227 325 227 430 C 227 535 312 620 417 620 C 522 620 607 535 607 430 C 607 325 522 240 417 240 Z",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -251,7 +346,7 @@ export function synthesizeVectorIconPath(
   if (/\b(ccw|rotate-ccw)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 150 A 350 350 0 1 0 800 500 M 500 50 L 500 250 L 650 150",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -259,7 +354,7 @@ export function synthesizeVectorIconPath(
   if (/\b(cw|rotate-cw)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 150 A 350 350 0 1 1 200 500 M 500 50 L 500 250 L 350 150",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -267,7 +362,7 @@ export function synthesizeVectorIconPath(
   if (/\b(rotate|refresh|reload|update)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 250 400 A 350 350 0 1 1 200 600 M 120 280 L 260 420 L 400 280",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -275,7 +370,7 @@ export function synthesizeVectorIconPath(
   if (/\b(calendar|date)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 150 220 L 850 220 L 850 880 L 150 880 Z M 300 100 L 300 280 M 700 100 L 700 280 M 150 380 L 850 380",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -283,20 +378,23 @@ export function synthesizeVectorIconPath(
   if (/\b(pencil|edit|write)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 180 820 L 180 660 L 640 200 L 800 360 L 340 820 Z M 600 240 L 760 400",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
   // 10. Close / X / Cancel
   if (/\b(close|cancel)\b/i.test(nameLower) || /\bx\b/i.test(nameLower)) {
-    return makeVectorResult("M 200 200 L 800 800 M 800 200 L 200 800", "SEMANTIC_APPROXIMATION");
+    return makeVectorResult(
+      "M 200 200 L 800 800 M 800 200 L 200 800",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
 
   // 11. Eye / View
   if (/\b(eye|view|visible)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 80 500 C 250 250 750 250 920 500 C 750 750 250 750 80 500 Z M 500 350 C 417 350 350 417 350 500 C 350 583 417 650 500 650 C 583 650 650 583 650 500 C 650 417 583 350 500 350 Z",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -304,7 +402,7 @@ export function synthesizeVectorIconPath(
   if (/\b(bell|notice|alarm|notification)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 120 C 420 120 350 190 350 270 L 350 520 L 240 680 L 760 680 L 650 520 L 650 270 C 650 190 580 120 500 120 Z M 430 760 C 430 800 460 830 500 830 C 540 830 570 800 570 760 Z",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -312,37 +410,56 @@ export function synthesizeVectorIconPath(
   if (/\b(funnel|filter)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 150 150 L 850 150 L 580 520 L 580 850 L 420 750 L 420 520 Z",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
   // 14. Chevrons & Arrows (Precise Directional Orientation)
   if (
-    /\b(arrow-left|chevron-left|left|prev|previous|back|backward)\b/i.test(nameLower) ||
+    /\b(arrow-left|chevron-left|left|prev|previous|back|backward)\b/i.test(
+      nameLower,
+    ) ||
     nameLower.includes("title-left")
   ) {
     // Pointing LEFT: x=650 -> x=300 -> x=650
-    return makeVectorResult("M 650 150 L 300 500 L 650 850", "SEMANTIC_APPROXIMATION");
+    return makeVectorResult(
+      "M 650 150 L 300 500 L 650 850",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
   if (
     /\b(arrow-right|chevron-right|right|next|forward)\b/i.test(nameLower) ||
-    (nameLower.includes("frame 10") && (nameLower.includes("stroke") || nameLower.includes("vector")))
+    (nameLower.includes("frame 10") &&
+      (nameLower.includes("stroke") || nameLower.includes("vector")))
   ) {
     // Pointing RIGHT: x=350 -> x=700 -> x=350
-    return makeVectorResult("M 350 150 L 700 500 L 350 850", "SEMANTIC_APPROXIMATION");
+    return makeVectorResult(
+      "M 350 150 L 700 500 L 350 850",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
   if (/\b(arrow-up|chevron-up|up|top|asc|collapse)\b/i.test(nameLower)) {
     // Pointing UP: y=650 -> y=300 -> y=650
-    return makeVectorResult("M 150 650 L 500 300 L 850 650", "SEMANTIC_APPROXIMATION");
+    return makeVectorResult(
+      "M 150 650 L 500 300 L 850 650",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
-  if (/\b(arrow-down|chevron-down|down|bottom|desc|expand)\b/i.test(nameLower)) {
+  if (
+    /\b(arrow-down|chevron-down|down|bottom|desc|expand)\b/i.test(nameLower)
+  ) {
     // Pointing DOWN: y=350 -> y=700 -> y=350
-    return makeVectorResult("M 150 350 L 500 700 L 850 350", "SEMANTIC_APPROXIMATION");
+    return makeVectorResult(
+      "M 150 350 L 500 700 L 850 350",
+      "SEMANTIC_APPROXIMATION",
+    );
   }
   if (/\b(chevron|arrow)\b/i.test(nameLower)) {
     return makeVectorResult(
-      wPt > hPt ? "M 250 150 L 750 500 L 250 850" : "M 350 150 L 700 500 L 350 850",
-      "SEMANTIC_APPROXIMATION"
+      wPt > hPt
+        ? "M 250 150 L 750 500 L 250 850"
+        : "M 350 150 L 700 500 L 350 850",
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -350,7 +467,7 @@ export function synthesizeVectorIconPath(
   if (/\b(drone|propeller|rotor)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 200 C 665 200 800 335 800 500 C 800 665 665 800 500 800 C 335 800 200 665 200 500 C 200 335 335 200 500 200 Z M 200 200 L 800 800 M 800 200 L 200 800",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -358,7 +475,7 @@ export function synthesizeVectorIconPath(
   if (/\b(table|grid)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 150 150 L 850 150 L 850 850 L 150 850 Z M 150 450 L 850 450 M 500 150 L 500 850",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -366,7 +483,7 @@ export function synthesizeVectorIconPath(
   if (/\b(monitor|screen|display)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 120 180 L 880 180 L 880 680 L 120 680 Z M 400 680 L 350 840 L 650 840 L 600 680",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -374,13 +491,13 @@ export function synthesizeVectorIconPath(
   if (/\bupload\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 200 L 500 680 M 320 380 L 500 200 L 680 380 M 200 780 L 800 780",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
   if (/\bdownload\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 500 200 L 500 680 M 320 500 L 500 680 L 680 500 M 200 780 L 800 780",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -388,7 +505,7 @@ export function synthesizeVectorIconPath(
   if (/\b(box|package)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 200 250 L 800 250 L 800 850 L 200 850 Z M 500 250 L 500 850 M 200 500 L 800 500",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -396,7 +513,7 @@ export function synthesizeVectorIconPath(
   if (/\b(building|complex)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 150 880 L 150 350 L 550 350 L 550 880 Z M 550 880 L 550 180 L 850 180 L 850 880 Z M 300 480 L 400 480 M 300 620 L 400 620 M 700 320 L 750 320 M 700 460 L 750 460 M 700 600 L 750 600",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -404,7 +521,7 @@ export function synthesizeVectorIconPath(
   if (/\bclipboard\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 220 220 L 780 220 L 780 880 L 220 880 Z M 360 120 L 640 120 L 640 240 L 360 240 Z M 320 420 L 680 420 M 320 580 L 680 580",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -412,7 +529,7 @@ export function synthesizeVectorIconPath(
   if (/\b(chart|graph|column)\b/i.test(nameLower)) {
     return makeVectorResult(
       "M 150 850 L 850 850 M 260 850 L 260 550 M 460 850 L 460 350 M 660 850 L 660 200",
-      "SEMANTIC_APPROXIMATION"
+      "SEMANTIC_APPROXIMATION",
     );
   }
 
@@ -429,12 +546,15 @@ export function synthesizeVectorIconPath(
   if (wPt <= 4.5 && hPt <= 4.5) {
     return makeVectorResult(
       "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z",
-      "GEOMETRIC_FALLBACK"
+      "GEOMETRIC_FALLBACK",
     );
   }
 
   // General bounding box outline path fallback
-  return makeVectorResult("M 100 100 L 900 100 L 900 900 L 100 900 Z", "GEOMETRIC_FALLBACK");
+  return makeVectorResult(
+    "M 100 100 L 900 100 L 900 900 L 100 900 Z",
+    "GEOMETRIC_FALLBACK",
+  );
 }
 
 export class FigmaCanvasParser {
@@ -461,27 +581,51 @@ export class FigmaCanvasParser {
     this.imageRefMap.clear();
 
     if (!input || typeof input !== "object" || Array.isArray(input)) {
-      throw new Error("Invalid Figma JSON input: expected a JSON object representing a Figma node, file response, or snapshot.");
+      throw new Error(
+        "Invalid Figma JSON input: expected a JSON object representing a Figma node, file response, or snapshot.",
+      );
     }
 
-    if ("imageMap" in input && input.imageMap && typeof input.imageMap === "object") {
+    if (
+      "imageMap" in input &&
+      input.imageMap &&
+      typeof input.imageMap === "object"
+    ) {
       this.imageMap = { ...input.imageMap, ...this.imageMap };
     }
 
     let rootNode: FigmaNode;
-    if ("figmaNode" in input && input.figmaNode && typeof input.figmaNode === "object") {
+    if (
+      "figmaNode" in input &&
+      input.figmaNode &&
+      typeof input.figmaNode === "object"
+    ) {
       rootNode = input.figmaNode;
-    } else if ("document" in input && input.document && typeof input.document === "object") {
+    } else if (
+      "document" in input &&
+      input.document &&
+      typeof input.document === "object"
+    ) {
       rootNode = input.document;
-    } else if ("nodes" in input && input.nodes && typeof input.nodes === "object") {
+    } else if (
+      "nodes" in input &&
+      input.nodes &&
+      typeof input.nodes === "object"
+    ) {
       const firstEntry = Object.values(input.nodes)[0] as any;
       rootNode = firstEntry?.document || firstEntry;
     } else {
       rootNode = input as FigmaNode;
     }
 
-    if (!rootNode || typeof rootNode !== "object" || (!rootNode.type && !Array.isArray(rootNode.children))) {
-      throw new Error("Invalid Figma JSON structure: missing valid root Figma node ('type' or 'children').");
+    if (
+      !rootNode ||
+      typeof rootNode !== "object" ||
+      (!rootNode.type && !Array.isArray(rootNode.children))
+    ) {
+      throw new Error(
+        "Invalid Figma JSON structure: missing valid root Figma node ('type' or 'children').",
+      );
     }
 
     const documentName =
@@ -497,7 +641,9 @@ export class FigmaCanvasParser {
     const pageFrames = this.discoverPageFrames(rootNode);
 
     if (pageFrames.length === 0) {
-      warnings.push("No candidate page frames found. Using root as single page.");
+      warnings.push(
+        "No candidate page frames found. Using root as single page.",
+      );
     }
 
     const pages: CanvasPage[] = [];
@@ -515,7 +661,8 @@ export class FigmaCanvasParser {
     const primaryWidthPt = pages.length > 0 ? pages[0].bounds.width : 595.28;
     const primaryHeightPt = pages.length > 0 ? pages[0].bounds.height : 841.89;
     const isLandscape = primaryWidthPt > primaryHeightPt;
-    const isA4 = Math.abs(primaryWidthPt * primaryHeightPt - 595.28 * 841.89) < 200;
+    const isA4 =
+      Math.abs(primaryWidthPt * primaryHeightPt - 595.28 * 841.89) < 200;
     const pageSizeName = isA4 ? "A4" : "Custom";
 
     return {
@@ -554,7 +701,8 @@ export class FigmaCanvasParser {
       if (node.type === "CANVAS") {
         const visChildren = node.children.filter((c) => c.visible !== false);
         const frameChildren = visChildren.filter(
-          (c) => c.type === "FRAME" || c.type === "COMPONENT" || c.type === "GROUP"
+          (c) =>
+            c.type === "FRAME" || c.type === "COMPONENT" || c.type === "GROUP",
         );
         const leafChildren = visChildren.filter(
           (c) =>
@@ -562,7 +710,7 @@ export class FigmaCanvasParser {
             c.type === "LINE" ||
             c.type === "RECTANGLE" ||
             c.type === "VECTOR" ||
-            c.type === "ELLIPSE"
+            c.type === "ELLIPSE",
         );
         const allFramesSelected =
           !this.selectedFrameIds ||
@@ -572,9 +720,10 @@ export class FigmaCanvasParser {
           frameChildren.every(
             (f) =>
               (f.absoluteBoundingBox?.height || 0) > 0 &&
-              (f.absoluteBoundingBox?.height || 0) < 500
+              (f.absoluteBoundingBox?.height || 0) < 500,
           );
-        const hasMixedLeafAndFrames = leafChildren.length > 0 && frameChildren.length > 0;
+        const hasMixedLeafAndFrames =
+          leafChildren.length > 0 && frameChildren.length > 0;
 
         if (
           allFramesSelected &&
@@ -601,11 +750,19 @@ export class FigmaCanvasParser {
             maxY = 1123;
           }
           const spanW = Math.max(794, maxX - minX);
-          const spanH = Math.max(maxY - minY + 48, Math.round(spanW * (841.89 / 595.28)));
+          const spanH = Math.max(
+            maxY - minY + 48,
+            Math.round(spanW * (841.89 / 595.28)),
+          );
           candidateFrames.push({
             ...node,
             type: "FRAME",
-            absoluteBoundingBox: { x: minX, y: minY, width: spanW, height: spanH },
+            absoluteBoundingBox: {
+              x: minX,
+              y: minY,
+              width: spanW,
+              height: spanH,
+            },
             children: visChildren,
           });
           return;
@@ -643,7 +800,7 @@ export class FigmaCanvasParser {
                     c.name.includes("OUTER_SPACING") ||
                     c.name.includes("REDLINE") ||
                     c.name.includes("DIMENSION") ||
-                    c.name.includes("GUIDE_LINE"))
+                    c.name.includes("GUIDE_LINE")),
               );
 
             // Avoid false positives: "container" alone is commonly used for legitimate UI groups (e.g. "Main Container").
@@ -690,7 +847,7 @@ export class FigmaCanvasParser {
    */
   private synthesizeMissingChildBounds(
     parent: FigmaNode,
-    parentBox: { x: number; y: number; width: number; height: number }
+    parentBox: { x: number; y: number; width: number; height: number },
   ): void {
     if (!parent.children || parent.children.length === 0) return;
 
@@ -712,15 +869,21 @@ export class FigmaCanvasParser {
     if (visChildren.length === 0) return;
 
     if (layoutMode === "HORIZONTAL") {
-      const missingCount = visChildren.filter((c) => !c.absoluteBoundingBox).length;
+      const missingCount = visChildren.filter(
+        (c) => !c.absoluteBoundingBox,
+      ).length;
       const usedW = visChildren.reduce(
-        (acc, c) => acc + (c.absoluteBoundingBox ? c.absoluteBoundingBox.width + gap : 0),
-        0
+        (acc, c) =>
+          acc + (c.absoluteBoundingBox ? c.absoluteBoundingBox.width + gap : 0),
+        0,
       );
       const remW = Math.max(40, innerW - usedW);
       const defaultColW =
         missingCount > 0
-          ? Math.max(40, (remW - gap * Math.max(0, missingCount - 1)) / missingCount)
+          ? Math.max(
+              40,
+              (remW - gap * Math.max(0, missingCount - 1)) / missingCount,
+            )
           : innerW;
 
       let cursorX = innerX;
@@ -808,11 +971,17 @@ export class FigmaCanvasParser {
               const fs = tNode.style?.fontSize || 12;
               const lh = tNode.style?.lineHeightPx || Math.round(fs * 1.35);
               const tLen = (tNode.characters || "").length;
-              cw = Math.min(innerW, Math.max(60, Math.round(tLen * fs * 0.8 + cpl + cpr + 12)));
+              cw = Math.min(
+                innerW,
+                Math.max(60, Math.round(tLen * fs * 0.8 + cpl + cpr + 12)),
+              );
               ch = lh + cpt + cpb + 4;
             } else {
               cw = innerW;
-              ch = Math.max(48, Math.min(200, innerH - Math.max(0, cursorY - innerY)));
+              ch = Math.max(
+                48,
+                Math.min(200, innerH - Math.max(0, cursorY - innerY)),
+              );
             }
           }
 
@@ -844,7 +1013,7 @@ export class FigmaCanvasParser {
     frame: FigmaNode,
     pageNumber: number,
     notices: string[],
-    warnings: string[]
+    warnings: string[],
   ): CanvasPage {
     const frameBox = frame.absoluteBoundingBox || {
       x: 0,
@@ -859,7 +1028,7 @@ export class FigmaCanvasParser {
     const resolved = resolveScale(
       frameBox.width,
       frameBox.height,
-      this.scalePolicy
+      this.scalePolicy,
     );
     const { scaleX, scaleY, targetWidthPt, targetHeightPt } = resolved;
 
@@ -870,7 +1039,7 @@ export class FigmaCanvasParser {
       backgroundColor = this.figmaColorToHex(rawBg);
     } else if (frame.fills && frame.fills.length > 0) {
       const solid = frame.fills.find(
-        (f) => f.type === "SOLID" && f.visible !== false
+        (f) => f.type === "SOLID" && f.visible !== false,
       );
       if (solid && solid.color) {
         backgroundColor = this.figmaColorToHex(solid.color);
@@ -887,9 +1056,18 @@ export class FigmaCanvasParser {
       for (const child of node.children) {
         if (child.visible === false) continue;
 
-        const childRawOpacity = typeof child.opacity === "number" ? child.opacity : 1.0;
-        const effectiveOpacity = Math.max(0, Math.min(1.0, parentOpacity * childRawOpacity));
-        const finalElemOpacity = effectiveOpacity < 1.0 ? effectiveOpacity : (child.opacity !== undefined ? child.opacity : undefined);
+        const childRawOpacity =
+          typeof child.opacity === "number" ? child.opacity : 1.0;
+        const effectiveOpacity = Math.max(
+          0,
+          Math.min(1.0, parentOpacity * childRawOpacity),
+        );
+        const finalElemOpacity =
+          effectiveOpacity < 1.0
+            ? effectiveOpacity
+            : child.opacity !== undefined
+              ? child.opacity
+              : undefined;
 
         const childBox = child.absoluteBoundingBox;
         if (!childBox) {
@@ -910,13 +1088,13 @@ export class FigmaCanvasParser {
         // Diagnostic: clipsContent check
         if (child.clipsContent) {
           notices.push(
-            `Page ${pageNumber}, node ${child.name || child.id} has clipsContent=true.`
+            `Page ${pageNumber}, node ${child.name || child.id} has clipsContent=true.`,
           );
         }
 
         // Check if node is an image fill
         const imageFill = child.fills?.find(
-          (f) => f.type === "IMAGE" && f.visible !== false && f.imageRef
+          (f) => f.type === "IMAGE" && f.visible !== false && f.imageRef,
         );
 
         if (imageFill && imageFill.imageRef) {
@@ -935,7 +1113,9 @@ export class FigmaCanvasParser {
           const transform = (imageFill as any).imageTransform as
             | [[number, number, number], [number, number, number]]
             | undefined;
-          let affineAnalysis: ReturnType<typeof analyzeFigmaImageTransform> | undefined;
+          let affineAnalysis:
+            | ReturnType<typeof analyzeFigmaImageTransform>
+            | undefined;
           if (transform) {
             affineAnalysis = analyzeFigmaImageTransform(transform);
             if (affineAnalysis.crop) {
@@ -943,7 +1123,8 @@ export class FigmaCanvasParser {
             }
           }
 
-          const elemRotation = affineAnalysis?.rotationDegrees ?? (child as any).rotation;
+          const elemRotation =
+            affineAnalysis?.rotationDegrees ?? (child as any).rotation;
 
           elements.push({
             id: child.id,
@@ -964,7 +1145,11 @@ export class FigmaCanvasParser {
 
           // If this node is a container with children (e.g. frame with image background and text overlays),
           // recurse into its children so overlay elements are not omitted
-          if (child.children && Array.isArray(child.children) && child.children.length > 0) {
+          if (
+            child.children &&
+            Array.isArray(child.children) &&
+            child.children.length > 0
+          ) {
             processChildren(child, effectiveOpacity);
           }
         } else if (child.type === "TEXT") {
@@ -973,7 +1158,8 @@ export class FigmaCanvasParser {
           const align = this.extractTextAlign(child);
 
           let verticalAlign: "top" | "center" | "bottom" | undefined;
-          const vAlignRaw = child.style?.textAlignVertical || (child as any).textAlignVertical;
+          const vAlignRaw =
+            child.style?.textAlignVertical || (child as any).textAlignVertical;
           if (vAlignRaw === "CENTER") {
             verticalAlign = "center";
           } else if (vAlignRaw === "BOTTOM") {
@@ -996,7 +1182,8 @@ export class FigmaCanvasParser {
             parentBox.height > childBox.height + 2
           ) {
             const topGap = childBox.y - parentBox.y;
-            const bottomGap = (parentBox.y + parentBox.height) - (childBox.y + childBox.height);
+            const bottomGap =
+              parentBox.y + parentBox.height - (childBox.y + childBox.height);
             const isSymmetric = Math.abs(topGap - bottomGap) <= 2.5;
 
             // Only consider centered if parent is NOT a vertical stack of multiple children
@@ -1025,12 +1212,27 @@ export class FigmaCanvasParser {
           const padLeft = ((child as any).paddingLeft || 0) * scaleX;
           const innerPaddingPt =
             padTop > 0 || padRight > 0 || padBottom > 0 || padLeft > 0
-              ? { top: padTop, right: padRight, bottom: padBottom, left: padLeft }
+              ? {
+                  top: padTop,
+                  right: padRight,
+                  bottom: padBottom,
+                  left: padLeft,
+                }
               : undefined;
 
-          const rawTar = (child.style as any)?.textAutoResize || (child as any).textAutoResize;
-          const textAutoResize: "NONE" | "HEIGHT" | "WIDTH_AND_HEIGHT" | "TRUNCATE" | undefined =
-            rawTar === "HEIGHT" || rawTar === "WIDTH_AND_HEIGHT" || rawTar === "NONE" || rawTar === "TRUNCATE"
+          const rawTar =
+            (child.style as any)?.textAutoResize ||
+            (child as any).textAutoResize;
+          const textAutoResize:
+            | "NONE"
+            | "HEIGHT"
+            | "WIDTH_AND_HEIGHT"
+            | "TRUNCATE"
+            | undefined =
+            rawTar === "HEIGHT" ||
+            rawTar === "WIDTH_AND_HEIGHT" ||
+            rawTar === "NONE" ||
+            rawTar === "TRUNCATE"
               ? rawTar
               : undefined;
 
@@ -1059,7 +1261,10 @@ export class FigmaCanvasParser {
           const rawRot = (child as any).rotation;
           if (typeof rawRot === "number" && lineW > 0 && lineH === 0) {
             const absRot = Math.abs(rawRot);
-            if (Math.abs(absRot - Math.PI / 2) < 0.1 || Math.abs(absRot - 90) < 5) {
+            if (
+              Math.abs(absRot - Math.PI / 2) < 0.1 ||
+              Math.abs(absRot - 90) < 5
+            ) {
               lineH = lineW;
               lineW = 0;
             }
@@ -1088,7 +1293,11 @@ export class FigmaCanvasParser {
           const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
           if (hasFill || hasStroke) {
             const arcData = (child as any).arcData as
-              | { startingAngle?: number; endingAngle?: number; innerRadius?: number }
+              | {
+                  startingAngle?: number;
+                  endingAngle?: number;
+                  innerRadius?: number;
+                }
               | undefined;
             const innerRadius = arcData?.innerRadius ?? 0;
             const startAngle = arcData?.startingAngle ?? 0;
@@ -1103,7 +1312,7 @@ export class FigmaCanvasParser {
               const rawPath = this.buildEllipseArcSvgPath(
                 startAngle,
                 endAngle,
-                innerRadius
+                innerRadius,
               );
               const parsed = SvgPath.parse(rawPath);
               const unitBounds = {
@@ -1121,7 +1330,7 @@ export class FigmaCanvasParser {
                 wHwpu,
                 hHwpu,
                 6,
-                unitBounds
+                unitBounds,
               );
               const vectorPoints = vectorSubpaths.flatMap((s) => s.points);
 
@@ -1177,17 +1386,30 @@ export class FigmaCanvasParser {
             let provenance: GeometryProvenance = "UNRESOLVED";
 
             // Multi-path extraction across all geometries (F-01 Fill & Stroke Preservation & Fill Rule)
-            const fillGeom = Array.isArray((child as any).fillGeometry) ? (child as any).fillGeometry : [];
-            const strokeGeom = Array.isArray((child as any).strokeGeometry) ? (child as any).strokeGeometry : [];
-            const vpGeom = Array.isArray((child as any).vectorPaths) ? (child as any).vectorPaths : [];
+            const fillGeom = Array.isArray((child as any).fillGeometry)
+              ? (child as any).fillGeometry
+              : [];
+            const strokeGeom = Array.isArray((child as any).strokeGeometry)
+              ? (child as any).strokeGeometry
+              : [];
+            const vpGeom = Array.isArray((child as any).vectorPaths)
+              ? (child as any).vectorPaths
+              : [];
 
             const fillPaths = fillGeom.map((g: any) => g?.path).filter(Boolean);
-            const strokePaths = strokeGeom.map((g: any) => g?.path).filter(Boolean);
-            const vpPaths = vpGeom.map((vp: any) => vp?.data || vp?.path).filter(Boolean);
+            const strokePaths = strokeGeom
+              .map((g: any) => g?.path)
+              .filter(Boolean);
+            const vpPaths = vpGeom
+              .map((vp: any) => vp?.data || vp?.path)
+              .filter(Boolean);
 
             let fillRule: "nonzero" | "evenodd" | undefined = undefined;
             if (fillGeom.length > 0 && fillGeom[0]?.windingRule) {
-              fillRule = fillGeom[0].windingRule.toUpperCase() === "EVENODD" ? "evenodd" : "nonzero";
+              fillRule =
+                fillGeom[0].windingRule.toUpperCase() === "EVENODD"
+                  ? "evenodd"
+                  : "nonzero";
             }
 
             if (fillPaths.length > 0 && strokePaths.length > 0) {
@@ -1205,17 +1427,25 @@ export class FigmaCanvasParser {
               rawPath = vpPaths.join(" ");
               provenance = "SOURCE_GEOMETRY";
             } else if (child.type === "STAR") {
-              rawPath = "M 500 0 L 618 353 L 990 353 L 689 572 L 804 925 L 500 706 L 196 925 L 311 572 L 10 353 L 382 353 Z";
+              rawPath =
+                "M 500 0 L 618 353 L 990 353 L 689 572 L 804 925 L 500 706 L 196 925 L 311 572 L 10 353 L 382 353 Z";
               provenance = "LOCALLY_RECOVERED_GEOMETRY";
             } else if (child.type === "POLYGON") {
               rawPath = "M 500 0 L 1000 866 L 0 866 Z";
               provenance = "LOCALLY_RECOVERED_GEOMETRY";
             } else {
               // Sibling context from parent node (A-04 Multi-child Deconfliction)
-              const vectorSiblings = (node.children || []).filter((c: any) =>
-                c && (c.type === "VECTOR" || c.type === "STAR" || c.type === "POLYGON" || c.type === "BOOLEAN_OPERATION")
+              const vectorSiblings = (node.children || []).filter(
+                (c: any) =>
+                  c &&
+                  (c.type === "VECTOR" ||
+                    c.type === "STAR" ||
+                    c.type === "POLYGON" ||
+                    c.type === "BOOLEAN_OPERATION"),
               );
-              const siblingIndex = vectorSiblings.findIndex((c: any) => c?.id === child.id);
+              const siblingIndex = vectorSiblings.findIndex(
+                (c: any) => c?.id === child.id,
+              );
               const synth = synthesizeVectorIconPath(
                 parentName,
                 nodeName,
@@ -1226,7 +1456,7 @@ export class FigmaCanvasParser {
                 {
                   siblingIndex: siblingIndex >= 0 ? siblingIndex : 0,
                   totalVectorSiblings: vectorSiblings.length,
-                }
+                },
               );
               rawPath = synth.path;
               provenance = synth.provenance;
@@ -1235,7 +1465,9 @@ export class FigmaCanvasParser {
             let vmlPath = "";
             let strokeVmlPath = "";
             let vectorPoints: { x: number; y: number }[] | undefined;
-            let vectorSubpaths: { points: { x: number; y: number }[]; closed: boolean }[] | undefined;
+            let vectorSubpaths:
+              | { points: { x: number; y: number }[]; closed: boolean }[]
+              | undefined;
 
             if (rawPath) {
               const parsed = SvgPath.parse(rawPath);
@@ -1263,7 +1495,10 @@ export class FigmaCanvasParser {
               vectorPath: vmlPath,
               rawSvgPath: rawPath,
               strokeVectorPath: strokeVmlPath || undefined,
-              rawStrokeSvgPath: rawStrokePath && rawStrokePath !== rawPath ? rawStrokePath : undefined,
+              rawStrokeSvgPath:
+                rawStrokePath && rawStrokePath !== rawPath
+                  ? rawStrokePath
+                  : undefined,
               fillRule,
               vectorPoints,
               vectorSubpaths,
@@ -1485,7 +1720,7 @@ export class FigmaCanvasParser {
     } else {
       // 1x1 transparent placeholder
       data = decodeBase64(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
       );
     }
 
@@ -1509,7 +1744,7 @@ export class FigmaCanvasParser {
     // 1. Fills
     if (node.fills && node.fills.length > 0) {
       const solid = node.fills.find(
-        (f) => f.type === "SOLID" && f.visible !== false
+        (f) => f.type === "SOLID" && f.visible !== false,
       );
       if (solid && solid.color) {
         style.fillColor = this.figmaColorToHex(solid.color);
@@ -1518,7 +1753,8 @@ export class FigmaCanvasParser {
     }
 
     // 2. Strokes
-    const rawWeight = typeof node.strokeWeight === "number" ? node.strokeWeight : 1;
+    const rawWeight =
+      typeof node.strokeWeight === "number" ? node.strokeWeight : 1;
     const isw = (node as any).individualStrokeWeights as
       | { top?: number; right?: number; bottom?: number; left?: number }
       | undefined;
@@ -1540,7 +1776,7 @@ export class FigmaCanvasParser {
 
     if (hasNonZeroWeight && node.strokes && node.strokes.length > 0) {
       const stroke = node.strokes.find(
-        (s) => s.type === "SOLID" && s.visible !== false
+        (s) => s.type === "SOLID" && s.visible !== false,
       );
       if (stroke && stroke.color) {
         style.strokeColor = this.figmaColorToHex(stroke.color);
@@ -1549,7 +1785,11 @@ export class FigmaCanvasParser {
         if (dashes && dashes.length > 0) {
           style.strokeDashed = true;
         }
-        if (node.strokeAlign === "INSIDE" || node.strokeAlign === "OUTSIDE" || node.strokeAlign === "CENTER") {
+        if (
+          node.strokeAlign === "INSIDE" ||
+          node.strokeAlign === "OUTSIDE" ||
+          node.strokeAlign === "CENTER"
+        ) {
           style.strokeAlign = node.strokeAlign;
         } else {
           style.strokeAlign = "INSIDE";
@@ -1566,12 +1806,13 @@ export class FigmaCanvasParser {
         number,
         number,
         number,
-        number
+        number,
       ];
       style.cornerRadii = radii;
       const nonZero = radii.filter((r) => r > 0);
       if (nonZero.length > 0) {
-        style.cornerRadius = nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
+        style.cornerRadius =
+          nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
       }
     } else if (node.cornerRadius) {
       style.cornerRadius = node.cornerRadius * scale;
@@ -1580,7 +1821,7 @@ export class FigmaCanvasParser {
     // 4. Drop Shadow Effect
     if (node.effects && Array.isArray(node.effects)) {
       const shadowEffect = node.effects.find(
-        (e: any) => e.type === "DROP_SHADOW" && e.visible !== false
+        (e: any) => e.type === "DROP_SHADOW" && e.visible !== false,
       );
       if (shadowEffect && shadowEffect.color) {
         style.shadow = {
@@ -1607,7 +1848,7 @@ export class FigmaCanvasParser {
   private buildEllipseArcSvgPath(
     startAngle: number,
     endAngle: number,
-    innerRadius: number
+    innerRadius: number,
   ): string {
     const cx = 500;
     const cy = 500;
@@ -1636,7 +1877,7 @@ export class FigmaCanvasParser {
       const cp2x = p1x + alpha * outerR * Math.sin(t1);
       const cp2y = p1y - alpha * outerR * Math.cos(t1);
       parts.push(
-        `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`
+        `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`,
       );
     }
 
@@ -1658,7 +1899,7 @@ export class FigmaCanvasParser {
         const cp2x = p1x + revAlpha * innerR * Math.sin(t1);
         const cp2y = p1y - revAlpha * innerR * Math.cos(t1);
         parts.push(
-          `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`
+          `C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)} ${cp2x.toFixed(3)} ${cp2y.toFixed(3)} ${p1x.toFixed(3)} ${p1y.toFixed(3)}`,
         );
       }
       parts.push("Z");
@@ -1684,8 +1925,8 @@ export class FigmaCanvasParser {
       typeof rawWeight === "number"
         ? rawWeight
         : rawWeight
-        ? parseInt(String(rawWeight), 10) || 400
-        : 400;
+          ? parseInt(String(rawWeight), 10) || 400
+          : 400;
     const defaultItalic =
       node.style?.italic ||
       node.style?.fontPostScriptName?.toLowerCase().includes("italic") ||
@@ -1693,22 +1934,29 @@ export class FigmaCanvasParser {
     const defaultUnderline = node.style?.textDecoration === "UNDERLINE";
     const defaultStrike = node.style?.textDecoration === "STRIKETHROUGH";
 
-    const lineHeightUnit = (node.style as any)?.lineHeightUnit as string | undefined;
+    const lineHeightUnit = (node.style as any)?.lineHeightUnit as
+      | string
+      | undefined;
     let defaultLineHeightPt: number | undefined;
     if (lineHeightUnit !== "INTRINSIC_%") {
-      if (typeof node.style?.lineHeightPx === "number" && node.style.lineHeightPx > 0) {
+      if (
+        typeof node.style?.lineHeightPx === "number" &&
+        node.style.lineHeightPx > 0
+      ) {
         defaultLineHeightPt = node.style.lineHeightPx * scale;
       } else if (
         typeof (node.style as any)?.lineHeightPercentFontSize === "number" &&
         (node.style as any).lineHeightPercentFontSize > 0
       ) {
         defaultLineHeightPt =
-          defaultFontSize * ((node.style as any).lineHeightPercentFontSize / 100);
+          defaultFontSize *
+          ((node.style as any).lineHeightPercentFontSize / 100);
       }
     }
 
     const defaultLetterSpacingPt =
-      typeof node.style?.letterSpacing === "number" && node.style.letterSpacing !== 0
+      typeof node.style?.letterSpacing === "number" &&
+      node.style.letterSpacing !== 0
         ? node.style.letterSpacing * scale
         : undefined;
 
@@ -1720,7 +1968,7 @@ export class FigmaCanvasParser {
         : ((node.style as any)?.fills as any[] | undefined);
     if (textFills && textFills.length > 0) {
       const solid = textFills.find(
-        (f) => f.type === "SOLID" && f.visible !== false
+        (f) => f.type === "SOLID" && f.visible !== false,
       );
       if (solid && solid.color) {
         defaultColor = this.figmaColorToHex(solid.color);
@@ -1764,8 +2012,8 @@ export class FigmaCanvasParser {
                 defaultColor,
                 defaultLineHeightPt,
                 defaultLetterSpacingPt,
-                scale
-              )
+                scale,
+              ),
             );
           }
           currentRunText = char;
@@ -1788,8 +2036,8 @@ export class FigmaCanvasParser {
             defaultColor,
             defaultLineHeightPt,
             defaultLetterSpacingPt,
-            scale
-          )
+            scale,
+          ),
         );
       }
     } else {
@@ -1824,7 +2072,7 @@ export class FigmaCanvasParser {
     defaultColor: string,
     defaultLineHeightPt: number | undefined,
     defaultLetterSpacingPt: number | undefined,
-    scale: number
+    scale: number,
   ): CanvasTextRun {
     const override = styleTable[String(styleKey)];
     if (!override) {
@@ -1845,7 +2093,7 @@ export class FigmaCanvasParser {
     let color = defaultColor;
     if (override.fills && override.fills.length > 0) {
       const solid = override.fills.find(
-        (f: FigmaPaint) => f.type === "SOLID" && f.visible !== false
+        (f: FigmaPaint) => f.type === "SOLID" && f.visible !== false,
       );
       if (solid && solid.color) {
         color = this.figmaColorToHex(solid.color);
@@ -1857,12 +2105,15 @@ export class FigmaCanvasParser {
       typeof rawWeight === "number"
         ? rawWeight
         : rawWeight
-        ? parseInt(String(rawWeight), 10) || defaultWeight
-        : defaultWeight;
+          ? parseInt(String(rawWeight), 10) || defaultWeight
+          : defaultWeight;
 
     let lineHeightPt = defaultLineHeightPt;
     if (override.lineHeightUnit !== "INTRINSIC_%") {
-      if (typeof override.lineHeightPx === "number" && override.lineHeightPx > 0) {
+      if (
+        typeof override.lineHeightPx === "number" &&
+        override.lineHeightPx > 0
+      ) {
         lineHeightPt = override.lineHeightPx * scale;
       }
     }
@@ -1892,7 +2143,9 @@ export class FigmaCanvasParser {
     };
   }
 
-  private extractTextAlign(node: FigmaNode): "left" | "center" | "right" | "justify" {
+  private extractTextAlign(
+    node: FigmaNode,
+  ): "left" | "center" | "right" | "justify" {
     const align = node.style?.textAlignHorizontal;
     if (align === "CENTER") return "center";
     if (align === "RIGHT") return "right";
