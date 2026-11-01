@@ -489,6 +489,82 @@ export class DocxCanvasRenderer {
     const altAttr = altId ? `alt="${escapeXml(altId)}"` : "";
     const titleAttr = `o:title="${escapeXml(elem.name || elem.sourceNodeId || elem.id || "")}"`;
 
+    // 0. Table (<w:tbl> or positioned cell cards fallback)
+    if (elem.type === "table" && elem.tableData) {
+      const td = elem.tableData;
+      const rowCount = td.rowCount || td.cells.length;
+      const colCount = td.colCount || (td.cells[0]?.length ?? 0);
+      const colWidths = td.colWidthsPt || [];
+      const rowHeights = td.rowHeightsPt || [];
+
+      const colXOffsets: number[] = [0];
+      for (let c = 0; c < colCount; c++) {
+        const cw = colWidths[c] || (renderW / Math.max(1, colCount));
+        colXOffsets.push(colXOffsets[c] + cw);
+      }
+
+      const rowYOffsets: number[] = [0];
+      for (let r = 0; r < rowCount; r++) {
+        const firstCell = td.cells[r]?.[0];
+        const rh = rowHeights[r] || firstCell?.heightPt || (renderH / Math.max(1, rowCount));
+        rowYOffsets.push(rowYOffsets[r] + rh);
+      }
+
+      const occupied: boolean[][] = Array.from({ length: rowCount }, () => Array(colCount).fill(false));
+      const renderedCells: string[] = [];
+      let subIdx = 0;
+
+      for (let r = 0; r < rowCount; r++) {
+        for (let c = 0; c < colCount; c++) {
+          if (occupied[r][c]) continue;
+          const cell = td.cells[r]?.find((cellItem) => cellItem.col === c) || td.cells[r]?.[c];
+          if (!cell) continue;
+
+          const colSpan = Math.max(1, cell.colSpan || 1);
+          const rowSpan = Math.max(1, cell.rowSpan || 1);
+
+          for (let dr = 0; dr < rowSpan; dr++) {
+            for (let dc = 0; dc < colSpan; dc++) {
+              if (r + dr < rowCount && c + dc < colCount) {
+                occupied[r + dr][c + dc] = true;
+              }
+            }
+          }
+
+          const cellX = adjustedX + colXOffsets[c];
+          const cellY = y + rowYOffsets[r];
+          const cellW = (colXOffsets[c + colSpan] ?? (colXOffsets[c] + (renderW / colCount))) - colXOffsets[c];
+          const cellH = (rowYOffsets[r + rowSpan] ?? (rowYOffsets[r] + (renderH / rowCount))) - rowYOffsets[r];
+
+          const cellTextRuns =
+            cell.paragraphs && cell.paragraphs.length > 0
+              ? cell.paragraphs.flatMap((p, idx) =>
+                  idx > 0 ? [{ text: "\n" }, ...p] : p
+                )
+              : cell.textRuns;
+
+          const cellElem: CanvasElement = {
+            id: `${elem.id}_c_${r}_${c}`,
+            name: `${elem.name || "Table"}_Cell_${r}_${c}`,
+            type: "card",
+            bounds: { x: cellX, y: cellY, width: cellW, height: cellH },
+            zIndex: z + subIdx + 1,
+            style: {
+              fillColor: cell.backgroundColor,
+              strokeColor: cell.borderColor || "#D0D5DD",
+              strokeWidth: cell.borderWidth !== undefined ? cell.borderWidth : 1,
+            },
+            textRuns: cellTextRuns,
+            paragraphAlign: cell.align,
+            verticalAlign: cell.verticalAlign || (r === 0 ? "center" : "top"),
+          };
+          renderedCells.push(this.renderElement(pageIdx, elemIdx * 100 + subIdx, cellElem, imageRelMap, resources));
+          subIdx++;
+        }
+      }
+      return renderedCells.join("\n");
+    }
+
     // 1. Line
     if (elem.type === "line") {
       const strokeColor = cleanHex(elem.style.strokeColor, "000000");

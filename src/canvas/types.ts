@@ -221,7 +221,9 @@ export interface CanvasTableCell {
   borderColor?: string;
   borderWidth?: number;
   textRuns: CanvasTextRun[];
-  align?: "left" | "center" | "right";
+  paragraphs?: CanvasTextRun[][];
+  align?: "left" | "center" | "right" | "justify";
+  verticalAlign?: "top" | "center" | "bottom";
 }
 
 export interface CanvasTableData {

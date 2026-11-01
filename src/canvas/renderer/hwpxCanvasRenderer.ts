@@ -6,6 +6,8 @@ import {
   CanvasTextRun,
   CanvasResource,
   CanvasShadow,
+  CanvasTableData,
+  CanvasTableCell,
   ptToHwpu,
 } from "../types.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
@@ -39,6 +41,17 @@ interface CharPrKey {
   underline: boolean;
   strike: boolean;
   letterSpacingPct: number;
+}
+
+
+export interface BorderFillEntry {
+  id: number;
+  faceColor: string;
+  alpha: number;
+  leftBorder: { type: string; width: string; color: string };
+  rightBorder: { type: string; width: string; color: string };
+  topBorder: { type: string; width: string; color: string };
+  bottomBorder: { type: string; width: string; color: string };
 }
 
 interface ParaPrEntry {
@@ -187,12 +200,79 @@ export class HwpxCanvasRenderer {
       return newId;
     };
 
-    // 7. Contents/section0.xml (builds shapes & populates charPrRegistry / paraPrRegistry)
-    const section0Xml = this.buildSection0Xml(doc, imageBinMap, getCharPrId, getParaPrId);
+    // Dynamic borderFill registry
+    const borderFillList: BorderFillEntry[] = [
+      {
+        id: 1,
+        faceColor: "none",
+        alpha: 0,
+        leftBorder: { type: "NONE", width: "0.1 mm", color: "#000000" },
+        rightBorder: { type: "NONE", width: "0.1 mm", color: "#000000" },
+        topBorder: { type: "NONE", width: "0.1 mm", color: "#000000" },
+        bottomBorder: { type: "NONE", width: "0.1 mm", color: "#000000" },
+      },
+    ];
+    const borderFillRegistry = new Map<string, number>();
+    borderFillRegistry.set("none_0_NONE_0.1 mm_#000000", 1);
+
+    const mapBorderWidth = (pt?: number): string => {
+      if (pt === undefined || pt <= 0) return "0.1 mm";
+      if (pt <= 0.5) return "0.12 mm";
+      if (pt <= 1.0) return "0.2 mm";
+      if (pt <= 1.5) return "0.3 mm";
+      if (pt <= 2.0) return "0.5 mm";
+      if (pt <= 3.0) return "0.7 mm";
+      return "1.0 mm";
+    };
+
+    const getBorderFillId = (params: {
+      backgroundColor?: string;
+      fillOpacity?: number;
+      borderColor?: string;
+      borderWidthPt?: number;
+      borderStyle?: "NONE" | "SOLID" | "DASH";
+    }): number => {
+      const hasFill = !!params.backgroundColor;
+      const faceColor = hasFill ? `#${cleanHex(params.backgroundColor)}` : "none";
+      const alpha = hasFill ? Math.max(0, Math.min(255, Math.round((1 - (params.fillOpacity ?? 1)) * 255))) : 0;
+
+      const defaultBorderColor = params.borderColor ? `#${cleanHex(params.borderColor)}` : "#000000";
+      const defaultType =
+        params.borderColor && (params.borderWidthPt === undefined || params.borderWidthPt > 0)
+          ? params.borderStyle || "SOLID"
+          : "NONE";
+      const defaultWidth = mapBorderWidth(params.borderWidthPt);
+
+      const borderSide = {
+        type: defaultType,
+        width: defaultWidth,
+        color: defaultBorderColor,
+      };
+
+      const key = `${faceColor}_${alpha}_${borderSide.type}_${borderSide.width}_${borderSide.color}`;
+      if (borderFillRegistry.has(key)) {
+        return borderFillRegistry.get(key)!;
+      }
+      const newId = borderFillList.length + 1;
+      borderFillRegistry.set(key, newId);
+      borderFillList.push({
+        id: newId,
+        faceColor,
+        alpha,
+        leftBorder: { ...borderSide },
+        rightBorder: { ...borderSide },
+        topBorder: { ...borderSide },
+        bottomBorder: { ...borderSide },
+      });
+      return newId;
+    };
+
+    // 7. Contents/section0.xml (builds shapes & populates charPrRegistry / paraPrRegistry / borderFillRegistry)
+    const section0Xml = this.buildSection0Xml(doc, imageBinMap, getCharPrId, getParaPrId, getBorderFillId);
     zip.file("Contents/section0.xml", section0Xml);
 
-    // 8. Contents/header.xml (outputs registered fontfaces, charPr & paraPr styles)
-    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList, 1));
+    // 8. Contents/header.xml (outputs registered fontfaces, charPr, paraPr & borderFill styles)
+    zip.file("Contents/header.xml", this.buildHeaderXml(charPrList, fontRegistry, paraPrList, borderFillList, 1));
 
     return zip;
   }
@@ -288,8 +368,23 @@ ${items}
     charPrList: { id: number; key: CharPrKey }[],
     fontRegistry: Map<string, number>,
     paraPrList: ParaPrEntry[],
+    borderFillList: BorderFillEntry[],
     secCnt: number = 1
   ): string {
+    const borderFillEntries = borderFillList
+      .map(
+        (b) => `      <hh:borderFill id="${b.id}" threeD="0" shadow="0" centerLine="NONE" breakCellSeparateLine="0">
+        <hh:slash type="NONE" Crooked="0" isCounter="0"/>
+        <hh:backSlash type="NONE" Crooked="0" isCounter="0"/>
+        <hh:leftBorder type="${b.leftBorder.type}" width="${b.leftBorder.width}" color="${b.leftBorder.color}"/>
+        <hh:rightBorder type="${b.rightBorder.type}" width="${b.rightBorder.width}" color="${b.rightBorder.color}"/>
+        <hh:topBorder type="${b.topBorder.type}" width="${b.topBorder.width}" color="${b.topBorder.color}"/>
+        <hh:bottomBorder type="${b.bottomBorder.type}" width="${b.bottomBorder.width}" color="${b.bottomBorder.color}"/>
+        <hh:diagonal type="NONE" width="0.1 mm" color="#000000"/>
+        <hc:fillBrush><hc:winBrush faceColor="${b.faceColor}" hatchColor="#999999" alpha="${b.alpha}"/></hc:fillBrush>
+      </hh:borderFill>`
+      )
+      .join("\n");
     let charPrEntries = "";
     for (const { id, key } of charPrList) {
       const heightHwpu = Math.round(key.fontSizePt * 100);
@@ -358,17 +453,8 @@ ${items}
     <hh:fontfaces itemCnt="7">
       ${fontfaceBlocks}
     </hh:fontfaces>
-    <hh:borderFills itemCnt="1">
-      <hh:borderFill id="1" threeD="0" shadow="0" centerLine="NONE" breakCellSeparateLine="0">
-        <hh:slash type="NONE" Crooked="0" isCounter="0"/>
-        <hh:backSlash type="NONE" Crooked="0" isCounter="0"/>
-        <hh:leftBorder type="NONE" width="0.1 mm" color="#000000"/>
-        <hh:rightBorder type="NONE" width="0.1 mm" color="#000000"/>
-        <hh:topBorder type="NONE" width="0.1 mm" color="#000000"/>
-        <hh:bottomBorder type="NONE" width="0.1 mm" color="#000000"/>
-        <hh:diagonal type="NONE" width="0.1 mm" color="#000000"/>
-        <hc:fillBrush><hc:winBrush faceColor="none" hatchColor="#999999" alpha="0"/></hc:fillBrush>
-      </hh:borderFill>
+    <hh:borderFills itemCnt="${borderFillList.length}">
+${borderFillEntries}
     </hh:borderFills>
     <hh:charProperties itemCnt="${Math.max(1, charPrList.length)}">${charPrEntries}
     </hh:charProperties>
@@ -386,7 +472,14 @@ ${paraPrEntries}
     doc: CanvasDocument,
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number,
-    getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number
+    getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number,
+    getBorderFillId: (params: {
+      backgroundColor?: string;
+      fillOpacity?: number;
+      borderColor?: string;
+      borderWidthPt?: number;
+      borderStyle?: "NONE" | "SOLID" | "DASH";
+    }) => number
   ): string {
     const pageParas: string[] = [];
     let globalShapeId = 1;
@@ -439,6 +532,7 @@ ${paraPrEntries}
           imageBinMap,
           getCharPrId,
           getParaPrId,
+          getBorderFillId,
           doc.resources
         );
         for (const shapeXml of rendered) {
@@ -509,6 +603,13 @@ ${paraPrEntries}
     imageBinMap: Map<string, { binId: string; ext: string; mimeType: string }>,
     getCharPrId: (run: CanvasTextRun) => number,
     getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number,
+    getBorderFillId: (params: {
+      backgroundColor?: string;
+      fillOpacity?: number;
+      borderColor?: string;
+      borderWidthPt?: number;
+      borderStyle?: "NONE" | "SOLID" | "DASH";
+    }) => number,
     resources?: Record<string, CanvasResource>
   ): string[] {
     const xHwpu = ptToHwpu(elem.bounds.x);
@@ -516,6 +617,25 @@ ${paraPrEntries}
     const wHwpu = Math.max(100, ptToHwpu(elem.bounds.width));
     const hHwpu = Math.max(100, ptToHwpu(elem.bounds.height));
     const zOrder = elem.zIndex;
+
+    // 0. Native KS X 6101 / OWPML Table (<hp:tbl>)
+    if (elem.type === "table" && elem.tableData) {
+      return [
+        this.renderTableXml({
+          id: nextId(),
+          zOrder,
+          x: xHwpu,
+          y: yHwpu,
+          w: wHwpu,
+          h: hHwpu,
+          tableData: elem.tableData,
+          nextId,
+          getCharPrId,
+          getParaPrId,
+          getBorderFillId,
+        }),
+      ];
+    }
 
     // 1. Image with FILL Cover Crop, Explicit CROP, or FIT Letterbox
     if (elem.type === "image" && elem.imageRef) {
@@ -1216,4 +1336,187 @@ ${paraPrEntries}
   <hp:outMargin left="0" right="0" top="0" bottom="0"/>
 </hp:pic>`;
   }
+
+  /**
+   * Helper: Serializes native KS X 6101 / OWPML <hp:tbl> with rows, cells, margins, spans, and nested paragraphs
+   */
+  private renderTableXml(p: {
+    id: number;
+    zOrder: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    tableData: CanvasTableData;
+    nextId: () => number;
+    getCharPrId: (run: CanvasTextRun) => number;
+    getParaPrId: (align?: "left" | "center" | "right" | "justify", lineHeightPt?: number) => number;
+    getBorderFillId: (params: {
+      backgroundColor?: string;
+      fillOpacity?: number;
+      borderColor?: string;
+      borderWidthPt?: number;
+      borderStyle?: "NONE" | "SOLID" | "DASH";
+    }) => number;
+  }): string {
+    const td = p.tableData;
+    const rowCount = td.rowCount || td.cells.length;
+    const colCount = td.colCount || (td.cells[0]?.length ?? 0);
+
+    // Compute column widths in HWP units
+    const colWidthsHwpu: number[] = [];
+    if (td.colWidthsPt && td.colWidthsPt.length === colCount) {
+      for (const cw of td.colWidthsPt) {
+        colWidthsHwpu.push(ptToHwpu(cw));
+      }
+    } else {
+      const avgW = Math.round(p.w / Math.max(1, colCount));
+      for (let c = 0; c < colCount; c++) {
+        colWidthsHwpu.push(avgW);
+      }
+    }
+
+    // Adjust last column so sum matches exact table width
+    const sumW = colWidthsHwpu.reduce((a, b) => a + b, 0);
+    if (sumW !== p.w && colWidthsHwpu.length > 0) {
+      colWidthsHwpu[colWidthsHwpu.length - 1] += (p.w - sumW);
+    }
+
+    // Compute row heights in HWP units
+    const rowHeightsHwpu: number[] = [];
+    if (td.rowHeightsPt && td.rowHeightsPt.length === rowCount) {
+      for (const rh of td.rowHeightsPt) {
+        rowHeightsHwpu.push(ptToHwpu(rh));
+      }
+    } else {
+      for (let r = 0; r < rowCount; r++) {
+        const firstCell = td.cells[r]?.[0];
+        const rhPt = firstCell?.heightPt || (p.h / (rowCount * 100));
+        rowHeightsHwpu.push(ptToHwpu(rhPt));
+      }
+    }
+
+    const tableBorderFillId = p.getBorderFillId({
+      borderColor: "#D0D5DD",
+      borderWidthPt: 1,
+    });
+
+    const occupied: boolean[][] = Array.from({ length: rowCount }, () => Array(colCount).fill(false));
+    const rowsXml: string[] = [];
+
+    for (let r = 0; r < rowCount; r++) {
+      const trCells: string[] = [];
+      for (let c = 0; c < colCount; c++) {
+        if (occupied[r][c]) {
+          // Covered by an earlier spanned cell: MUST be omitted per KS X 6101
+          continue;
+        }
+
+        const cell = td.cells[r]?.find((cellItem: CanvasTableCell) => cellItem.col === c) || td.cells[r]?.[c] || {
+          row: r,
+          col: c,
+          widthPt: colWidthsHwpu[c] / 100,
+          heightPt: rowHeightsHwpu[r] / 100,
+          textRuns: [],
+        };
+
+        const colSpan = Math.max(1, cell.colSpan || 1);
+        const rowSpan = Math.max(1, cell.rowSpan || 1);
+
+        for (let dr = 0; dr < rowSpan; dr++) {
+          for (let dc = 0; dc < colSpan; dc++) {
+            if (r + dr < rowCount && c + dc < colCount) {
+              occupied[r + dr][c + dc] = true;
+            }
+          }
+        }
+
+        let cellWHwpu = 0;
+        for (let dc = 0; dc < colSpan && c + dc < colCount; dc++) {
+          cellWHwpu += colWidthsHwpu[c + dc];
+        }
+        let cellHHwpu = 0;
+        for (let dr = 0; dr < rowSpan && r + dr < rowCount; dr++) {
+          cellHHwpu += rowHeightsHwpu[r + dr];
+        }
+
+        const cellBorderFillId = p.getBorderFillId({
+          backgroundColor: cell.backgroundColor,
+          borderColor: cell.borderColor || "#D0D5DD",
+          borderWidthPt: cell.borderWidth !== undefined ? cell.borderWidth : 1,
+        });
+
+        let parasXml: string[] = [];
+        if (cell.paragraphs && cell.paragraphs.length > 0) {
+          parasXml = cell.paragraphs.map((para: CanvasTextRun[], pIdx: number) => {
+            const firstLh = para.find((run: CanvasTextRun) => run.lineHeightPt && run.lineHeightPt > 0)?.lineHeightPt;
+            const paraPrId = p.getParaPrId(cell.align || "left", firstLh);
+            const runsStr =
+              para.length > 0
+                ? para
+                    .map((run: CanvasTextRun) => `<hp:run charPrIDRef="${p.getCharPrId(run)}"><hp:t>${escapeXml(run.text)}</hp:t></hp:run>`)
+                    .join("")
+                : `<hp:run charPrIDRef="0"><hp:t/></hp:run>`;
+            return `<hp:p id="${pIdx}" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">${runsStr}</hp:p>`;
+          });
+        } else if (cell.textRuns && cell.textRuns.length > 0) {
+          const paragraphs: Array<Array<{ charPrId: number; text: string }>> = [[]];
+          const firstLh = cell.textRuns.find((run: CanvasTextRun) => run.lineHeightPt && run.lineHeightPt > 0)?.lineHeightPt;
+          const paraPrId = p.getParaPrId(cell.align || "left", firstLh);
+
+          for (const run of cell.textRuns) {
+            const charPrId = p.getCharPrId(run);
+            const lines = run.text.split(/\r\n|\r|\n/);
+            for (let i = 0; i < lines.length; i++) {
+              if (i > 0) paragraphs.push([]);
+              if (lines[i].length > 0 || lines.length === 1) {
+                paragraphs[paragraphs.length - 1].push({ charPrId, text: lines[i] });
+              }
+            }
+          }
+          parasXml = paragraphs.map((paraRuns, pIdx) => {
+            const runsStr =
+              paraRuns.length > 0
+                ? paraRuns
+                    .map((r) => `<hp:run charPrIDRef="${r.charPrId}"><hp:t>${escapeXml(r.text)}</hp:t></hp:run>`)
+                    .join("")
+                : `<hp:run charPrIDRef="0"><hp:t/></hp:run>`;
+            return `<hp:p id="${pIdx}" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">${runsStr}</hp:p>`;
+          });
+        } else {
+          const paraPrId = p.getParaPrId(cell.align || "left");
+          parasXml = [
+            `<hp:p id="0" paraPrIDRef="${paraPrId}" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="0"><hp:t/></hp:run></hp:p>`,
+          ];
+        }
+
+        const vertAlignAttr =
+          cell.verticalAlign === "center" ? "CENTER" : cell.verticalAlign === "bottom" ? "BOTTOM" : "TOP";
+        const cellId = p.nextId();
+        const isHeader = r === 0 ? "1" : "0";
+
+        trCells.push(`    <hp:tc id="${cellId}" name="" header="${isHeader}" hasMargin="0" protect="0" editable="1" dirty="0" borderFillIDRef="${cellBorderFillId}">
+      <hp:cellAddr colAddr="${c}" rowAddr="${r}"/>
+      <hp:cellSpan colSpan="${colSpan}" rowSpan="${rowSpan}"/>
+      <hp:cellSz width="${cellWHwpu}" height="${cellHHwpu}"/>
+      <hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="${vertAlignAttr}" linkListIDRef="0" linkListNextIDRef="0" textWidth="${cellWHwpu}" textHeight="0" hasTextRef="0" hasNumRef="0">
+        ${parasXml.join("\n        ")}
+      </hp:subList>
+    </hp:tc>`);
+      }
+
+      rowsXml.push(`  <hp:tr>
+${trCells.join("\n")}
+  </hp:tr>`);
+    }
+
+    return `<hp:tbl id="${p.id}" instid="${p.id}" zOrder="${p.zOrder}" numberingType="NONE" textWrap="IN_FRONT_OF_TEXT" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" pageBreak="CELL" repeatHeader="1" rowCnt="${rowCount}" colCnt="${colCount}" cellSpacing="0" borderFillIDRef="${tableBorderFillId}">
+  <hp:sz width="${p.w}" height="${p.h}" widthRelTo="ABSOLUTE" heightRelTo="ABSOLUTE" protect="0"/>
+  <hp:pos treatAsChar="0" affectLSpacing="0" flowWithText="0" allowOverlap="1" holdAnchorAndSO="1" vertRelTo="PAPER" horzRelTo="PAPER" vertAlign="TOP" horzAlign="LEFT" vertOffset="${p.y}" horzOffset="${p.x}"/>
+  <hp:outMargin left="0" right="0" top="0" bottom="0"/>
+  <hp:inMargin left="0" right="0" top="0" bottom="0"/>
+${rowsXml.join("\n")}
+</hp:tbl>`;
+  }
 }
+
