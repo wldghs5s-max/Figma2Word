@@ -175,9 +175,9 @@ export function synthesizeVectorIconPath(
       return makeVectorResult("M 80 500 C 250 250 750 250 920 500 C 750 750 250 750 80 500 Z", "LOCALLY_RECOVERED_GEOMETRY");
     }
 
-    // 10. Composite circle-check
+    // 10. Composite circle-check (when inside multi-vector component)
     if (/\b(circle-check)\b/i.test(parentName)) {
-      if (wPt > 8 && hPt > 8) {
+      if ((siblingIdx === 0 && (wPt > 6 && hPt > 6)) || (wPt > 8 && hPt > 8)) {
         return makeVectorResult("M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z", "LOCALLY_RECOVERED_GEOMETRY");
       }
       return makeVectorResult("M 150 520 L 400 780 L 880 180", "LOCALLY_RECOVERED_GEOMETRY");
@@ -201,8 +201,19 @@ export function synthesizeVectorIconPath(
     );
   }
 
-  // 3. Check / Tick
-  if (/\b(check|tick)\b/i.test(nameLower)) {
+  // 2c. Circle-check (handles single unselected circle vectors where totalSiblings <= 1)
+  if (/\b(circle-check)\b/i.test(parentName) || /\b(circle-check)\b/i.test(nodeName)) {
+    if (totalSiblings <= 1 || (wPt > 6 && hPt > 6)) {
+      return makeVectorResult(
+        "M 500 100 C 720 100 900 280 900 500 C 900 720 720 900 500 900 C 280 900 100 720 100 500 C 100 280 280 100 500 100 Z",
+        "LOCALLY_RECOVERED_GEOMETRY"
+      );
+    }
+    return makeVectorResult("M 150 520 L 400 780 L 880 180", "LOCALLY_RECOVERED_GEOMETRY");
+  }
+
+  // 3. Check / Tick (standalone checkmarks, excluding circle-check)
+  if (/\b(check|tick)\b/i.test(nameLower) && !/\bcircle-check\b/i.test(nameLower)) {
     return makeVectorResult("M 150 520 L 400 780 L 880 180", "SEMANTIC_APPROXIMATION");
   }
 
@@ -224,6 +235,12 @@ export function synthesizeVectorIconPath(
 
   // 6. Search / Magnifier
   if (/\b(search|find|glass|magnif)\b/i.test(nameLower)) {
+    if (!hasFill) {
+      return makeVectorResult(
+        "M 420 180 C 552 180 660 288 660 420 C 660 552 552 660 420 660 C 288 660 180 552 180 420 C 180 288 288 180 420 180 Z M 590 590 L 850 850",
+        "SEMANTIC_APPROXIMATION"
+      );
+    }
     return makeVectorResult(
       "M 420 150 C 569 150 690 271 690 420 C 690 485 667 544 629 591 L 860 822 C 875 837 875 862 860 877 C 845 892 820 892 805 877 L 574 646 C 530 679 476 700 417 700 C 268 700 147 579 147 430 C 147 281 268 160 417 160 Z M 417 240 C 312 240 227 325 227 430 C 227 535 312 620 417 620 C 522 620 607 535 607 430 C 607 325 522 240 417 240 Z",
       "SEMANTIC_APPROXIMATION"

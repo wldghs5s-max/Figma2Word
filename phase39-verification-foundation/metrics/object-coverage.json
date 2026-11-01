@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-31T21:10:21.919Z",
+  "timestamp": "2026-11-01T02:25:35.852Z",
   "sourceDocumentSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "totalSourceNodes": 2033,
   "totalTraceableNodes": 2033,
@@ -20,8 +20,8 @@
   },
   "provenanceBreakdown": {
     "sourceGeometryCount": 0,
-    "locallyRecoveredCount": 175,
-    "semanticApproximationCount": 60,
+    "locallyRecoveredCount": 186,
+    "semanticApproximationCount": 49,
     "geometricFallbackCount": 3,
     "primitiveShapeCount": 1074,
     "unresolvedCount": 0

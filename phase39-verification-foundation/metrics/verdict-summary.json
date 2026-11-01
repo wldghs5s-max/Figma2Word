@@ -1,6 +1,6 @@
 {
-  "runId": "run_phase39_1793481009647",
-  "evaluatedAt": "2026-10-31T21:11:25.669Z",
+  "runId": "run_phase39_1793499922923",
+  "evaluatedAt": "2026-11-01T02:26:43.494Z",
   "overallStatus": "PASSED",
   "isApproved": true,
   "requiredGateCount": 9,
@@ -28,7 +28,7 @@
       "gateId": "GATE_OBJECT_TRACEABILITY",
       "name": "Source-to-Word Object Traceability Gate",
       "status": "PASSED",
-      "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 175 recovered, 60 semantic approximations)."
+      "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 186 recovered, 49 semantic approximations)."
     },
     "GATE_SECTION_PAGE_MAPPING": {
       "gateId": "GATE_SECTION_PAGE_MAPPING",
@@ -64,7 +64,7 @@
       "gateId": "GATE_VISUAL_FIDELITY",
       "name": "Visual Fidelity Benchmark Gate",
       "status": "PASSED",
-      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9502 (Quality threshold >= 0.9400 verified)"
     }
   },
   "failureReasons": [],

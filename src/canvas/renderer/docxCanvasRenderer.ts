@@ -475,11 +475,13 @@ export class DocxCanvasRenderer {
       }
     }
 
+    const renderW = elem.type === "vector" && effectiveWidth <= 0.01 && height > 0 ? (elem.style.strokeWidth ? Math.max(0.75, elem.style.strokeWidth) : 0.75) : effectiveWidth;
+    const renderH = elem.type === "vector" && height <= 0.01 && effectiveWidth > 0 ? (elem.style.strokeWidth ? Math.max(0.75, elem.style.strokeWidth) : 0.75) : height;
     const baseStyle = `position:absolute;left:0;top:0;margin-left:${adjustedX.toFixed(
       3
-    )}pt;margin-top:${y.toFixed(3)}pt;width:${effectiveWidth.toFixed(
+    )}pt;margin-top:${y.toFixed(3)}pt;width:${renderW.toFixed(
       3
-    )}pt;height:${height.toFixed(
+    )}pt;height:${renderH.toFixed(
       3
     )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;${wrapStyle}${rotStyle}`;
 

@@ -1,7 +1,7 @@
 ================================================================================
  Figma2Word — Phase 39: Trustworthy Verification Foundation Production Pipeline
- Run ID: run_phase39_1793481009647
- Started: 2026-10-31T21:10:09.647Z
+ Run ID: run_phase39_1793499922923
+ Started: 2026-11-01T02:25:22.923Z
 ================================================================================
 
 [Step 1] Verifying Real Customer Input JSON Integrity:
@@ -21,7 +21,7 @@
 
 [Step 5] Multi-Section Production DOCX Generation:
   Saved candidate DOCX: C:\Users\77\Documents\Figma2Word\debug\phase39-production\candidate_multi_page.docx
-  DOCX SHA-256: 1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58
+  DOCX SHA-256: 6db5918a8e4011959fe6a9554b018dc70ab1f91c4950251796b911b327455e88
 
 [Step 6] Microsoft Word Native Rendering Automation:
   Word rendered 17 pages to PDF and PNG.
@@ -73,9 +73,9 @@
 
 [Step 13] Independent 16-Frame Fidelity Benchmark (Word Native Render vs Figma Reference):
   Valid Evaluations:      16 / 16 target frames
-  Mean Fidelity SSIM:     0.9492
-  Mean Fidelity MAE:      2.53
-  Mean Fidelity RMSE:     14.78
+  Mean Fidelity SSIM:     0.9502
+  Mean Fidelity MAE:      2.49
+  Mean Fidelity RMSE:     14.65
 
 [Step 14] Fail-Closed Integrity Gates Evaluation (A-03 Hardened):
   Provenance Gate:        PASSED (REAL_DOCUMENT_BENCHMARK)

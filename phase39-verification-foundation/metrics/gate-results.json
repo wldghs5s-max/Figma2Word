@@ -17,7 +17,7 @@
     "gateId": "GATE_OBJECT_TRACEABILITY",
     "name": "Source-to-Word Object Traceability Gate",
     "status": "PASSED",
-    "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 175 recovered, 60 semantic approximations)."
+    "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 186 recovered, 49 semantic approximations)."
   },
   "GATE_SECTION_PAGE_MAPPING": {
     "gateId": "GATE_SECTION_PAGE_MAPPING",
@@ -53,6 +53,6 @@
     "gateId": "GATE_VISUAL_FIDELITY",
     "name": "Visual Fidelity Benchmark Gate",
     "status": "PASSED",
-    "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
+    "summary": "Evaluated 16/16 frames, mean SSIM: 0.9502 (Quality threshold >= 0.9400 verified)"
   }
 }

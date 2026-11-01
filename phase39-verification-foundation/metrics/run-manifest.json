@@ -1,10 +1,10 @@
 {
-  "runId": "run_phase39_1793481009647",
+  "runId": "run_phase39_1793499922923",
   "runStatus": "PASSED",
   "isApproved": true,
-  "startedAt": "2026-10-31T21:10:09.647Z",
-  "finishedAt": "2026-10-31T21:11:25.669Z",
-  "gitCommit": "22c0d1e2562aaebf988e5ab877208690be4da51c",
+  "startedAt": "2026-11-01T02:25:22.923Z",
+  "finishedAt": "2026-11-01T02:26:43.494Z",
+  "gitCommit": "2030b8f2f453c9524e05faeeb65f4764b811de80",
   "sourceFileSha256": "390e774379c9ff9bdc72e0b1918c557e9ea9f3128662692456f8e84a82e0527a",
   "sourceFrameIds": [
     "763:5068",
@@ -25,22 +25,22 @@
     "759:1533",
     "768:3434"
   ],
-  "candidateDocxSha256": "1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58",
-  "candidatePdfSha256": "651abece7cdbf7431c547f7bba2a3ba6f45b0e2995d7e381b19997c50ae903e6",
+  "candidateDocxSha256": "6db5918a8e4011959fe6a9554b018dc70ab1f91c4950251796b911b327455e88",
+  "candidatePdfSha256": "5f78e3d06c4eaafa1f4daa03bb1ad4a1735073cb279f08fd0b1920807ee3c25d",
   "candidatePngShaMap": {
     "763:5068": "d3bbd96e10df7f04f273468e52288625c74a2e07acb4b25c72a085269c9fcb99",
-    "766:256": "21e08209a5addc57140257e6461815fbd94925f1fbb63b6502ab18404dc49a02",
+    "766:256": "23297e4c508fe3f69b8012bd382f5c695bd5c2730dff56ef317aadf150359375",
     "757:88": "ed673d3bb35c261d820d7a00afa3a4c9434035a629902b65429d8ab678a50390",
-    "759:759": "51303d3a824cd3a7c57fc021b4c01d784f28c549c439f042055fdc1b4631c6f5",
+    "759:759": "8ba428197c5cba4a9c6f35dffe78b8bec628cf70ec7c0c22d2e14c826993d5f5",
     "757:92": "317bfec3f16e571ae9d2f5eba7d9c8e9adb41755ab65e2438bb42ebe3d355a95",
     "757:142": "4fc0030f1b5d6d57ec6b1257157c6c4179d8dc8f623d59df73c2ffffbd5d1db9",
     "757:158": "f844cd3e7d39eda04ef70504207d1397cfbefd07eb3adc1e3cb6c1e53f78ce4c",
-    "759:911": "dba0a9bb6d2cb7991ba3cb2da59160f0940269367798b7f168389784e221f0dc",
+    "759:911": "3a2e8ce76a02997a408e1897b3de5baf155e1c842d2ab8babf64ff09e962afd8",
     "757:124": "c75e30ed4473e05f339cbcd22a445b5bf4e15895952dd45f9896863168302f60",
-    "759:1076": "feac9910ec8f01010c871097be01a5d23858b80751161655d90a8d56d84498d0",
+    "759:1076": "aac25f35a629690699cefae8b6c4adb8bcc546d3ec5891c825295444f2308f14",
     "766:2289": "f43c97a6c06dfb586497f16d1c714c0edd8f57b3bd0f1bc0ab6b7f0de2125d72",
     "757:118": "429c575a8b43d93c809ddab05aae1b6043ab2dc11cb9dd10acae3a27aa3f0e61",
-    "766:2942": "56c269fcb22f1a9c4b5ef88efbeb0f5b7c57b45fb285bb978cb9213acbc00d7e",
+    "766:2942": "6b7687323ae4cc8d302bc00ac22e1a49efa9a38ab7c7f7404a48808594508a80",
     "759:1314": "d2be92d8e32710e059a036b686ab240885fbdc6458f43d91ddadc74532d09992",
     "759:1858": "f43ad9dc27fa730cbfc5b2f28affb1a948ef26dfb6ab6f06acbad09482d16630",
     "759:1533": "451315eaa0e0f376bee3bfe2560ab7cbbc417ec9aac7125f2577ad95f11b2c4c",
@@ -90,7 +90,7 @@
       "gateId": "GATE_OBJECT_TRACEABILITY",
       "name": "Source-to-Word Object Traceability Gate",
       "status": "PASSED",
-      "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 175 recovered, 60 semantic approximations)."
+      "summary": "All 2033 source objects accounted for (1312 IR/DOCX, 0 unresolved; Text 100% verified, Shape provenance: 186 recovered, 49 semantic approximations)."
     },
     "GATE_SECTION_PAGE_MAPPING": {
       "gateId": "GATE_SECTION_PAGE_MAPPING",
@@ -126,15 +126,15 @@
       "gateId": "GATE_VISUAL_FIDELITY",
       "name": "Visual Fidelity Benchmark Gate",
       "status": "PASSED",
-      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9492 (Quality threshold >= 0.9400 verified)"
+      "summary": "Evaluated 16/16 frames, mean SSIM: 0.9502 (Quality threshold >= 0.9400 verified)"
     }
   },
   "metricsSummary": {
     "fidelity": {
       "evaluatedFrames": 16,
-      "meanSsim": 0.9492,
-      "meanMae": 2.53,
-      "meanRmse": 14.78
+      "meanSsim": 0.9502,
+      "meanMae": 2.49,
+      "meanRmse": 14.65
     },
     "traceability": {
       "sourceNodes": 2033,

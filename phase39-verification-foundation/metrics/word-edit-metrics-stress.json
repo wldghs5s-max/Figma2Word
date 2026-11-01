@@ -12,8 +12,8 @@
     "pageCountPreserved": true
   },
   "largeForegroundTested": 5,
-  "afterPdfSha256": "2752cfd0cccf3e83f909172cf9e950b14996afee04582d62588b5db993fa2b54",
-  "savedDocxSha256": "57a2e05348723bdb897529af5905b1a1d1d1d35f7dc0ec5e0fae39ba161878c0",
+  "afterPdfSha256": "b9e10c4934fb1e1b9a1cda4e36ee37ff3550429fadbd0dcb0f1c668e071f4f19",
+  "savedDocxSha256": "a94ae29bfffc959365b28eb0dbebc0141087eb5ba07b35626e0094e3d54f54d4",
   "editedObjectTypes": {
     "VML_SHAPE_DIMENSION": 6,
     "VML_SHAPE_STROKE_COLOR": 6,
@@ -765,8 +765,8 @@
     }
   ],
   "verdict": "PASSED",
-  "sourceSha256": "1ea1f8b7629f2c3d45f148c252f33881a08668266b502033f6ae3744fe1b6b58",
-  "beforePdfSha256": "d4ab7b1c26a7d64d3f306f7edb0e5c26b6fda90235c37d16e156da9a641efeff",
+  "sourceSha256": "6db5918a8e4011959fe6a9554b018dc70ab1f91c4950251796b911b327455e88",
+  "beforePdfSha256": "28a7f3739c15e5a1093b24349fe660d7541ec9453eefedc43f14983fcdf7a3d8",
   "largeForegroundStatistics": {
     "successfulCount": 5,
     "persistedCount": 5,
