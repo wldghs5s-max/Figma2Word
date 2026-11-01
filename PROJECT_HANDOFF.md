@@ -38,37 +38,39 @@
 
 ---
 
-## 3. 구현 현황 및 핵심 성과 (Phase 43 완료)
+## 3. 구현 현황 및 핵심 성과 (Phase 44 완료)
 
-### 3.1 Phase 43: Universal Figma Interpretation & Cross-Design Generalization
-1. **프로세스 소유권 격리 및 안전 제어 (Track A)**:
-   - 무차별 전역 `taskkill` 명령을 전면 제거하고, 테스트 프로세스가 직접 생성한 PID만 추적하여 정상 종료(`terminate`) 및 강제 종료(`kill`)하는 안전 소유권 모델(`close_owned_process`) 도입. 외부 프로세스 및 시스템 WebView2 보호.
-2. **범용 디자인 구조 해석 및 의미론적 표 인식 엔진 (Track B & C)**:
-   - 노드 이름에 의존하지 않고 AutoLayout, 행 높이, 행 너비 균일성, 셀 복잡도, 폼 컨트롤 배치를 종합 분석하는 `semanticTableDetector.ts` 구현.
-   - 대시보드 KPI 카드, 폼 레이아웃, 달력, 태그/칩 버튼 그리드, 사이드바 레이아웃 컨테이너에 대한 엄격한 False-Positive 차단 가드 구축.
-   - 실제 고객사 디자인 17개 프레임 중 Page 15 및 Page 16의 4x7 점검 현황 표(`site-item`) 정확 인식. 타 15개 페이지의 오분류 제로(0).
-3. **교차 디자인 일반화 및 홀드아웃 검증 (Track D)**:
-   - 6대 디자인 카테고리(비즈니스 데이터 표, 대시보드, 폼, 모바일 UI, 기술 백서 레이아웃, 디자인 시스템 DataGrid) 피스처 구축 및 7종 테스트 통과.
-   - 메타모픽 테스트(Metamorphic Testing): 노드 ID 및 이름을 무작위 문자열로 치환해도 표 구조가 100% 동일하게 인식됨을 입증.
-4. **전체 테스트 및 뷰어 무회귀 검증 (Track E & F)**:
-   - 전체 Vitest 스위트 전수 통과: **106개 파일, 728개 테스트 100% PASS (0 FAILED)**.
+### 3.1 Phase 44: Universal Content Preservation & Semantic Recognition Hardening
+1. **의미론적 표 원본 콘텐츠 누락 방지 및 원자적 폴백 (Track A - P0 해결)**:
+   - 복합 셀 콘텐츠 분류기(`classifyCellContent`)를 통해 이미지, 벡터 아이콘, 체크박스/토글, 독립형 셰이프, 액션 버튼을 정밀 식별.
+   - 네이티브 표 셀로 100% 무손실 변환이 불가능한 복합 컨테이너는 즉시 원자적 폴백(`isTable: false`, `consumedNodeIds: empty`)하여 표준 캔버스 요소로 인계함으로써 100% 보존.
+2. **노드 이름 의존성 완전 제거 (Track B)**:
+   - 취약한 키워드 기반 하드코딩 제외 목록을 전면 삭제하고, 순수 기하학적 매크로 레이아웃 감지(`checkStructuralMacroLayout`, 화면 점유율/행 높이 불균형 비율) 및 수직 열 그리드 정렬도(`computeColumnTrackAlignment`) 기반 판정 체계 구축.
+3. **고정 픽셀 제약 일반화 (Track C)**:
+   - 고정 높이/너비 한계를 제거하고 페이지 상대 비율 제약($h_{avg} \le 0.35 \times H_{page}$, $W \ge 120\text{pt}$, 행 너비 편차 $\le 15\%$)을 적용하여 모바일 컴팩트 표(300px) 및 데스크톱 고행 표(105px) 완벽 지원.
+4. **다중 축 Span 감지 및 병합 셀 2D 그리드 추적 (Track D)**:
+   - 2차원 점유 그리드(`occupied: boolean[][]`)를 통해 상위 행의 `rowSpan` 침범 열을 정확히 계산하여 `colCursor` 자동 보정 및 표준 OWPML/DOCX 규격 준수.
+5. **고객사 17개 프레임 완전 보존 및 뷰어 무회귀 검증 (Track E & F)**:
+   - 고객사 디자인 17개 전 페이지 1,329개 요소 100% 완전 보존 (0개 요소 손실).
+   - Vitest 전체 스위트: **107개 파일, 735개 테스트 100% 전수 통과 (0 FAILED)**.
    - 한컴오피스 2024 뷰어(`HwpViewer.exe`): 합성 표, 합성 다중 페이지, 고객사 17개 전 페이지 HWPX **전수 PASS**.
    - TypeScript 컴파일 0 오류, Web 번들 빌드 성공.
 
 ### 3.2 핵심 벤치마크 지표
 
-| 지표 항목 | Phase 42 | Phase 43 (Current) | 판정 기준 | 최종 상태 |
+| 지표 항목 | Phase 43 | Phase 44 (Current) | 판정 기준 | 최종 상태 |
 |---|:---:|:---:|:---:|:---:|
-| **범용 표 자동 인식 엔진** | 미지원 (수동 IR) | **완전 지원 (`semanticTableDetector`)** | AutoLayout / Stack 분석 | **VERIFIED** |
-| **False-Positive 오분류 방지** | N/A | **100% 차단 (6대 가드)** | 대시보드/폼/사이드바 보호 | **VERIFIED** |
-| **메타모픽 구조 불변성 검증** | N/A | **100% PASS** | ID/Name 변조 시에도 동일 인식 | **VERIFIED** |
-| **테스트 프로세스 소유권 격리** | 불안정 (taskkill) | **완전 격리 (`close_owned_process`)** | 소유 PID만 종료, WebView2 보호 | **VERIFIED** |
+| **복합 셀 원본 콘텐츠 보존율** | 부분 누락 (버튼/아이콘 소실) | **100% 보존 (원자적 폴백)** | 이미지·벡터·컨트롤 무손실 | **RESOLVED (P0)** |
+| **고객사 17개 프레임 총 요소 수** | 1,173개 (일부 결손) | **1,329개 (완전 보존)** | 0개 요소 손실 | **VERIFIED** |
+| **노드 이름 의존성** | 키워드 기반 강제 제외 잔존 | **완전 제거 (순수 기하 분석)** | 매크로/그리드 정렬 기하학 | **HARDENED** |
+| **크기 제약 모델** | 고정 픽셀 제약 (85px, 240pt) | **상대 비율 제약 ($h \le 0.35H$, $W \ge 120\text{pt}$)** | 모바일 및 대형 표 지원 | **EXPANDED** |
+| **병합 셀 (Span) 지원** | ColSpan 중심 (RowSpan 취약) | **2차원 점유 그리드 (Row/Col 완벽 추적)** | OWPML / DOCX 규격 부합 | **VERIFIED** |
 | **HWPX 뷰어 실제 열기** | PASS (3종) | **PASS (3종 전수 통과)** | HwpViewer.exe 창 열림 확인 | **VERIFIED** |
 | **평균 SSIM (16개 프레임)** | 0.9502 | **0.9502** | >= 0.9400 | **PASSED (보존)** |
 | **Normal Edit Persistence** | 25 / 25 (100%) | **25 / 25 (100%)** | 100% 지속 (한글 일치) | **PASSED** |
 | **Stress Edit Persistence** | 25 / 25 (100%) | **25 / 25 (100%)** | 100% 지속 (전체 일치) | **HARDENED** |
-| **전체 단위/통합 테스트** | 721 passed | **728 passed (100%)** | 106개 파일 전원 통과 | **PASSED** |
-| **TypeScript / Web 빌드** | 0 errors | **0 errors (363ms)** | 컴파일/빌드 성공 | **PASSED** |
+| **전체 단위/통합 테스트** | 728 passed | **735 passed (100%)** | 107개 파일 전원 통과 | **PASSED** |
+| **TypeScript / Web 빌드** | 0 errors | **0 errors (446ms)** | 컴파일/빌드 성공 | **PASSED** |
 
 ---
 

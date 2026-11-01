@@ -847,3 +847,867 @@ export function createComplexDesignSystemHoldoutFixture(): FigmaNode {
   };
 }
 
+/**
+ * Phase 44 Fixture: Table With Vector Icons
+ * A 3x3 table candidate where Cell (1, 1) contains an icon (Vector node).
+ * Must trigger atomic fallback to preserve the vector icon in the final elements!
+ */
+export function createTableWithIconsFixture(): FigmaNode {
+  return {
+    id: "frame_table_icons",
+    name: "System Monitoring Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+    children: [
+      {
+        id: "tbl_icons_container",
+        name: "Server Status Grid",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 150 },
+        children: [
+          // Row 0: Header
+          {
+            id: "r0_h",
+            name: "Row 0",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 50 },
+            children: [
+              {
+                id: "c0_0",
+                name: "Header 1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_0", name: "T", type: "TEXT", visible: true, characters: "서버명" }],
+              },
+              {
+                id: "c0_1",
+                name: "Header 2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_1", name: "T", type: "TEXT", visible: true, characters: "상태 아이콘" }],
+              },
+              {
+                id: "c0_2",
+                name: "Header 3",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_2", name: "T", type: "TEXT", visible: true, characters: "가동률" }],
+              },
+            ],
+          },
+          // Row 1: Data Row with Vector Icon in Cell (1, 1)
+          {
+            id: "r1_d",
+            name: "Row 1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 100, width: 600, height: 50 },
+            children: [
+              {
+                id: "c1_0",
+                name: "Cell 1_0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_0", name: "T", type: "TEXT", visible: true, characters: "API Gateway" }],
+              },
+              {
+                id: "c1_1",
+                name: "Cell 1_1_Icon",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 100, width: 200, height: 50 },
+                children: [
+                  {
+                    id: "vec_check_icon",
+                    name: "circle-check-icon",
+                    type: "VECTOR",
+                    visible: true,
+                    absoluteBoundingBox: { x: 330, y: 115, width: 20, height: 20 },
+                    fills: [{ type: "SOLID", visible: true, color: { r: 0.2, g: 0.6, b: 0.3, a: 1 } }],
+                  },
+                ],
+              },
+              {
+                id: "c1_2",
+                name: "Cell 1_2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_2", name: "T", type: "TEXT", visible: true, characters: "99.9%" }],
+              },
+            ],
+          },
+          // Row 2: Data Row
+          {
+            id: "r2_d",
+            name: "Row 2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 150, width: 600, height: 50 },
+            children: [
+              {
+                id: "c2_0",
+                name: "Cell 2_0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_0", name: "T", type: "TEXT", visible: true, characters: "DB Cluster" }],
+              },
+              {
+                id: "c2_1",
+                name: "Cell 2_1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_1", name: "T", type: "TEXT", visible: true, characters: "정상 가동" }],
+              },
+              {
+                id: "c2_2",
+                name: "Cell 2_2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_2", name: "T", type: "TEXT", visible: true, characters: "100.0%" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Table With Image Fill
+ * A 3x3 table candidate where Cell (1, 0) contains an Image fill.
+ * Must trigger atomic fallback to preserve the ImageElement in the final elements!
+ */
+export function createTableWithImagesFixture(): FigmaNode {
+  return {
+    id: "frame_table_images",
+    name: "User Directory Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+    children: [
+      {
+        id: "tbl_images_container",
+        name: "User Roster Table",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 150 },
+        children: [
+          // Row 0
+          {
+            id: "r0_h",
+            name: "Row 0",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 50 },
+            children: [
+              {
+                id: "c0_0",
+                name: "H0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_0", name: "T", type: "TEXT", visible: true, characters: "프로필 사진" }],
+              },
+              {
+                id: "c0_1",
+                name: "H1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_1", name: "T", type: "TEXT", visible: true, characters: "이름" }],
+              },
+              {
+                id: "c0_2",
+                name: "H2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 50, width: 200, height: 50 },
+                children: [{ id: "t0_2", name: "T", type: "TEXT", visible: true, characters: "부서" }],
+              },
+            ],
+          },
+          // Row 1 (Image in Cell 1_0)
+          {
+            id: "r1_d",
+            name: "Row 1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 100, width: 600, height: 50 },
+            children: [
+              {
+                id: "c1_0_img",
+                name: "AvatarCell",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 100, width: 200, height: 50 },
+                fills: [
+                  {
+                    type: "IMAGE",
+                    visible: true,
+                    imageRef: "mock_avatar_img_001",
+                  },
+                ],
+              },
+              {
+                id: "c1_1",
+                name: "NameCell",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_1", name: "T", type: "TEXT", visible: true, characters: "홍길동 수석" }],
+              },
+              {
+                id: "c1_2",
+                name: "DeptCell",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_2", name: "T", type: "TEXT", visible: true, characters: "인공지능 연구소" }],
+              },
+            ],
+          },
+          // Row 2
+          {
+            id: "r2_d",
+            name: "Row 2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 150, width: 600, height: 50 },
+            children: [
+              {
+                id: "c2_0",
+                name: "C2_0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_0", name: "T", type: "TEXT", visible: true, characters: "기본 프로필" }],
+              },
+              {
+                id: "c2_1",
+                name: "C2_1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_1", name: "T", type: "TEXT", visible: true, characters: "이순신 책임" }],
+              },
+              {
+                id: "c2_2",
+                name: "C2_2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_2", name: "T", type: "TEXT", visible: true, characters: "플랫폼 개발팀" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Table With Checkbox Controls
+ * Column 0 has interactive checkbox frames.
+ * Must trigger atomic fallback to preserve checkboxes!
+ */
+export function createTableWithCheckboxesFixture(): FigmaNode {
+  return {
+    id: "frame_table_checkboxes",
+    name: "Task Assignment Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+    children: [
+      {
+        id: "tbl_checkboxes_container",
+        name: "Task Checklist Table",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 50, y: 50, width: 500, height: 150 },
+        children: [
+          // Row 0
+          {
+            id: "r0_h",
+            name: "Row 0",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 50, width: 500, height: 50 },
+            children: [
+              {
+                id: "c0_0",
+                name: "H0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 50, width: 100, height: 50 },
+                children: [{ id: "t0_0", name: "T", type: "TEXT", visible: true, characters: "선택" }],
+              },
+              {
+                id: "c0_1",
+                name: "H1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 150, y: 50, width: 400, height: 50 },
+                children: [{ id: "t0_1", name: "T", type: "TEXT", visible: true, characters: "할 일 목록" }],
+              },
+            ],
+          },
+          // Row 1
+          {
+            id: "r1_d",
+            name: "Row 1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 100, width: 500, height: 50 },
+            children: [
+              {
+                id: "c1_0",
+                name: "Cell Checkbox",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 100, width: 100, height: 50 },
+                children: [
+                  {
+                    id: "chk_box_1",
+                    name: "checkbox",
+                    type: "FRAME",
+                    visible: true,
+                    absoluteBoundingBox: { x: 90, y: 115, width: 20, height: 20 },
+                    strokes: [{ type: "SOLID", color: { r: 0.2, g: 0.5, b: 0.9, a: 1 } }],
+                    strokeWeight: 2,
+                    cornerRadius: 4,
+                  },
+                ],
+              },
+              {
+                id: "c1_1",
+                name: "C1_1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 150, y: 100, width: 400, height: 50 },
+                children: [{ id: "t1_1", name: "T", type: "TEXT", visible: true, characters: "문서 레이아웃 검수 완료" }],
+              },
+            ],
+          },
+          // Row 2
+          {
+            id: "r2_d",
+            name: "Row 2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 150, width: 500, height: 50 },
+            children: [
+              {
+                id: "c2_0",
+                name: "Cell Checkbox 2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 150, width: 100, height: 50 },
+                children: [
+                  {
+                    id: "chk_box_2",
+                    name: "checkbox",
+                    type: "FRAME",
+                    visible: true,
+                    absoluteBoundingBox: { x: 90, y: 165, width: 20, height: 20 },
+                    strokes: [{ type: "SOLID", color: { r: 0.7, g: 0.7, b: 0.7, a: 1 } }],
+                    strokeWeight: 1,
+                    cornerRadius: 4,
+                  },
+                ],
+              },
+              {
+                id: "c2_1",
+                name: "C2_1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 150, y: 150, width: 400, height: 50 },
+                children: [{ id: "t2_1", name: "T", type: "TEXT", visible: true, characters: "최종 산출물 검토" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Table With Both RowSpan and ColSpan
+ * Cell (0, 0) spans 2 rows (height=100).
+ * Cell (0, 1) spans 2 cols (width=400).
+ * Tests multi-row and multi-column merged cell detection!
+ */
+export function createTableWithRowColSpanFixture(): FigmaNode {
+  return {
+    id: "frame_table_row_col_span",
+    name: "Merged Table Spec Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+    children: [
+      {
+        id: "tbl_row_col_span_container",
+        name: "Quarterly Evaluation Matrix",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 150 },
+        children: [
+          // Row 0: Cell 0 spans 2 rows (H=100), Cell 1 spans 2 cols (W=400)
+          {
+            id: "r0",
+            name: "Row 0",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 50 },
+            children: [
+              {
+                id: "c0_0_rowspan",
+                name: "SpannedVerticalHeader",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 50, width: 200, height: 100 },
+                children: [{ id: "t0_0", name: "T", type: "TEXT", visible: true, characters: "공통 분류 기준 (2행 병합)" }],
+              },
+              {
+                id: "c0_1_colspan",
+                name: "SpannedHorizontalHeader",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 50, width: 400, height: 50 },
+                children: [{ id: "t0_1", name: "T", type: "TEXT", visible: true, characters: "상세 평가 영역 (2열 병합)" }],
+              },
+            ],
+          },
+          // Row 1: Col 0 is covered by rowSpan above! Only Col 1 and Col 2 exist in this row.
+          {
+            id: "r1",
+            name: "Row 1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 100, width: 600, height: 50 },
+            children: [
+              {
+                id: "c1_1",
+                name: "SubCol1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_1", name: "T", type: "TEXT", visible: true, characters: "상반기 실적" }],
+              },
+              {
+                id: "c1_2",
+                name: "SubCol2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 100, width: 200, height: 50 },
+                children: [{ id: "t1_2", name: "T", type: "TEXT", visible: true, characters: "하반기 전망" }],
+              },
+            ],
+          },
+          // Row 2: Standard 3 cells
+          {
+            id: "r2",
+            name: "Row 2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 150, width: 600, height: 50 },
+            children: [
+              {
+                id: "c2_0",
+                name: "Cell 2_0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_0", name: "T", type: "TEXT", visible: true, characters: "기술성 평가" }],
+              },
+              {
+                id: "c2_1",
+                name: "Cell 2_1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 250, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_1", name: "T", type: "TEXT", visible: true, characters: "우수 (A+)" }],
+              },
+              {
+                id: "c2_2",
+                name: "Cell 2_2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 450, y: 150, width: 200, height: 50 },
+                children: [{ id: "t2_2", name: "T", type: "TEXT", visible: true, characters: "최우수 (S)" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Compact Mobile Table
+ * Table on a 360x800 mobile screen (W=300px, H=120px, 3 rows of 40px each, 3 columns).
+ * Tests relative geometry on compact mobile form factor!
+ */
+export function createMobileTableFixture(): FigmaNode {
+  return {
+    id: "frame_mobile_table_screen",
+    name: "Mobile Asset Inventory Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 360, height: 800 },
+    children: [
+      {
+        id: "tbl_mobile_container",
+        name: "Asset Grid",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 30, y: 80, width: 300, height: 120 },
+        children: [
+          {
+            id: "m_r0",
+            name: "HRow",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 30, y: 80, width: 300, height: 40 },
+            children: [
+              {
+                id: "m_c0_0",
+                name: "C1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 30, y: 80, width: 100, height: 40 },
+                children: [{ id: "m_t0_0", name: "T", type: "TEXT", visible: true, characters: "종목" }],
+              },
+              {
+                id: "m_c0_1",
+                name: "C2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 130, y: 80, width: 100, height: 40 },
+                children: [{ id: "m_t0_1", name: "T", type: "TEXT", visible: true, characters: "수량" }],
+              },
+              {
+                id: "m_c0_2",
+                name: "C3",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 230, y: 80, width: 100, height: 40 },
+                children: [{ id: "m_t0_2", name: "T", type: "TEXT", visible: true, characters: "단가" }],
+              },
+            ],
+          },
+          {
+            id: "m_r1",
+            name: "D1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 30, y: 120, width: 300, height: 40 },
+            children: [
+              {
+                id: "m_c1_0",
+                name: "C1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 30, y: 120, width: 100, height: 40 },
+                children: [{ id: "m_t1_0", name: "T", type: "TEXT", visible: true, characters: "센서 모듈" }],
+              },
+              {
+                id: "m_c1_1",
+                name: "C2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 130, y: 120, width: 100, height: 40 },
+                children: [{ id: "m_t1_1", name: "T", type: "TEXT", visible: true, characters: "50개" }],
+              },
+              {
+                id: "m_c1_2",
+                name: "C3",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 230, y: 120, width: 100, height: 40 },
+                children: [{ id: "m_t1_2", name: "T", type: "TEXT", visible: true, characters: "12,000" }],
+              },
+            ],
+          },
+          {
+            id: "m_r2",
+            name: "D2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 30, y: 160, width: 300, height: 40 },
+            children: [
+              {
+                id: "m_c2_0",
+                name: "C1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 30, y: 160, width: 100, height: 40 },
+                children: [{ id: "m_t2_0", name: "T", type: "TEXT", visible: true, characters: "배터리 팩" }],
+              },
+              {
+                id: "m_c2_1",
+                name: "C2",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 130, y: 160, width: 100, height: 40 },
+                children: [{ id: "m_t2_1", name: "T", type: "TEXT", visible: true, characters: "30개" }],
+              },
+              {
+                id: "m_c2_2",
+                name: "C3",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 230, y: 160, width: 100, height: 40 },
+                children: [{ id: "m_t2_2", name: "T", type: "TEXT", visible: true, characters: "45,000" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Tall Rows Desktop Table
+ * Desktop table with tall rows (W=900px, 3 rows of 105px each with multi-line notes).
+ * Tests relative geometry without fixed 85px row height limit!
+ */
+export function createTallRowsDesktopTableFixture(): FigmaNode {
+  return {
+    id: "frame_tall_rows_screen",
+    name: "Engineering Audit Log Screen",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 1200, height: 900 },
+    children: [
+      {
+        id: "tbl_tall_rows_container",
+        name: "Detailed Audit Records",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 100, y: 100, width: 900, height: 315 },
+        children: [
+          // Row 0
+          {
+            id: "t_r0",
+            name: "HeaderRow",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 100, y: 100, width: 900, height: 105 },
+            children: [
+              {
+                id: "t_c0_0",
+                name: "H0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 100, y: 100, width: 300, height: 105 },
+                children: [{ id: "t_t0_0", name: "T", type: "TEXT", visible: true, characters: "진단 구역 명칭" }],
+              },
+              {
+                id: "t_c0_1",
+                name: "H1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 400, y: 100, width: 600, height: 105 },
+                children: [{ id: "t_t0_1", name: "T", type: "TEXT", visible: true, characters: "상세 진단 종합 소견 및 조치 권고사항" }],
+              },
+            ],
+          },
+          // Row 1
+          {
+            id: "t_r1",
+            name: "DataRow1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 100, y: 205, width: 900, height: 105 },
+            children: [
+              {
+                id: "t_c1_0",
+                name: "D0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 100, y: 205, width: 300, height: 105 },
+                children: [{ id: "t_t1_0", name: "T", type: "TEXT", visible: true, characters: "제1교각 하부 기초부" }],
+              },
+              {
+                id: "t_c1_1",
+                name: "D1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 400, y: 205, width: 600, height: 105 },
+                children: [
+                  {
+                    id: "t_t1_1",
+                    name: "T",
+                    type: "TEXT",
+                    visible: true,
+                    characters: "기초 지반의 침하 현상이 경미하게 관측되었으나 허용 내력 기준치를 만족함. 차기 주기적 계측 요망.",
+                  },
+                ],
+              },
+            ],
+          },
+          // Row 2
+          {
+            id: "t_r2",
+            name: "DataRow2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 100, y: 310, width: 900, height: 105 },
+            children: [
+              {
+                id: "t_c2_0",
+                name: "D0",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 100, y: 310, width: 300, height: 105 },
+                children: [{ id: "t_t2_0", name: "T", type: "TEXT", visible: true, characters: "제2주탑 상단 케이블 정착구" }],
+              },
+              {
+                id: "t_c2_1",
+                name: "D1",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 400, y: 310, width: 600, height: 105 },
+                children: [
+                  {
+                    id: "t_t2_1",
+                    name: "T",
+                    type: "TEXT",
+                    visible: true,
+                    characters: "케이블 장력 측정 결과 설계 인장력 대비 98.4% 수준으로 매우 안정적인 지지 상태를 유지 중임.",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Phase 44 Fixture: Name-Mutated Structural Table
+ * Named "Summary_Panel_Wrapper_12" with NO "table" or "표" keyword.
+ * Verifies that structural geometry recognizes the table without name-based exclusions!
+ */
+export function createNameMutatedTableFixture(): FigmaNode {
+  return {
+    id: "frame_mutated_name_screen",
+    name: "Screen_Wrapper_Main",
+    type: "FRAME",
+    visible: true,
+    absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+    children: [
+      {
+        id: "tbl_mutated_panel",
+        name: "Summary_Panel_Wrapper_12",
+        type: "FRAME",
+        visible: true,
+        layoutMode: "VERTICAL",
+        absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 120 },
+        children: [
+          {
+            id: "mut_r0",
+            name: "Row_Item_1",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 50, width: 600, height: 40 },
+            children: [
+              {
+                id: "mut_c0_0",
+                name: "Col_Item_A",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 50, width: 300, height: 40 },
+                children: [{ id: "mut_t0_0", name: "T", type: "TEXT", visible: true, characters: "구분 코드" }],
+              },
+              {
+                id: "mut_c0_1",
+                name: "Col_Item_B",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 350, y: 50, width: 300, height: 40 },
+                children: [{ id: "mut_t0_1", name: "T", type: "TEXT", visible: true, characters: "기준값" }],
+              },
+            ],
+          },
+          {
+            id: "mut_r1",
+            name: "Row_Item_2",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 90, width: 600, height: 40 },
+            children: [
+              {
+                id: "mut_c1_0",
+                name: "Col_Item_A",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 90, width: 300, height: 40 },
+                children: [{ id: "mut_t1_0", name: "T", type: "TEXT", visible: true, characters: "CODE_01" }],
+              },
+              {
+                id: "mut_c1_1",
+                name: "Col_Item_B",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 350, y: 90, width: 300, height: 40 },
+                children: [{ id: "mut_t1_1", name: "T", type: "TEXT", visible: true, characters: "PASS" }],
+              },
+            ],
+          },
+          {
+            id: "mut_r2",
+            name: "Row_Item_3",
+            type: "FRAME",
+            visible: true,
+            absoluteBoundingBox: { x: 50, y: 130, width: 600, height: 40 },
+            children: [
+              {
+                id: "mut_c2_0",
+                name: "Col_Item_A",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 50, y: 130, width: 300, height: 40 },
+                children: [{ id: "mut_t2_0", name: "T", type: "TEXT", visible: true, characters: "CODE_02" }],
+              },
+              {
+                id: "mut_c2_1",
+                name: "Col_Item_B",
+                type: "FRAME",
+                visible: true,
+                absoluteBoundingBox: { x: 350, y: 130, width: 300, height: 40 },
+                children: [{ id: "mut_t2_1", name: "T", type: "TEXT", visible: true, characters: "PASS" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+
