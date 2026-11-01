@@ -19,6 +19,7 @@ import { isA4Ratio } from "../../pipeline/index.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
 import { decodeBase64, decodeDataUrl } from "../utils/binaryUtils.js";
 import { analyzeFigmaImageTransform } from "../../fidelity/affineTransformEngine.js";
+import { detectSemanticTable } from "./semanticTableDetector.js";
 
 export interface FigmaCanvasParserOptions {
   imageMap?: Record<string, string>;
@@ -1048,6 +1049,7 @@ export class FigmaCanvasParser {
 
     const elements: CanvasElement[] = [];
     let currentZIndex = 1;
+    const consumedNodeIds = new Set<string>();
 
     // Helper to recursively process children with cascading opacity propagation (Phase 33)
     const processChildren = (node: FigmaNode, parentOpacity: number = 1.0) => {
@@ -1055,6 +1057,7 @@ export class FigmaCanvasParser {
 
       for (const child of node.children) {
         if (child.visible === false) continue;
+        if (consumedNodeIds.has(child.id)) continue;
 
         const childRawOpacity =
           typeof child.opacity === "number" ? child.opacity : 1.0;
@@ -1090,6 +1093,41 @@ export class FigmaCanvasParser {
           notices.push(
             `Page ${pageNumber}, node ${child.name || child.id} has clipsContent=true.`,
           );
+        }
+
+        // Check for semantic data table container (Phase 43 Universal Table Detection)
+        if (
+          child.type === "FRAME" ||
+          child.type === "COMPONENT" ||
+          child.type === "INSTANCE" ||
+          child.type === "GROUP" ||
+          child.type === "TABLE"
+        ) {
+          const tableDetection = detectSemanticTable(child, scaleX, scaleY, frameBox);
+          if (
+            tableDetection.isTable &&
+            tableDetection.confidence === "HIGH" &&
+            tableDetection.tableData &&
+            tableDetection.bounds
+          ) {
+            for (const id of tableDetection.consumedNodeIds) {
+              consumedNodeIds.add(id);
+            }
+            elements.push({
+              id: child.id,
+              name: child.name || "Table",
+              type: "table",
+              bounds: tableDetection.bounds,
+              zIndex: currentZIndex++,
+              opacity: finalElemOpacity,
+              style: {},
+              tableData: tableDetection.tableData,
+              sourceNodeId: child.id,
+              sourceNodeType: child.type,
+              geometryProvenance: "PRIMITIVE_SHAPE",
+            });
+            continue;
+          }
         }
 
         // Check if node is an image fill
