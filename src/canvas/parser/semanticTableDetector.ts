@@ -265,6 +265,35 @@ export function classifyCellContent(cellNode: FigmaNode, scale: number): CellCon
       }
     }
 
+    // 6. Non-text graphical shape container check (progress bars, status indicators, badges without text)
+    if (!isRoot && (n.type === "FRAME" || n.type === "COMPONENT" || n.type === "INSTANCE")) {
+      const hasSolidFill = n.fills && n.fills.some((f: any) => f.type === "SOLID" && f.visible !== false);
+      const hasStroke = n.strokes && n.strokes.some((s: any) => s.type === "SOLID" && s.visible !== false);
+      if (hasSolidFill || hasStroke) {
+        let subtreeHasText = false;
+        const checkTextSubtree = (sub: FigmaNode) => {
+          if (sub.type === "TEXT" && sub.characters && sub.characters.trim().length > 0) {
+            subtreeHasText = true;
+            return;
+          }
+          if (sub.children) {
+            for (const sc of sub.children) {
+              if (sc.visible !== false) checkTextSubtree(sc);
+              if (subtreeHasText) return;
+            }
+          }
+        };
+        checkTextSubtree(n);
+        if (!subtreeHasText && b && cellBox) {
+          const coversCell = b.width >= cellBox.width * 0.9 && b.height >= cellBox.height * 0.9;
+          if (!coversCell) {
+            hasUnsupportedShapes = true;
+            lossReason = `Cell contains standalone graphical shape/indicator container (${n.name || n.id})`;
+          }
+        }
+      }
+    }
+
     if (n.children) {
       for (const child of n.children) {
         visit(child, false);
@@ -273,6 +302,14 @@ export function classifyCellContent(cellNode: FigmaNode, scale: number): CellCon
   };
 
   visit(cellNode, true);
+
+  // 7. Composite UI card check (multi-line disparate metrics / KPI card)
+  // If a candidate cell contains 4 or more text nodes and internal layout hierarchy,
+  // converting it to a plain table cell flattens its internal 2D layout into unstyled text.
+  if (textCount >= 4 && cellNode.children && cellNode.children.length >= 2) {
+    hasUnsupportedShapes = true;
+    lossReason = `Cell contains composite card layout with ${textCount} text elements across nested sub-containers (${cellNode.name || cellNode.id})`;
+  }
 
   const isLosslessInNativeTable =
     !hasImage && !hasVectorIcon && !hasCheckboxOrControl && !hasUnsupportedShapes;
@@ -328,11 +365,13 @@ function checkStructuralMacroLayout(
 
   if (rHeights.length >= 2) {
     const maxH = Math.max(...rHeights);
+    const minH = Math.min(...rHeights);
     const medianH = getMedian(rHeights);
-    if (medianH > 0 && maxH / medianH > 3.8) {
+    const disparityRatio = rHeights.length === 2 ? maxH / Math.max(1, minH) : maxH / Math.max(1, medianH);
+    if (disparityRatio > 3.0) {
       return {
         isMacro: true,
-        reason: `Extreme row height disparity: max=${maxH.toFixed(1)}, median=${medianH.toFixed(1)} (ratio ${(maxH / medianH).toFixed(1)} > 3.8)`,
+        reason: `Extreme row height disparity: max=${maxH.toFixed(1)}, min=${minH.toFixed(1)} (ratio ${disparityRatio.toFixed(1)} > 3.0)`,
       };
     }
   }
@@ -358,6 +397,7 @@ function computeColumnTrackAlignment(allRowCells: FigmaNode[][], containerWidth:
   const refRow = [...allRowCells].sort((a, b) => b.length - a.length)[0];
   if (!refRow || refRow.length < 2) return 0;
   const refStartXs = refRow.map((c) => c.absoluteBoundingBox?.x ?? 0);
+  const refEndXs = refRow.map((c) => (c.absoluteBoundingBox?.x ?? 0) + (c.absoluteBoundingBox?.width ?? 0));
   const tolerance = Math.max(12, containerWidth * 0.06);
 
   let totalChecked = 0;
@@ -371,9 +411,12 @@ function computeColumnTrackAlignment(allRowCells: FigmaNode[][], containerWidth:
     }
     for (const cell of row) {
       totalChecked++;
-      const cellX = cell.absoluteBoundingBox?.x ?? 0;
-      const matchesRef = refStartXs.some((refX) => Math.abs(cellX - refX) <= tolerance);
-      if (matchesRef) alignedCount++;
+      const cellBox = cell.absoluteBoundingBox;
+      const cellX = cellBox?.x ?? 0;
+      const cellEndX = cellX + (cellBox?.width ?? 0);
+      const matchesLeft = refStartXs.some((refX) => Math.abs(cellX - refX) <= tolerance);
+      const matchesRight = refEndXs.some((refEnd) => Math.abs(cellEndX - refEnd) <= tolerance);
+      if (matchesLeft || matchesRight) alignedCount++;
     }
   }
 
@@ -559,6 +602,23 @@ export function detectSemanticTable(
 
   for (const row of candidateRows) {
     const rowChildren = (row.children || []).filter((c) => c.visible !== false);
+
+    // Invariant: Cells in a table row MUST be arranged horizontally.
+    // If a candidate row has 2+ children stacked vertically, it is a vertical column/list, NOT a table row!
+    if (!isExplicitStructure && rowChildren.length >= 2) {
+      const isVerticalLayoutMode = (row as any).layoutMode === "VERTICAL";
+      const yCoords = rowChildren.map((c) => c.absoluteBoundingBox?.y ?? 0);
+      const xCoords = rowChildren.map((c) => c.absoluteBoundingBox?.x ?? 0);
+      const spanY = Math.max(...yCoords) - Math.min(...yCoords);
+      const spanX = Math.max(...xCoords) - Math.min(...xCoords);
+      if (isVerticalLayoutMode || (spanY > spanX * 1.5 && spanY > 20)) {
+        return {
+          ...emptyResult,
+          reason: `Candidate row contains vertically stacked children rather than horizontal cells (spanY=${spanY.toFixed(1)} > spanX=${spanX.toFixed(1)})`,
+        };
+      }
+    }
+
     // Sort cells horizontally
     rowChildren.sort((a, b) => {
       const ax = a.absoluteBoundingBox?.x ?? 0;
@@ -743,8 +803,8 @@ export function detectSemanticTable(
   const headerRow = allRowCells[0];
   const dataRow = allRowCells[1];
   if (headerRow && dataRow && headerRow.length > 0 && dataRow.length > 0) {
-    const headerFills = headerRow[0].fills || candidateRows[0].fills;
-    const dataFills = dataRow[0].fills || candidateRows[1].fills;
+    const headerFills = (headerRow[0].type !== "TEXT" ? headerRow[0].fills : undefined) || (candidateRows[0].type !== "TEXT" ? candidateRows[0].fills : undefined);
+    const dataFills = (dataRow[0].type !== "TEXT" ? dataRow[0].fills : undefined) || (candidateRows[1].type !== "TEXT" ? candidateRows[1].fills : undefined);
     const headerHasBg = headerFills && headerFills.length > 0;
     const dataHasBg = dataFills && dataFills.length > 0;
     if (headerHasBg !== dataHasBg || (headerHasBg && dataHasBg)) {
@@ -775,6 +835,17 @@ export function detectSemanticTable(
     for (let c = 0; c < colCount; c++) {
       const wFigma = refCells[c]?.absoluteBoundingBox?.width ?? containerBox.width / colCount;
       colWidthsPt.push(Math.round(wFigma * scaleX * 10) / 10);
+    }
+
+    // If cells are hug-contents in an auto-layout container where text runs do not fill the container width,
+    // normalize column widths to span the container width so individual text length variations don't trigger false colSpans.
+    const sumColWidths = colWidthsPt.reduce((a, b) => a + b, 0);
+    const containerW = containerBox.width * scaleX;
+    if (sumColWidths > 0 && sumColWidths < containerW * 0.7) {
+      const scaleFactor = containerW / sumColWidths;
+      for (let c = 0; c < colCount; c++) {
+        colWidthsPt[c] = Math.round(colWidthsPt[c] * scaleFactor * 10) / 10;
+      }
     }
 
     const rowHeightsPt: number[] = [];
@@ -894,11 +965,13 @@ export function detectSemanticTable(
         };
         markDescendants(cellNode);
 
-        // Cell styling
+        // Cell styling: in Figma, TEXT node fills represent font color, NEVER background color!
         let cellBgColor: string | undefined;
-        const fills = cellNode.fills || rowNode.fills;
-        if (fills && fills.length > 0) {
-          const solid = fills.find((f: any) => f.type === "SOLID" && f.visible !== false);
+        const cellFills =
+          (cellNode.type !== "TEXT" ? cellNode.fills : undefined) ||
+          (rowNode.type !== "TEXT" ? rowNode.fills : undefined);
+        if (cellFills && cellFills.length > 0) {
+          const solid = cellFills.find((f: any) => f.type === "SOLID" && f.visible !== false);
           if (solid && solid.color) {
             cellBgColor = `#${figmaColorToHex(solid.color)}`;
           }
@@ -921,6 +994,28 @@ export function detectSemanticTable(
         const textRuns = extractCellTextRuns(cellNode, scaleX);
         const paragraphs = extractCellParagraphs(cellNode, scaleX);
         const align = extractCellTextAlign(cellNode);
+
+        // Contrast collision safeguard: if cellBgColor collides with text color, discard it
+        if (cellBgColor && textRuns.length > 0) {
+          const cleanBg = cellBgColor.replace(/^#/, "").toUpperCase();
+          const r1 = parseInt(cleanBg.substring(0, 2), 16) || 0;
+          const g1 = parseInt(cleanBg.substring(2, 4), 16) || 0;
+          const b1 = parseInt(cleanBg.substring(4, 6), 16) || 0;
+
+          const collides = textRuns.some((tr) => {
+            if (!tr.color) return false;
+            const tc = tr.color.replace(/^#/, "").toUpperCase();
+            if (tc === cleanBg) return true;
+            const r2 = parseInt(tc.substring(0, 2), 16) || 0;
+            const g2 = parseInt(tc.substring(2, 4), 16) || 0;
+            const b2 = parseInt(tc.substring(4, 6), 16) || 0;
+            const dist = Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+            return dist < 35; // Distinguishable threshold
+          });
+          if (collides) {
+            cellBgColor = undefined;
+          }
+        }
 
         rowResultCells.push({
           row: r,

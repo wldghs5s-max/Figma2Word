@@ -1022,6 +1022,7 @@ export class FigmaCanvasParser {
       width: 794,
       height: 1123,
     };
+    const frameClips = frame.clipsContent !== false;
 
     // Synthesize bounds for Auto-Layout child nodes that omit explicit absoluteBoundingBox
     this.synthesizeMissingChildBounds(frame, frameBox);
@@ -1083,10 +1084,41 @@ export class FigmaCanvasParser {
         const relX = childBox.x - frameBox.x;
         const relY = childBox.y - frameBox.y;
 
-        const xPt = relX * scaleX;
-        const yPt = relY * scaleY;
-        const wPt = childBox.width * scaleX;
-        const hPt = childBox.height * scaleY;
+        let xPt = relX * scaleX;
+        let yPt = relY * scaleY;
+        let wPt = childBox.width * scaleX;
+        let hPt = childBox.height * scaleY;
+
+        // P2-01: Clipping check when parent frame has clipsContent=true
+        if (frameClips) {
+          // If element is completely outside the page canvas bounds, omit it
+          if (xPt + wPt <= 0 || yPt + hPt <= 0 || xPt >= targetWidthPt || yPt >= targetHeightPt) {
+            continue;
+          }
+          // If shape extends outside page canvas boundaries, clamp bounds so it doesn't spill into negative margins or header gutters
+          if (
+            child.type === "ELLIPSE" ||
+            child.type === "RECTANGLE" ||
+            child.type === "FRAME" ||
+            child.type === "VECTOR" ||
+            child.type === "INSTANCE"
+          ) {
+            if (xPt < 0) {
+              wPt = Math.max(1, wPt + xPt);
+              xPt = 0;
+            }
+            if (yPt < 0) {
+              hPt = Math.max(1, hPt + yPt);
+              yPt = 0;
+            }
+            if (xPt + wPt > targetWidthPt) {
+              wPt = Math.max(1, targetWidthPt - xPt);
+            }
+            if (yPt + hPt > targetHeightPt) {
+              hPt = Math.max(1, targetHeightPt - yPt);
+            }
+          }
+        }
 
         // Diagnostic: clipsContent check
         if (child.clipsContent) {
