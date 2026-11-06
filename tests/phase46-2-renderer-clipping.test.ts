@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { DocxCanvasRenderer, buildClippedEllipsePath } from "../src/canvas/renderer/docxCanvasRenderer.js";
 import { HwpxCanvasRenderer, buildClippedEllipseHwpxPoints } from "../src/canvas/renderer/hwpxCanvasRenderer.js";
+import { FigmaCanvasParser } from "../src/canvas/parser/figmaCanvasParser.js";
 import { CanvasDocument, CanvasElement, ptToHwpu } from "../src/canvas/types.js";
+import { FigmaNode } from "../src/parser/types.js";
 
 describe("Phase 46.2: Renderer-Level Clipping Completion & Real-World Visual Fidelity", () => {
   const docxRenderer = new DocxCanvasRenderer();
@@ -305,5 +307,65 @@ describe("Phase 46.2: Renderer-Level Clipping Completion & Real-World Visual Fid
 
     const hwpxBuf = await hwpxRenderer.renderToBuffer(doc);
     expect(hwpxBuf.length).toBeGreaterThan(1000);
+  });
+
+  // --------------------------------------------------------------------------
+  // Counter-Example 8: End-to-End Pipeline: Figma VECTOR -> Parser -> IR -> HWPX/DOCX
+  // Verifies that the unified coordinate contract eliminates double-shrink
+  // --------------------------------------------------------------------------
+  it("8. End-to-End Pipeline: Figma VECTOR -> Parser -> IR -> HWPX/DOCX without double-shrink", async () => {
+    const figmaTree: FigmaNode = {
+      id: "frame_root",
+      name: "Page Frame",
+      type: "FRAME",
+      clipsContent: true,
+      absoluteBoundingBox: { x: 0, y: 0, width: 800, height: 600 },
+      children: [
+        {
+          id: "vector_child_1",
+          name: "Clipped Banner Wave",
+          type: "VECTOR",
+          absoluteBoundingBox: { x: -50, y: 0, width: 300, height: 200 },
+          fillGeometry: [{ path: "M 0 0 L 300 0 L 300 200 L 0 200 Z" }],
+          fills: [{ type: "SOLID", visible: true, color: { r: 0.2, g: 0.4, b: 0.8, a: 1 } }],
+        },
+      ],
+    };
+
+    const parser = new FigmaCanvasParser({ scalePolicy: "1:1" });
+    const canvasDoc = parser.parse(figmaTree);
+
+    // 1. Verify Canvas IR contract:
+    const elem = canvasDoc.pages[0].elements[0];
+    expect(elem.bounds).toEqual({ x: 0, y: 0, width: 250, height: 200 });
+    expect(elem.originalBounds).toEqual({ x: -50, y: 0, width: 300, height: 200 });
+    expect(elem.vectorSubpaths).toBeDefined();
+    // Subpaths in IR are scaled to original bounds (300pt = 30000 HWPU):
+    const maxXInIR = Math.max(...elem.vectorSubpaths![0].points.map((p) => p.x));
+    expect(maxXInIR).toBe(30000);
+
+    // 2. Verify HWPX Renderer output:
+    const hwpxZip = await hwpxRenderer.buildZip(canvasDoc);
+    const sectionXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
+    expect(sectionXml).toContain("<hp:polygon");
+    expect(sectionXml).toContain('width="25000"');
+    expect(sectionXml).toContain('height="20000"');
+
+    // Extract all points in <hp:polygon>:
+    const ptMatches = [...sectionXml.matchAll(/<hc:pt x="(-?\d+)" y="(-?\d+)"\/>/g)];
+    const pts = ptMatches.map((m) => ({ x: parseInt(m[1], 10), y: parseInt(m[2], 10) }));
+    const maxX = Math.max(...pts.map((p) => p.x));
+    const minX = Math.min(...pts.map((p) => p.x));
+
+    // Must span the entire visible window 0 to 25000 HWPU (250pt), NOT double-squished to 20000 HWPU!
+    expect(minX).toBe(0);
+    expect(maxX).toBe(25000);
+
+    // 3. Verify DOCX Renderer output on the same Canvas IR:
+    const docxZip = await docxRenderer.buildZip(canvasDoc);
+    const docXml = await docxZip.file("word/document.xml")!.async("string");
+    expect(docXml).toContain('coordorigin="167,0"');
+    expect(docXml).toContain('coordsize="833,1000"');
+    expect(docXml).toContain('width:250.000pt');
   });
 });

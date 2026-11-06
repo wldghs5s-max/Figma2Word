@@ -1186,7 +1186,9 @@ ${paraPrEntries}
       const offsetY = isVectorClipped && orig ? ptToHwpu(elem.bounds.y - orig.y) : 0;
 
       let subpaths = elem.vectorSubpaths;
-      if (!subpaths || subpaths.length === 0) {
+      if (isVectorClipped && orig && elem.rawSvgPath) {
+        subpaths = SvgPath.parse(elem.rawSvgPath).toHwpxSubpathsWithClosed(targetW, targetH);
+      } else if (!subpaths || subpaths.length === 0) {
         if (elem.rawSvgPath) {
           subpaths = SvgPath.parse(elem.rawSvgPath).toHwpxSubpathsWithClosed(targetW, targetH);
         } else if (elem.vectorPoints && elem.vectorPoints.length > 0) {

@@ -1600,8 +1600,8 @@ export class FigmaCanvasParser {
               const synth = synthesizeVectorIconPath(
                 parentName,
                 nodeName,
-                wPt,
-                hPt,
+                origWPt,
+                origHPt,
                 hasFill,
                 hasStroke,
                 {
@@ -1623,8 +1623,8 @@ export class FigmaCanvasParser {
             if (rawPath) {
               const parsed = SvgPath.parse(rawPath);
               vmlPath = parsed.toVmlPath(1000, 1000);
-              const wHwpu = Math.max(10, Math.round(wPt * 100));
-              const hHwpu = Math.max(10, Math.round(hPt * 100));
+              const wHwpu = Math.max(10, Math.round(origWPt * 100));
+              const hHwpu = Math.max(10, Math.round(origHPt * 100));
               vectorSubpaths = parsed.toHwpxSubpathsWithClosed(wHwpu, hHwpu);
               vectorPoints = vectorSubpaths.flatMap((s) => s.points);
             }

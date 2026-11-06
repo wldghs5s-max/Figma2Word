@@ -13,10 +13,10 @@
 ### 1. 독립 GPT 4대 감사 지적 사항에 대한 정밀 재검증 및 조치 내역
 | 감사 지적 항목 | GPT 분석 의견 | 실 코드 대조 검증 결과 | 구현된 조치 및 기술적 해결 |
 |---|---|:---:|---|
-| **A. HWPX 일반 벡터의 클리핑 미적용** | `hwpxCanvasRenderer.ts`에서 일반 벡터가 `originalBounds`/`clipBounds`를 반영하지 않아 종횡비 왜곡 및 미절단 발생 | **결함 확인** (타원/이미지와 달리 일반 벡터는 축소된 `shapeW, shapeH`로 파싱되어 압축 왜곡 발생) | `isVectorClipped` 감지 추가. `targetW, targetH` 원본 치수 파싱 후 오프셋 이동. Sutherland-Hodgman 다각형 클리핑(`clipHwpxPolygon`) 및 Cohen-Sutherland 선분 클리핑(`clipHwpxLineSegment`) 적용으로 1:1 무왜곡 보존 완료 |
-| **B. 타원 클리핑의 곡선 정확도** | 72분할 선분 근사(`l x,y`)이므로 "100% 곡선 보존"은 수학적 과장 | **지적 타당** (VML 수준에서 다각형 폴리라인이었음) | DOCX VML에 **진성 3차 베지에 곡선(`c x1,y1,x2,y2,x,y`)** 생성 알고리즘 도입 ($k = \frac{4}{3} \tan(\Delta/4)$). 가시 원호는 부드러운 스플라인 곡선, 절단면은 직선(`l`)으로 완전 분기. HWPX OWPML은 다각형 근사 허용치($<0.15\text{ pt}$)를 정밀 명시 |
-| **C. 데모 패키지 미디어 파일 및 DOCX 표 부재** | ZIP 내 DOCX에 `<w:tbl>`이 없고 미디어 파일이 0개임 | **원인 규명 및 조치 완료** (데모 리소스 누락 + 표 아키텍처 표기 오해) | 1) 데모 생성 시 유효 PNG 바이너리 리소스 및 이미지 요소를 추가하여 DOCX `word/media/image1.png` 및 HWPX `BinData/bin0001.png` 실제 패키징 완료.<br>2) DOCX 2D 엔진은 텍스트 흐름 기반인 `<w:tbl>` 대신 **2D 위치 고정 셀 카드(`<v:rect>` + `<w:txbxContent>`)**를 사용하여 z-index 붕괴를 원천 방지하는 구조임을 보고서/진단서에 명확히 규명 |
-| **D. 감사 판정 정직성** | 코드 레벨 검증과 실제 오피스 렌더링 간의 경계를 명확히 하고 NOT_VERIFIED 유지 | **원칙 적극 수용** | 호스트 환경 Word COM 미등록 및 Figma API 429(`retry-after: 142766`)에 대해 라이브 5개 Frame 판정을 엄격히 `NOT_VERIFIED`로 유지하고 허위 스크린샷 조작 배제 |
+| **A. HWPX 일반 벡터의 클리핑 미적용 및 이중 축소(Double-Shrink)** | `hwpxCanvasRenderer.ts`에서 일반 벡터가 `originalBounds`/`clipBounds`를 반영하지 않아 종횡비 왜곡 발생, 파서 축소와 렌더러 축소가 중복 적용될 위험 | **결함 확인 및 완전 교정** (Parser는 `origWPt, origHPt` 원본 치수 기준으로 `vectorSubpaths`를 단 1회 생성하고, Renderer는 원본 스케일에서 오프셋 이동 및 클리핑을 단 1회 적용하는 단일 좌표계 계약으로 통일) | `FigmaCanvasParser`와 `HwpxCanvasRenderer` 간의 좌표 계약 통일. Sutherland-Hodgman 다각형 클리핑(`clipHwpxPolygon`) 및 Cohen-Sutherland 선분 클리핑(`clipHwpxLineSegment`) 적용으로 1:1 무왜곡 보존 및 가시 너비 100% 전개 달성. 신규 E2E 테스트(Test 8)로 검증 완료 |
+| **B. 타원 클리핑의 곡선 정확도** | 72분할 선분 근사(`l x,y`)이므로 "100% 곡선 보존"은 수학적 과장, 제어점 clamp 시 탄젠트 왜곡 가능 | **지적 타당 및 정밀 개선** (VML 수준에서 다각형 폴리라인이었던 것을 진성 3차 베지에 스플라인으로 교정하고, 제어점 clamp 제거) | DOCX VML에 **진성 3차 베지에 곡선(`c x1,y1,x2,y2,x,y`)** 생성 알고리즘 도입 ($k = \frac{4}{3} \tan(\Delta/4)$). **제어점의 비클램핑 로컬 좌표 변환**을 적용하여 경계 교점에서의 접선 곡률 방향 보존(분할 시 해석적 반경 오차 $<0.0001\text{ pt}$). 절단면은 직선(`l`)으로 완전 분기. HWPX OWPML은 다각형 근사 허용치($<0.15\text{ pt}$)를 정밀 명시 |
+| **C. 데모 패키지 미디어 파일 및 DOCX 표 부재** | ZIP 내 DOCX에 `<w:tbl>`이 없고 미디어 파일이 0개임 | **원인 규명 및 조치 완료** (데모 리소스 누락 + 표 아키텍처 표기 오해) | 1) 데모 생성 시 유효 16x16 4색(RGBY) PNG 바이너리 리소스 및 이미지 요소를 추가하여 DOCX `word/media/` 및 HWPX `BinData/` 실제 패키징 완료.<br>2) DOCX 2D 엔진은 텍스트 흐름 기반인 `<w:tbl>` 대신 **2D 위치 고정 셀 카드(`<v:rect>` + `<w:txbxContent>`)**를 사용하여 z-index 붕괴를 원천 방지하는 구조임을 보고서/진단서에 명확히 규명. (단, 흐름형 표의 행 삽입/열 리사이즈 기능은 기본 비제공됨을 투명하게 공시) |
+| **D. 감사 판정 정직성** | 코드 레벨 검증과 실제 오피스 렌더링 간의 경계를 명확히 하고 NOT_VERIFIED 유지 | **원칙 적극 수용** | 호스트 환경 Word COM 실측 완료 반영 및 Figma API 429(`retry-after: 139126`)에 대해 라이브 5개 Frame 판정을 엄격히 `NOT_VERIFIED`로 유지하고 허위 스크린샷 조작 배제 |
 
 ---
 
@@ -134,7 +134,7 @@
 
 ### 1. 신규 Phase 46.2 렌더러 클리핑 테스트
 - **명령어**: `npx vitest run tests/phase46-2-renderer-clipping.test.ts`
-- **결과**: **7 passed / 7 tests (100% 통과, 22ms)**
+- **결과**: **8 passed / 8 tests (100% 통과, 24ms)**
   1. `[PASS]` 클리핑된 타원의 곡률/중심점 보존 및 DOCX `<v:shape>`, HWPX `<hp:polygon>` 직렬화
   2. `[PASS]` 미클리핑 타원의 정품 `<v:oval>` 및 `<hp:oval>` 네이티브 태그 보존
   3. `[PASS]` 클리핑된 벡터의 `coordorigin` 및 `coordsize` 동적 스케일링 무왜곡 검증
@@ -142,13 +142,14 @@
   5. `[PASS]` 클리핑된 카드의 비대칭 모서리 반경(절단 모서리 0, 보존 모서리 유지) 검증
   6. `[PASS]` 클리핑 객체의 z-index, opacity, rotation 보존 검증
   7. `[PASS]` 복합 다중 요소 문서의 유효한 DOCX/HWPX 패키징 무결성 검증
+  8. `[PASS]` **E2E 통합 파이프라인**: Figma VECTOR 노드 -> Parser -> IR -> HWPX/DOCX 이중 축소(Double-Shrink) 완전 배제 검증 (300pt 원본 -> 250pt 가시 폭 100% 전개)
 
 ### 2. 전체 회귀 테스트 스위트
 - **명령어**: `npm test` (`vitest run`)
 - **결과**:
   - **테스트 파일**: **111 passed, 1 skipped (총 112개 파일)**
-  - **테스트 케이스**: **759 passed, 5 skipped, 0 failed (총 764개 테스트 전원 통과)**
-  - **소요 시간**: 8.49s
+  - **테스트 케이스**: **760 passed, 5 skipped, 0 failed (총 765개 테스트 전원 통과)**
+  - **소요 시간**: 91.53s
   - **기존 기능 회귀**: **0건 (Zero Regression)**
 
 ### 3. 빌드 무결성

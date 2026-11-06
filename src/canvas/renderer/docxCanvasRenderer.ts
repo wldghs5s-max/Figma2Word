@@ -129,12 +129,19 @@ export function buildClippedEllipsePath(
     }
   }
 
-  function toLocal(px: number, py: number): { x: number; y: number } {
+  function toClampedCoord(px: number, py: number): { x: number; y: number } {
     const cxClamped = Math.min(maxX, Math.max(minX, px));
     const cyClamped = Math.min(maxY, Math.max(minY, py));
     return {
       x: Math.round(((cxClamped - minX) / visW) * 1000),
       y: Math.round(((cyClamped - minY) / visH) * 1000),
+    };
+  }
+
+  function toLocalCoord(px: number, py: number): { x: number; y: number } {
+    return {
+      x: Math.round(((px - minX) / visW) * 1000),
+      y: Math.round(((py - minY) / visH) * 1000),
     };
   }
 
@@ -148,7 +155,7 @@ export function buildClippedEllipsePath(
     | { type: "c"; x1: number; y1: number; x2: number; y2: number; x: number; y: number };
 
   const commands: PathCmd[] = [];
-  const startPt = toLocal(cx + rx * Math.cos(uniqueAngles[0]), cy + ry * Math.sin(uniqueAngles[0]));
+  const startPt = toClampedCoord(cx + rx * Math.cos(uniqueAngles[0]), cy + ry * Math.sin(uniqueAngles[0]));
   commands.push({ type: "m", x: startPt.x, y: startPt.y });
 
   for (let i = 0; i < uniqueAngles.length; i++) {
@@ -175,9 +182,10 @@ export function buildClippedEllipsePath(
       const cp2x = p1x - k * (-rx * Math.sin(a1));
       const cp2y = p1y - k * (ry * Math.cos(a1));
 
-      const lcp1 = toLocal(cp1x, cp1y);
-      const lcp2 = toLocal(cp2x, cp2y);
-      const lp1 = toLocal(p1x, p1y);
+      // Control points preserve true tangent without artificial clamping
+      const lcp1 = toLocalCoord(cp1x, cp1y);
+      const lcp2 = toLocalCoord(cp2x, cp2y);
+      const lp1 = toClampedCoord(p1x, p1y);
 
       commands.push({
         type: "c",
@@ -189,7 +197,7 @@ export function buildClippedEllipsePath(
         y: lp1.y,
       });
     } else {
-      const lp1 = toLocal(p1x, p1y);
+      const lp1 = toClampedCoord(p1x, p1y);
       const lastCmd = commands[commands.length - 1];
       const lastX = lastCmd.x;
       const lastY = lastCmd.y;

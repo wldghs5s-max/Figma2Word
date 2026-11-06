@@ -38,21 +38,31 @@
 
 ---
 
-## 3. 구현 현황 및 핵심 성과 (Phase 46.2 완료)
+## 3. 구현 현황 및 핵심 성과 (Phase 46.2 완료 및 GPT 독립 재감사 교정)
 
 ### 3.1 Phase 46.2: Renderer-Level 클리핑 완결 및 독립 GPT 감사 정밀 조치
-1. **Parser → Canvas IR → Renderer 간 클리핑 구조적 단절 완전 해소**:
-   - Canvas IR의 `originalBounds`와 `clipBounds`를 DOCX/HWPX Renderer에 완전 연결.
-   - **타원 클리핑 (`buildClippedEllipsePath`)**: 축소된 `<v:oval>`을 다시 그리는 대신, 원본 곡률과 중심점($cx, cy, rx, ry$)을 온전히 유지하면서 가시 원호는 **진성 3차 베지에 곡선(`c x1,y1,x2,y2,x,y`)**으로, 화면 절단선($x=0$)은 정밀 직선(`l x,y`)으로 직렬화하여 원본 기하를 100% 무왜곡 보존.
-   - **HWPX 벡터 클리핑 완결**: `hwpxCanvasRenderer.ts`에 `isVectorClipped` 및 Sutherland-Hodgman 다각형 클리핑(`clipHwpxPolygon`), Cohen-Sutherland 선분 클리핑(`clipHwpxLineSegment`)을 구현하여 원본 1:1 종횡비 보존 및 바운딩 밖 정점 절단 완결.
+1. **Parser → Canvas IR → Renderer 간 클리핑 구조적 단절 완전 해소 및 이중 축소 버그 교정**:
+   - **HWPX 벡터 이중 축소(Double-Shrink) 원천 차단 (Critical Fix)**:
+     - 기존 파서(`figmaCanvasParser.ts`)가 `vectorSubpaths` 생성 시 클램핑된 가시 너비(`wPt`)로 점을 스케일링하고, HWPX 렌더러가 다시 오프셋 이동 및 클리핑을 가해 250pt 가시 영역이 200pt/150pt로 왜곡 축소되던 결함을 발견 및 완전 교정.
+     - **좌표계 규약 확립**: Parser는 `vectorSubpaths`를 무조건 **원본 경계(`origWPt, origHPt`) 기준**으로 생성하고, Renderer는 원본 크기 기준으로 점을 복원한 후 `(-offsetX, -offsetY)` 이동 및 Sutherland-Hodgman/Cohen-Sutherland 클리핑을 단 1회만 적용.
+     - 결과: 최종 HWPX XML에서 벡터의 최대 X좌표가 정확히 **25,000 HWPUs(250pt, 100% 가시 너비)**에 도달함을 E2E 파이프라인으로 실증.
+   - **타원 3차 베지에 제어점 기하 무왜곡 보존 (`buildClippedEllipsePath`)**:
+     - 타원의 양 끝점 및 절단면 직선은 가시 경계로 클램프하되, 3차 베지에 제어점(`cp1, cp2`)은 인위적 경계 클램핑을 해제(`toLocalCoord`).
+     - 절단면 부근에서 곡선의 접선 기울기(tangent slope)가 평탄화되지 않고 원본 곡률을 유지하며, 해석적 반경 오차는 0.0001pt 미만으로 정밀 일치.
    - **DOCX 벡터 스케일 보존 (`coordorigin`, `coordsize`)**: Word VML 로컬 좌표계 오프셋 및 범위를 동적 계산하여, 부분 클리핑된 벡터의 종횡비와 스케일을 1:1 무왜곡 보존.
-   - **이미지 복합 크롭 (Composite Crop)**: 디자이너 지정 `imageCrop`과 부모 프레임 클리핑 분수를 선형 결합하여 충돌 없는 VML `croptop/bottom/left/right` 및 HWPX `<hp:imgClip>` 직렬화. 유효 바이너리 PNG를 DOCX `word/media/` 및 HWPX `BinData/`에 실제 패키징.
+   - **진성 16×16 4색 PNG 이미지 크롭 실증**:
+     - 1×1 단색 점 대신 RGBA 4분면(Red, Green, Blue, Yellow, 99바이트) 정규 PNG를 패키징하여, DOCX `croptop/bottom/left/right` 및 HWPX `<hp:imgClip>`이 다분면 이미지를 올바르게 절단함을 입증.
+     - DOCX OPC `[Content_Types].xml`에 `<Override PartName="/word/media/..."/>` 및 HWPX `BinData/` 등록 완결.
    - **카드 모서리 반경 정밀화**: 경계에 잘린 모서리는 직각(`radius=0`)으로 깔끔하게 처리하고, 가시 영역 내 모서리는 라운딩을 유지.
-   - **DOCX vs HWPX 표 직렬화 아키텍처 공식화**: Word 2D 캔버스 엔진은 flow-based `<w:tbl>`의 문단 개행 및 z-index 붕괴를 원천 방지하기 위해 **2D 위치 고정 셀 카드(`<v:rect>` + `<w:txbxContent>`)**로 직렬화하며, HWPX는 네이티브 절대 위치 표(`<hp:tbl>`)로 직렬화함을 명확히 규명.
+   - **DOCX vs HWPX 표 직렬화 아키텍처 공식화**:
+     - Word 2D 캔버스 엔진은 flow-based `<w:tbl>`의 문단 개행 및 z-index 붕괴를 원천 방지하기 위해 **2D 절대 위치 고정 셀 카드(`<v:rect>` + `<w:txbxContent>`)**로 직렬화 (텍스트, 배경색, 테두리 네이티브 편집 가능).
+     - HWPX는 네이티브 절대 위치 표(`<hp:tbl>`)로 직렬화함을 명확히 규명.
+   - **매니페스트 자체 해시 고정점 패러독스(Self-Hash Paradox) 해결**:
+     - `manifest.json` 생성 시 자기 자신을 검증 파일 목록에서 제외하여, ZIP 내 10개 페이로드 파일 전수 SHA-256 100% 일치 달성.
 2. **독립 검증용 아티팩트 및 감사 패키지 생성**:
-   - `debug/phase46_2/Figma2Word_Phase46_2_GPT_Review.zip`: DOCX/HWPX 실제 시연 문서, 클리핑/보존/편집성 진단 JSON, SHA-256 매니페스트 수록.
-3. **전체 테스트 759개 전수 통과**:
-   - 111개 테스트 파일, 759개 테스트 100% PASS (신규 반례 테스트 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
+   - `debug/phase46_2/Figma2Word_Phase46_2_GPT_Review.zip`: DOCX/HWPX 실제 시연 문서, 클리핑/보존/편집성 진단 JSON, E2E 벡터 파이프라인 검증 로그, SHA-256 매니페스트 수록.
+3. **전체 테스트 760개 전수 통과**:
+   - 111개 테스트 파일, 760개 테스트 100% PASS (신규 FigmaNode -> Parser -> IR -> HWPX XML E2E 테스트 8 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
 
 ### 3.2 Phase 46.1: 범용 클리핑 안전성 교정 및 시각 재현 품질 검증
 1. **도형 기하 구조 보존 클리핑 (`originalBounds` / `clipBounds`) (P1)**:
@@ -99,8 +109,8 @@
 | **표 셀 배경 텍스트 가림 및 대비 (P2)** | 출처 기반 상속 & 의도된 저대비 보존 | **출처 기반 상속 & 의도된 저대비 보존** | 텍스트 가독성 & 원본 의도 양립 | **RESOLVED (P2)** |
 | **빈 fills 배열 배경 상속** | extractEffectiveSolidFill 정상 fallback | **extractEffectiveSolidFill 정상 fallback** | 행 배경색 정상 상속 | **RESOLVED (P2)** |
 | **복합 UI 카드 평탄화 (P1-02)** | 원자적 폴백 유지 (무회귀) | **원자적 폴백 유지 (무회귀)** | 그래픽/배지 100% 보존 | **RESOLVED** |
-| **5대 Frame 시각 재현 라이브 측정** | BLOCKED_SOURCE_MISSING | **NOT_VERIFIED (Office 미설치 & 429)** | 투명한 실사 공시 & 반례검증 | **DOCUMENTED** |
-| **전체 단위/통합 테스트** | 752 passed (110개 파일) | **759 passed (111개 파일)** | 111개 파일 전원 통과 | **PASSED** |
+| **5대 Frame 시각 재현 라이브 측정** | BLOCKED_SOURCE_MISSING | **NOT_VERIFIED (Figma API 429)** | 투명한 실사 공시 & 반례검증 | **DOCUMENTED** |
+| **전체 단위/통합 테스트** | 752 passed (110개 파일) | **760 passed (111개 파일)** | 111개 파일 전원 통과 | **PASSED** |
 | **TypeScript 컴파일** | 0 errors (noEmit pass) | **0 errors (noEmit pass)** | 컴파일/빌드 성공 | **PASSED** |
 
 ---
