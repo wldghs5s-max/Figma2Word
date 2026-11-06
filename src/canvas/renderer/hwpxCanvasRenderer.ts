@@ -8,6 +8,7 @@ import {
   CanvasShadow,
   CanvasTableData,
   CanvasTableCell,
+  CanvasBounds,
   ptToHwpu,
 } from "../types.js";
 import { SvgPath } from "../geometry/svgPathParser.js";
@@ -60,6 +61,122 @@ interface ParaPrEntry {
   spacingType: "PERCENT" | "FIXED";
   spacingValue: number;
   spacingUnit: "PERCENT" | "HWPUNIT";
+}
+
+/**
+ * Build polygon points in HWPU for an ellipse clipped by a rectangle boundary,
+ * preserving original curvature and center.
+ */
+export function buildClippedEllipseHwpxPoints(
+  origBounds: CanvasBounds,
+  clipBounds: CanvasBounds
+): { x: number; y: number }[] {
+  const minX = Math.max(origBounds.x, clipBounds.x);
+  const minY = Math.max(origBounds.y, clipBounds.y);
+  const maxX = Math.min(origBounds.x + origBounds.width, clipBounds.x + clipBounds.width);
+  const maxY = Math.min(origBounds.y + origBounds.height, clipBounds.y + clipBounds.height);
+
+  const cx = origBounds.x + origBounds.width / 2;
+  const cy = origBounds.y + origBounds.height / 2;
+  const rx = origBounds.width / 2;
+  const ry = origBounds.height / 2;
+
+  const angles: number[] = [];
+  const N = 72;
+  for (let i = 0; i < N; i++) {
+    angles.push((i * 2 * Math.PI) / N);
+  }
+
+  function checkX(boundaryX: number) {
+    if (rx <= 0) return;
+    const dx = (boundaryX - cx) / rx;
+    if (Math.abs(dx) <= 1) {
+      const dy = Math.sqrt(Math.max(0, 1 - dx * dx));
+      for (const sign of [-1, 1]) {
+        const y = cy + sign * ry * dy;
+        if (y >= minY - 1e-4 && y <= maxY + 1e-4) {
+          let a = Math.atan2((y - cy) / (ry || 1), dx);
+          if (a < 0) a += 2 * Math.PI;
+          angles.push(a);
+        }
+      }
+    }
+  }
+
+  function checkY(boundaryY: number) {
+    if (ry <= 0) return;
+    const dy = (boundaryY - cy) / ry;
+    if (Math.abs(dy) <= 1) {
+      const dx = Math.sqrt(Math.max(0, 1 - dy * dy));
+      for (const sign of [-1, 1]) {
+        const x = cx + sign * rx * dx;
+        if (x >= minX - 1e-4 && x <= maxX + 1e-4) {
+          let a = Math.atan2(dy, (x - cx) / (rx || 1));
+          if (a < 0) a += 2 * Math.PI;
+          angles.push(a);
+        }
+      }
+    }
+  }
+
+  checkX(minX);
+  checkX(maxX);
+  checkY(minY);
+  checkY(maxY);
+
+  angles.sort((a, b) => a - b);
+
+  const points: { x: number; y: number }[] = [];
+  for (const theta of angles) {
+    const rawX = cx + rx * Math.cos(theta);
+    const rawY = cy + ry * Math.sin(theta);
+    const clampedX = Math.min(maxX, Math.max(minX, rawX));
+    const clampedY = Math.min(maxY, Math.max(minY, rawY));
+
+    const hx = ptToHwpu(clampedX - minX);
+    const hy = ptToHwpu(clampedY - minY);
+
+    if (
+      points.length === 0 ||
+      points[points.length - 1].x !== hx ||
+      points[points.length - 1].y !== hy
+    ) {
+      points.push({ x: hx, y: hy });
+    }
+  }
+
+  if (
+    points.length > 1 &&
+    points[0].x === points[points.length - 1].x &&
+    points[0].y === points[points.length - 1].y
+  ) {
+    points.pop();
+  }
+
+  // Remove collinear intermediate points along box edges
+  const simplified: { x: number; y: number }[] = [];
+  const maxHx = ptToHwpu(maxX - minX);
+  const maxHy = ptToHwpu(maxY - minY);
+  for (let i = 0; i < points.length; i++) {
+    if (simplified.length >= 2) {
+      const prev2 = simplified[simplified.length - 2];
+      const prev1 = simplified[simplified.length - 1];
+      const curr = points[i];
+      const onEdgeX =
+        (prev2.x === 0 && prev1.x === 0 && curr.x === 0) ||
+        (prev2.x === maxHx && prev1.x === maxHx && curr.x === maxHx);
+      const onEdgeY =
+        (prev2.y === 0 && prev1.y === 0 && curr.y === 0) ||
+        (prev2.y === maxHy && prev1.y === maxHy && curr.y === maxHy);
+      if (onEdgeX || onEdgeY) {
+        simplified[simplified.length - 1] = curr;
+        continue;
+      }
+    }
+    simplified.push(points[i]);
+  }
+
+  return simplified;
 }
 
 export class HwpxCanvasRenderer {
@@ -740,6 +857,23 @@ ${paraPrEntries}
           }
         }
 
+        if (elem.clipBounds && elem.originalBounds) {
+          const orig = elem.originalBounds;
+          if (orig.width > 0 && orig.height > 0) {
+            const clipLeftFrac = Math.max(0, Math.min(0.95, (elem.bounds.x - orig.x) / orig.width));
+            const clipRightFrac = Math.max(0, Math.min(0.95, ((orig.x + orig.width) - (elem.bounds.x + elem.bounds.width)) / orig.width));
+            const clipTopFrac = Math.max(0, Math.min(0.95, (elem.bounds.y - orig.y) / orig.height));
+            const clipBottomFrac = Math.max(0, Math.min(0.95, ((orig.y + orig.height) - (elem.bounds.y + elem.bounds.height)) / orig.height));
+
+            const curSpanX = clipRight - clipLeft;
+            const curSpanY = clipBottom - clipTop;
+            clipLeft += Math.round(curSpanX * clipLeftFrac);
+            clipRight -= Math.round(curSpanX * clipRightFrac);
+            clipTop += Math.round(curSpanY * clipTopFrac);
+            clipBottom -= Math.round(curSpanY * clipBottomFrac);
+          }
+        }
+
         const picId = nextId();
         return [
           this.renderPicXml({
@@ -994,6 +1128,37 @@ ${paraPrEntries}
 
     // 4. Oval / Ellipse
     if (elem.type === "oval") {
+      const orig = elem.originalBounds;
+      const isOvalClipped = !!(
+        orig &&
+        elem.clipBounds &&
+        (orig.x < elem.clipBounds.x - 0.01 ||
+          orig.y < elem.clipBounds.y - 0.01 ||
+          orig.x + orig.width > elem.clipBounds.x + elem.clipBounds.width + 0.01 ||
+          orig.y + orig.height > elem.clipBounds.y + elem.clipBounds.height + 0.01)
+      );
+
+      if (isOvalClipped && orig && elem.clipBounds) {
+        const polyPts = buildClippedEllipseHwpxPoints(orig, elem.clipBounds);
+        const polyId = nextId();
+        return [
+          this.renderPolygonXml({
+            id: polyId,
+            zOrder,
+            x: xHwpu,
+            y: yHwpu,
+            w: shapeW,
+            h: shapeH,
+            points: polyPts,
+            colorHex: lineColor,
+            width: lineWidth,
+            style: lineStyle,
+            fillBrushXml,
+            drawTextXml: drawTextPart,
+          }),
+        ];
+      }
+
       const ovalId = nextId();
       return [
         this.renderOvalXml({

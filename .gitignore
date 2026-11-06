@@ -34,6 +34,8 @@ debug/*
 !debug/phase46/PHASE46_VISUAL_FIDELITY_REPORT.md
 !debug/phase46_1/
 !debug/phase46_1/**
+!debug/phase46_2/
+!debug/phase46_2/PHASE46_2_COMPLETION_REPORT.md
 scratch/
 test-results/
 playwright-report/

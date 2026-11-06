@@ -5,6 +5,7 @@ import {
   CanvasElement,
   CanvasTextRun,
   CanvasResource,
+  CanvasBounds,
   ptToTwip,
 } from "../types.js";
 
@@ -53,6 +54,134 @@ export function resolveEastAsiaFont(fontFamily?: string): { ascii: string; eastA
     return { ascii: f, eastAsia: f };
   }
   return { ascii: f, eastAsia: "맑은 고딕" };
+}
+
+/**
+ * Build a VML path for an ellipse clipped by a rectangle boundary,
+ * preserving the exact original curvature and center of the ellipse without squishing.
+ */
+export function buildClippedEllipsePath(
+  origBounds: CanvasBounds,
+  clipBounds: CanvasBounds
+): { coordsize: string; path: string; bounds: CanvasBounds } {
+  const minX = Math.max(origBounds.x, clipBounds.x);
+  const minY = Math.max(origBounds.y, clipBounds.y);
+  const maxX = Math.min(origBounds.x + origBounds.width, clipBounds.x + clipBounds.width);
+  const maxY = Math.min(origBounds.y + origBounds.height, clipBounds.y + clipBounds.height);
+  const visW = Math.max(0.1, maxX - minX);
+  const visH = Math.max(0.1, maxY - minY);
+
+  const cx = origBounds.x + origBounds.width / 2;
+  const cy = origBounds.y + origBounds.height / 2;
+  const rx = origBounds.width / 2;
+  const ry = origBounds.height / 2;
+
+  const angles: number[] = [];
+  const N = 72;
+  for (let i = 0; i < N; i++) {
+    angles.push((i * 2 * Math.PI) / N);
+  }
+
+  // Exact intersections with boundary lines
+  function checkX(boundaryX: number) {
+    if (rx <= 0) return;
+    const dx = (boundaryX - cx) / rx;
+    if (Math.abs(dx) <= 1) {
+      const dy = Math.sqrt(Math.max(0, 1 - dx * dx));
+      for (const sign of [-1, 1]) {
+        const y = cy + sign * ry * dy;
+        if (y >= minY - 1e-4 && y <= maxY + 1e-4) {
+          let a = Math.atan2((y - cy) / (ry || 1), dx);
+          if (a < 0) a += 2 * Math.PI;
+          angles.push(a);
+        }
+      }
+    }
+  }
+
+  function checkY(boundaryY: number) {
+    if (ry <= 0) return;
+    const dy = (boundaryY - cy) / ry;
+    if (Math.abs(dy) <= 1) {
+      const dx = Math.sqrt(Math.max(0, 1 - dy * dy));
+      for (const sign of [-1, 1]) {
+        const x = cx + sign * rx * dx;
+        if (x >= minX - 1e-4 && x <= maxX + 1e-4) {
+          let a = Math.atan2(dy, (x - cx) / (rx || 1));
+          if (a < 0) a += 2 * Math.PI;
+          angles.push(a);
+        }
+      }
+    }
+  }
+
+  checkX(minX);
+  checkX(maxX);
+  checkY(minY);
+  checkY(maxY);
+
+  angles.sort((a, b) => a - b);
+
+  const points: { x: number; y: number }[] = [];
+  for (const theta of angles) {
+    const rawX = cx + rx * Math.cos(theta);
+    const rawY = cy + ry * Math.sin(theta);
+    const clampedX = Math.min(maxX, Math.max(minX, rawX));
+    const clampedY = Math.min(maxY, Math.max(minY, rawY));
+
+    const lx = Math.round(((clampedX - minX) / visW) * 1000);
+    const ly = Math.round(((clampedY - minY) / visH) * 1000);
+
+    if (
+      points.length === 0 ||
+      points[points.length - 1].x !== lx ||
+      points[points.length - 1].y !== ly
+    ) {
+      points.push({ x: lx, y: ly });
+    }
+  }
+
+  // Deduplicate wrapping end to start
+  if (
+    points.length > 1 &&
+    points[0].x === points[points.length - 1].x &&
+    points[0].y === points[points.length - 1].y
+  ) {
+    points.pop();
+  }
+
+  // Remove intermediate collinear points along bounding box edges
+  const simplified: { x: number; y: number }[] = [];
+  for (let i = 0; i < points.length; i++) {
+    if (simplified.length >= 2) {
+      const prev2 = simplified[simplified.length - 2];
+      const prev1 = simplified[simplified.length - 1];
+      const curr = points[i];
+      const onEdgeX =
+        (prev2.x === 0 && prev1.x === 0 && curr.x === 0) ||
+        (prev2.x === 1000 && prev1.x === 1000 && curr.x === 1000);
+      const onEdgeY =
+        (prev2.y === 0 && prev1.y === 0 && curr.y === 0) ||
+        (prev2.y === 1000 && prev1.y === 1000 && curr.y === 1000);
+      if (onEdgeX || onEdgeY) {
+        simplified[simplified.length - 1] = curr;
+        continue;
+      }
+    }
+    simplified.push(points[i]);
+  }
+
+  const commands = [`m ${simplified[0].x},${simplified[0].y}`];
+  for (let i = 1; i < simplified.length; i++) {
+    commands.push(`l ${simplified[i].x},${simplified[i].y}`);
+  }
+  commands.push("x e");
+
+  return {
+    coordsize: "1000,1000",
+    path: commands.join(" "),
+    bounds: { x: minX, y: minY, width: visW, height: visH },
+  };
 }
 
 export class DocxCanvasRenderer {
@@ -398,6 +527,13 @@ export class DocxCanvasRenderer {
     };
   }
 
+  public buildClippedEllipsePath(
+    origBounds: CanvasBounds,
+    clipBounds: CanvasBounds
+  ): { coordsize: string; path: string; bounds: CanvasBounds } {
+    return buildClippedEllipsePath(origBounds, clipBounds);
+  }
+
   private renderElement(
     pageIdx: number,
     elemIdx: number,
@@ -623,10 +759,29 @@ export class DocxCanvasRenderer {
 
       const pathChild = elem.fillRule === "evenodd" ? '<v:path fillrule="evenodd"/>' : "";
 
+      const orig = elem.originalBounds;
+      const isVectorClipped = !!(
+        orig &&
+        elem.clipBounds &&
+        (orig.x < elem.clipBounds.x - 0.01 ||
+          orig.y < elem.clipBounds.y - 0.01 ||
+          orig.x + orig.width > elem.clipBounds.x + elem.clipBounds.width + 0.01 ||
+          orig.y + orig.height > elem.clipBounds.y + elem.clipBounds.height + 0.01)
+      );
+
+      let vmlCoordAttrs = 'coordsize="1000,1000"';
+      if (isVectorClipped && orig && orig.width > 0 && orig.height > 0) {
+        const ox = Math.round(((adjustedX - orig.x) / orig.width) * 1000);
+        const oy = Math.round(((y - orig.y) / orig.height) * 1000);
+        const cw = Math.max(1, Math.round((renderW / orig.width) * 1000));
+        const ch = Math.max(1, Math.round((renderH / orig.height) * 1000));
+        vmlCoordAttrs = `coordorigin="${ox},${oy}" coordsize="${cw},${ch}"`;
+      }
+
       // F-01: When fill and stroke geometries have distinct paths, emit discrete fill and stroke shapes
       if (elem.strokeVectorPath && elem.strokeVectorPath !== pathStr && hasFill && hasStroke) {
-        const fillShape = `<v:shape id="${shapeId}" ${altAttr} ${titleAttr} style="${baseStyle}" coordsize="1000,1000" path="${pathStr}" filled="t" ${fillcolorAttr} stroked="f">${opacityChild}${pathChild}${shadowChild}</v:shape>`;
-        const strokeShape = `<v:shape id="${shapeId}_s" ${altAttr} ${titleAttr} style="${baseStyle}" coordsize="1000,1000" path="${elem.strokeVectorPath}" filled="f" stroked="t" ${strokecolorAttr} ${strokeweightAttr}>${dashChild}</v:shape>`;
+        const fillShape = `<v:shape id="${shapeId}" ${altAttr} ${titleAttr} style="${baseStyle}" ${vmlCoordAttrs} path="${pathStr}" filled="t" ${fillcolorAttr} stroked="f">${opacityChild}${pathChild}${shadowChild}</v:shape>`;
+        const strokeShape = `<v:shape id="${shapeId}_s" ${altAttr} ${titleAttr} style="${baseStyle}" ${vmlCoordAttrs} path="${elem.strokeVectorPath}" filled="f" stroked="t" ${strokecolorAttr} ${strokeweightAttr}>${dashChild}</v:shape>`;
         return `<w:r>\n  <w:pict>\n    ${fillShape}\n    ${strokeShape}\n  </w:pict>\n</w:r>`;
       }
 
@@ -637,7 +792,7 @@ export class DocxCanvasRenderer {
              ${altAttr}
              ${titleAttr}
              style="${baseStyle}"
-             coordsize="1000,1000"
+             ${vmlCoordAttrs}
              path="${pathStr}"
              ${filledAttr}
              ${fillcolorAttr}
@@ -654,7 +809,7 @@ export class DocxCanvasRenderer {
              ${altAttr}
              ${titleAttr}
              style="${baseStyle}"
-             coordsize="1000,1000"
+             ${vmlCoordAttrs}
              path="${pathStr}"
              ${filledAttr}
              ${fillcolorAttr}
@@ -710,11 +865,55 @@ export class DocxCanvasRenderer {
         }
       }
 
+      let clipCropTop = 0;
+      let clipCropBottom = 0;
+      let clipCropLeft = 0;
+      let clipCropRight = 0;
+
+      if (elem.clipBounds && elem.originalBounds) {
+        const orig = elem.originalBounds;
+        if (orig.width > 0 && orig.height > 0) {
+          if (imgX > orig.x + 0.01) {
+            clipCropLeft = Math.max(0, Math.min(0.95, (imgX - orig.x) / orig.width));
+          }
+          if (imgY > orig.y + 0.01) {
+            clipCropTop = Math.max(0, Math.min(0.95, (imgY - orig.y) / orig.height));
+          }
+          if (orig.x + orig.width > imgX + imgBoxW + 0.01) {
+            clipCropRight = Math.max(0, Math.min(0.95, (orig.x + orig.width - (imgX + imgBoxW)) / orig.width));
+          }
+          if (orig.y + orig.height > imgY + imgBoxH + 0.01) {
+            clipCropBottom = Math.max(0, Math.min(0.95, (orig.y + orig.height - (imgY + imgBoxH)) / orig.height));
+          }
+        }
+      }
+
       if (elem.imageCrop) {
-        const ct = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.top)) * 65536);
-        const cb = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.bottom)) * 65536);
-        const cl = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.left)) * 65536);
-        const cr = Math.round(Math.max(0, Math.min(0.95, elem.imageCrop.right)) * 65536);
+        const baseCrop = elem.imageCrop;
+        const spanX = 1 - Math.max(0, Math.min(0.95, (baseCrop.left || 0) + (baseCrop.right || 0)));
+        const spanY = 1 - Math.max(0, Math.min(0.95, (baseCrop.top || 0) + (baseCrop.bottom || 0)));
+        const totalTop = (baseCrop.top || 0) + spanY * clipCropTop;
+        const totalBottom = (baseCrop.bottom || 0) + spanY * clipCropBottom;
+        const totalLeft = (baseCrop.left || 0) + spanX * clipCropLeft;
+        const totalRight = (baseCrop.right || 0) + spanX * clipCropRight;
+
+        const ct = Math.round(Math.max(0, Math.min(0.95, totalTop)) * 65536);
+        const cb = Math.round(Math.max(0, Math.min(0.95, totalBottom)) * 65536);
+        const cl = Math.round(Math.max(0, Math.min(0.95, totalLeft)) * 65536);
+        const cr = Math.round(Math.max(0, Math.min(0.95, totalRight)) * 65536);
+        const parts: string[] = [];
+        if (ct > 0) parts.push(`croptop="${ct}f"`);
+        if (cb > 0) parts.push(`cropbottom="${cb}f"`);
+        if (cl > 0) parts.push(`cropleft="${cl}f"`);
+        if (cr > 0) parts.push(`cropright="${cr}f"`);
+        if (parts.length > 0) {
+          cropAttr = " " + parts.join(" ");
+        }
+      } else if (clipCropTop > 0 || clipCropBottom > 0 || clipCropLeft > 0 || clipCropRight > 0) {
+        const ct = Math.round(clipCropTop * 65536);
+        const cb = Math.round(clipCropBottom * 65536);
+        const cl = Math.round(clipCropLeft * 65536);
+        const cr = Math.round(clipCropRight * 65536);
         const parts: string[] = [];
         if (ct > 0) parts.push(`croptop="${ct}f"`);
         if (cb > 0) parts.push(`cropbottom="${cb}f"`);
@@ -847,6 +1046,93 @@ export class DocxCanvasRenderer {
       shapeH = Math.max(0.1, height - strokeW);
     }
 
+    // Corner radius or Oval or Asymmetric or Clipped Oval
+    const isOval = elem.type === "oval";
+    const orig = elem.originalBounds;
+    const isOvalClipped = !!(
+      isOval &&
+      orig &&
+      elem.clipBounds &&
+      (orig.x < elem.clipBounds.x - 0.01 ||
+        orig.y < elem.clipBounds.y - 0.01 ||
+        orig.x + orig.width > elem.clipBounds.x + elem.clipBounds.width + 0.01 ||
+        orig.y + orig.height > elem.clipBounds.y + elem.clipBounds.height + 0.01)
+    );
+
+    let tag = isOval ? "v:oval" : "v:rect";
+    let extraShapeAttrs = "";
+
+    if (isOvalClipped && orig && elem.clipBounds) {
+      const built = this.buildClippedEllipsePath(orig, elem.clipBounds);
+      tag = "v:shape";
+      extraShapeAttrs = `coordsize="${built.coordsize}" path="${built.path}" `;
+      shapeX = built.bounds.x;
+      shapeY = built.bounds.y;
+      shapeW = built.bounds.width;
+      shapeH = built.bounds.height;
+    } else {
+      let radii = style.cornerRadii;
+      const isCardClipped = !!(
+        !isOval &&
+        orig &&
+        elem.clipBounds &&
+        (orig.x < elem.clipBounds.x - 0.01 ||
+          orig.y < elem.clipBounds.y - 0.01 ||
+          orig.x + orig.width > elem.clipBounds.x + elem.clipBounds.width + 0.01 ||
+          orig.y + orig.height > elem.clipBounds.y + elem.clipBounds.height + 0.01)
+      );
+
+      if (isCardClipped && orig && elem.clipBounds) {
+        let rArray: [number, number, number, number] | undefined = undefined;
+        if (Array.isArray(radii) && radii.length === 4) {
+          rArray = [...radii] as [number, number, number, number];
+        } else if (style.cornerRadius && style.cornerRadius > 0) {
+          const cr = style.cornerRadius;
+          rArray = [cr, cr, cr, cr];
+        }
+        if (rArray) {
+          const isLeftClipped = shapeX > orig.x + 0.1;
+          const isTopClipped = shapeY > orig.y + 0.1;
+          const isRightClipped = orig.x + orig.width > shapeX + shapeW + 0.1;
+          const isBottomClipped = orig.y + orig.height > shapeY + shapeH + 0.1;
+
+          if (isTopClipped || isLeftClipped) rArray[0] = 0;
+          if (isTopClipped || isRightClipped) rArray[1] = 0;
+          if (isBottomClipped || isRightClipped) rArray[2] = 0;
+          if (isBottomClipped || isLeftClipped) rArray[3] = 0;
+          radii = rArray;
+        }
+      }
+
+      const isAsymmetric =
+        !isOval &&
+        Array.isArray(radii) &&
+        radii.length === 4 &&
+        !(radii[0] === radii[1] && radii[1] === radii[2] && radii[2] === radii[3]) &&
+        radii.some((r) => r > 0);
+
+      const minDim = Math.max(1e-3, Math.min(shapeW, shapeH));
+
+      if (isAsymmetric && radii) {
+        tag = "v:shape";
+        const built = this.buildRoundedRectPath(shapeW, shapeH, radii);
+        extraShapeAttrs = `coordsize="${built.coordsize}" path="${built.path}" `;
+      } else if (!isOval) {
+        const scalarRadius =
+          (radii && radii[0] > 0 ? radii[0] : style.cornerRadius) || 0;
+        const isRound = scalarRadius > 0;
+        tag = isRound ? "v:roundrect" : "v:rect";
+        if (isRound) {
+          // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
+          // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
+          extraShapeAttrs = `arcsize="${Math.min(
+            0.5,
+            minDim > 0 ? scalarRadius / minDim : 0
+          ).toFixed(3)}" `;
+        }
+      }
+    }
+
     const shapeStyle = `position:absolute;left:0;top:0;margin-left:${shapeX.toFixed(
       3
     )}pt;margin-top:${shapeY.toFixed(3)}pt;width:${shapeW.toFixed(
@@ -854,39 +1140,6 @@ export class DocxCanvasRenderer {
     )}pt;height:${shapeH.toFixed(
       3
     )}pt;z-index:${z};mso-position-horizontal-relative:page;mso-position-vertical-relative:page;${wrapStyle}${rotStyle}`;
-
-    // Corner radius or Oval or Asymmetric
-    const isOval = elem.type === "oval";
-    const radii = style.cornerRadii;
-    const isAsymmetric =
-      !isOval &&
-      Array.isArray(radii) &&
-      radii.length === 4 &&
-      !(radii[0] === radii[1] && radii[1] === radii[2] && radii[2] === radii[3]) &&
-      radii.some((r) => r > 0);
-
-    let tag = isOval ? "v:oval" : "v:rect";
-    let extraShapeAttrs = "";
-    const minDim = Math.max(1e-3, Math.min(shapeW, shapeH));
-
-    if (isAsymmetric && radii) {
-      tag = "v:shape";
-      const built = this.buildRoundedRectPath(shapeW, shapeH, radii);
-      extraShapeAttrs = `coordsize="${built.coordsize}" path="${built.path}" `;
-    } else if (!isOval) {
-      const scalarRadius =
-        (radii && radii[0] > 0 ? radii[0] : style.cornerRadius) || 0;
-      const isRound = scalarRadius > 0;
-      tag = isRound ? "v:roundrect" : "v:rect";
-      if (isRound) {
-        // Phase 31.1 Empirical Verification: Word for Mac native rendering renders
-        // corner radius R = arcsize * minDim. The previous formula doubled R and saturated at min/4.
-        extraShapeAttrs = `arcsize="${Math.min(
-          0.5,
-          minDim > 0 ? scalarRadius / minDim : 0
-        ).toFixed(3)}" `;
-      }
-    }
 
     let textboxContentXml = "";
     if (isText && elem.textRuns) {

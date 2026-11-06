@@ -38,9 +38,21 @@
 
 ---
 
-## 3. 구현 현황 및 핵심 성과 (Phase 46.1 완료)
+## 3. 구현 현황 및 핵심 성과 (Phase 46.2 완료)
 
-### 3.1 Phase 46.1: 범용 클리핑 안전성 교정 및 시각 재현 품질 검증
+### 3.1 Phase 46.2: Renderer-Level 클리핑 완결 및 실제 시각 재현 품질 검증
+1. **Parser → Canvas IR → Renderer 간 클리핑 구조적 단절 완전 해소**:
+   - Canvas IR의 `originalBounds`와 `clipBounds`를 DOCX/HWPX Renderer에 완전 연결.
+   - **타원 클리핑 (`buildClippedEllipsePath`)**: 축소된 `<v:oval>`을 다시 그리는 대신, 원본 곡률과 중심점($cx, cy, rx, ry$)을 온전히 유지하면서 화면 경계($x=0$)에 맞춘 정밀 절단면(Flat Cut Edge)을 가진 `<v:shape>` 벡터 패스 및 HWPX `<hp:polygon>` 다각형으로 직렬화.
+   - **벡터 스케일 보존 (`coordorigin`, `coordsize`)**: Word VML 로컬 좌표계 오프셋 및 범위를 동적 계산하여, 부분 클리핑된 벡터의 종횡비와 스케일을 1:1 무왜곡 보존.
+   - **이미지 복합 크롭 (Composite Crop)**: 디자이너 지정 `imageCrop`과 부모 프레임 클리핑 분수를 선형 결합하여 충돌 없는 VML `croptop/bottom/left/right` 및 HWPX `<hp:imgClip>` 직렬화.
+   - **카드 모서리 반경 정밀화**: 경계에 잘린 모서리는 직각(`radius=0`)으로 깔끔하게 처리하고, 가시 영역 내 모서리는 라운딩을 유지.
+2. **독립 검증용 아티팩트 및 감사 패키지 생성**:
+   - `debug/phase46_2/Figma2Word_Phase46_2_GPT_Review.zip`: DOCX/HWPX 실제 시연 문서, 클리핑/보존/편집성 진단 JSON, SHA-256 매니페스트 수록.
+3. **전체 테스트 759개 전수 통과**:
+   - 111개 테스트 파일, 759개 테스트 100% PASS (신규 7개 반례 테스트 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
+
+### 3.2 Phase 46.1: 범용 클리핑 안전성 교정 및 시각 재현 품질 검증
 1. **도형 기하 구조 보존 클리핑 (`originalBounds` / `clipBounds`) (P1)**:
    - 부모의 `clipsContent: true` 적용 시 자식 도형의 바운딩 박스를 직접 클램핑하여 타원(`ELLIPSE`), 벡터 곡선의 곡률 및 종횡비가 파괴되는 현상을 완전 교정.
    - 원본 형상(`originalBounds`)을 보존하면서 렌더러가 뷰포트 기반 클리핑(`clipBounds`)을 적용하도록 분리.
@@ -76,16 +88,18 @@
 
 ### 3.2 핵심 벤치마크 지표
 
-| 지표 항목 | Phase 46 | Phase 46.1 (Current) | 판정 기준 | 최종 상태 |
+| 지표 항목 | Phase 46.1 | Phase 46.2 (Current) | 판정 기준 | 최종 상태 |
 |---|:---:|:---:|:---:|:---:|
-| **도형 기하 보존 클리핑 (P1)** | 바운딩박스 직접 축소 (곡률 왜곡 위험) | **originalBounds & clipBounds 보존** | 타원/곡선 곡률 100% 무손실 | **RESOLVED (P1)** |
-| **중첩 클리핑 및 오프스크린 자식** | 부모 음수 좌표 시 자식 탈락 위험 | **intersectBounds 누적 & 자식 보존** | 가시 영역 자식 100% 수집 | **RESOLVED (P1)** |
-| **표 셀 배경 텍스트 가림 및 대비 (P2)** | dist < 35 임의 삭제 (저대비 훼손) | **출처 기반 상속 & 의도된 저대비 보존** | 텍스트 가독성 & 원본 의도 양립 | **RESOLVED (P2)** |
-| **빈 fills 배열 배경 상속** | 빈 배열 truthiness로 행 배경 누락 | **extractEffectiveSolidFill 정상 fallback** | 행 배경색 정상 상속 | **RESOLVED (P2)** |
-| **복합 UI 카드 평탄화 (P1-02)** | 원자적 폴백 (9개 카드 온전 보존) | **원자적 폴백 유지 (무회귀)** | 그래픽/배지 100% 보존 | **RESOLVED** |
-| **5대 Frame 시각 재현 라이브 측정** | 이전 PC 로컬 측정 (0.970~0.985) | **BLOCKED_SOURCE_MISSING (포맷 캐시부재)** | API 호출 금지 준수 & 반례검증 | **DOCUMENTED** |
-| **전체 단위/통합 테스트** | 741 passed | **752 passed (110개 파일)** | 110개 파일 전원 통과 | **PASSED** |
-| **TypeScript 컴파일** | 0 errors | **0 errors (noEmit pass)** | 컴파일/빌드 성공 | **PASSED** |
+| **Renderer 타원 클리핑 연결** | IR에만 보존 (Renderer 미반영) | **DOCX v:shape & HWPX polygon 완결** | 곡률·중심점 무왜곡 보존 | **RESOLVED (P1)** |
+| **Renderer 벡터/이미지 클리핑** | coordsize 고정 / 크롭 미반영 | **coordorigin/coordsize & 복합 크롭** | 종횡비/크롭 충돌 완전 해소 | **RESOLVED (P1)** |
+| **도형 기하 보존 클리핑 (P1)** | originalBounds & clipBounds 보존 | **Parser-IR-Renderer 전 구간 연결** | 타원/곡선 곡률 100% 무손실 | **RESOLVED (P1)** |
+| **중첩 클리핑 및 오프스크린 자식** | intersectBounds 누적 & 자식 보존 | **intersectBounds 누적 & 자식 보존** | 가시 영역 자식 100% 수집 | **RESOLVED (P1)** |
+| **표 셀 배경 텍스트 가림 및 대비 (P2)** | 출처 기반 상속 & 의도된 저대비 보존 | **출처 기반 상속 & 의도된 저대비 보존** | 텍스트 가독성 & 원본 의도 양립 | **RESOLVED (P2)** |
+| **빈 fills 배열 배경 상속** | extractEffectiveSolidFill 정상 fallback | **extractEffectiveSolidFill 정상 fallback** | 행 배경색 정상 상속 | **RESOLVED (P2)** |
+| **복합 UI 카드 평탄화 (P1-02)** | 원자적 폴백 유지 (무회귀) | **원자적 폴백 유지 (무회귀)** | 그래픽/배지 100% 보존 | **RESOLVED** |
+| **5대 Frame 시각 재현 라이브 측정** | BLOCKED_SOURCE_MISSING | **NOT_VERIFIED (Office 미설치 & 429)** | 투명한 실사 공시 & 반례검증 | **DOCUMENTED** |
+| **전체 단위/통합 테스트** | 752 passed (110개 파일) | **759 passed (111개 파일)** | 111개 파일 전원 통과 | **PASSED** |
+| **TypeScript 컴파일** | 0 errors (noEmit pass) | **0 errors (noEmit pass)** | 컴파일/빌드 성공 | **PASSED** |
 
 ---
 

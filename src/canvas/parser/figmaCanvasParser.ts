@@ -1169,7 +1169,9 @@ export class FigmaCanvasParser {
             child.type === "RECTANGLE" ||
             child.type === "FRAME" ||
             child.type === "VECTOR" ||
-            child.type === "INSTANCE"
+            child.type === "INSTANCE" ||
+            child.type === "IMAGE" ||
+            child.type === "LINE"
           ) {
             if (xPt < activeClip.x) {
               wPt = Math.max(1, wPt + (xPt - activeClip.x));
