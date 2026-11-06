@@ -59,6 +59,7 @@ export function resolveEastAsiaFont(fontFamily?: string): { ascii: string; eastA
 /**
  * Build a VML path for an ellipse clipped by a rectangle boundary,
  * preserving the exact original curvature and center of the ellipse without squishing.
+ * Uses true cubic Bézier curves (`c` commands) for arcs and straight cut lines (`l` commands) for clipped edges.
  */
 export function buildClippedEllipsePath(
   origBounds: CanvasBounds,
@@ -77,7 +78,7 @@ export function buildClippedEllipsePath(
   const ry = origBounds.height / 2;
 
   const angles: number[] = [];
-  const N = 72;
+  const N = 16;
   for (let i = 0; i < N; i++) {
     angles.push((i * 2 * Math.PI) / N);
   }
@@ -121,65 +122,107 @@ export function buildClippedEllipsePath(
   checkY(maxY);
 
   angles.sort((a, b) => a - b);
-
-  const points: { x: number; y: number }[] = [];
-  for (const theta of angles) {
-    const rawX = cx + rx * Math.cos(theta);
-    const rawY = cy + ry * Math.sin(theta);
-    const clampedX = Math.min(maxX, Math.max(minX, rawX));
-    const clampedY = Math.min(maxY, Math.max(minY, rawY));
-
-    const lx = Math.round(((clampedX - minX) / visW) * 1000);
-    const ly = Math.round(((clampedY - minY) / visH) * 1000);
-
-    if (
-      points.length === 0 ||
-      points[points.length - 1].x !== lx ||
-      points[points.length - 1].y !== ly
-    ) {
-      points.push({ x: lx, y: ly });
+  const uniqueAngles: number[] = [];
+  for (let i = 0; i < angles.length; i++) {
+    if (i === 0 || angles[i] - angles[i - 1] > 1e-5) {
+      uniqueAngles.push(angles[i]);
     }
   }
 
-  // Deduplicate wrapping end to start
-  if (
-    points.length > 1 &&
-    points[0].x === points[points.length - 1].x &&
-    points[0].y === points[points.length - 1].y
-  ) {
-    points.pop();
+  function toLocal(px: number, py: number): { x: number; y: number } {
+    const cxClamped = Math.min(maxX, Math.max(minX, px));
+    const cyClamped = Math.min(maxY, Math.max(minY, py));
+    return {
+      x: Math.round(((cxClamped - minX) / visW) * 1000),
+      y: Math.round(((cyClamped - minY) / visH) * 1000),
+    };
   }
 
-  // Remove intermediate collinear points along bounding box edges
-  const simplified: { x: number; y: number }[] = [];
-  for (let i = 0; i < points.length; i++) {
-    if (simplified.length >= 2) {
-      const prev2 = simplified[simplified.length - 2];
-      const prev1 = simplified[simplified.length - 1];
-      const curr = points[i];
-      const onEdgeX =
-        (prev2.x === 0 && prev1.x === 0 && curr.x === 0) ||
-        (prev2.x === 1000 && prev1.x === 1000 && curr.x === 1000);
-      const onEdgeY =
-        (prev2.y === 0 && prev1.y === 0 && curr.y === 0) ||
-        (prev2.y === 1000 && prev1.y === 1000 && curr.y === 1000);
-      if (onEdgeX || onEdgeY) {
-        simplified[simplified.length - 1] = curr;
-        continue;
+  function isInside(px: number, py: number): boolean {
+    return px >= minX - 1e-3 && px <= maxX + 1e-3 && py >= minY - 1e-3 && py <= maxY + 1e-3;
+  }
+
+  type PathCmd =
+    | { type: "m"; x: number; y: number }
+    | { type: "l"; x: number; y: number }
+    | { type: "c"; x1: number; y1: number; x2: number; y2: number; x: number; y: number };
+
+  const commands: PathCmd[] = [];
+  const startPt = toLocal(cx + rx * Math.cos(uniqueAngles[0]), cy + ry * Math.sin(uniqueAngles[0]));
+  commands.push({ type: "m", x: startPt.x, y: startPt.y });
+
+  for (let i = 0; i < uniqueAngles.length; i++) {
+    const a0 = uniqueAngles[i];
+    const a1 = i === uniqueAngles.length - 1 ? uniqueAngles[0] + 2 * Math.PI : uniqueAngles[i + 1];
+    const delta = a1 - a0;
+    if (delta < 1e-5) continue;
+
+    const midA = (a0 + a1) / 2;
+    const midX = cx + rx * Math.cos(midA);
+    const midY = cy + ry * Math.sin(midA);
+
+    const p0x = cx + rx * Math.cos(a0);
+    const p0y = cy + ry * Math.sin(a0);
+    const p1x = cx + rx * Math.cos(a1);
+    const p1y = cy + ry * Math.sin(a1);
+
+    const segInside = isInside(midX, midY) || (isInside(p0x, p0y) && isInside(p1x, p1y));
+
+    if (segInside) {
+      const k = (4 / 3) * Math.tan(delta / 4);
+      const cp1x = p0x + k * (-rx * Math.sin(a0));
+      const cp1y = p0y + k * (ry * Math.cos(a0));
+      const cp2x = p1x - k * (-rx * Math.sin(a1));
+      const cp2y = p1y - k * (ry * Math.cos(a1));
+
+      const lcp1 = toLocal(cp1x, cp1y);
+      const lcp2 = toLocal(cp2x, cp2y);
+      const lp1 = toLocal(p1x, p1y);
+
+      commands.push({
+        type: "c",
+        x1: lcp1.x,
+        y1: lcp1.y,
+        x2: lcp2.x,
+        y2: lcp2.y,
+        x: lp1.x,
+        y: lp1.y,
+      });
+    } else {
+      const lp1 = toLocal(p1x, p1y);
+      const lastCmd = commands[commands.length - 1];
+      const lastX = lastCmd.x;
+      const lastY = lastCmd.y;
+      if (lp1.x !== lastX || lp1.y !== lastY) {
+        if (lastCmd.type === "l" && commands.length >= 2) {
+          const prevCmd = commands[commands.length - 2];
+          const onEdgeX =
+            (prevCmd.x === 0 && lastCmd.x === 0 && lp1.x === 0) ||
+            (prevCmd.x === 1000 && lastCmd.x === 1000 && lp1.x === 1000);
+          const onEdgeY =
+            (prevCmd.y === 0 && lastCmd.y === 0 && lp1.y === 0) ||
+            (prevCmd.y === 1000 && lastCmd.y === 1000 && lp1.y === 1000);
+          if (onEdgeX || onEdgeY) {
+            lastCmd.x = lp1.x;
+            lastCmd.y = lp1.y;
+            continue;
+          }
+        }
+        commands.push({ type: "l", x: lp1.x, y: lp1.y });
       }
     }
-    simplified.push(points[i]);
   }
 
-  const commands = [`m ${simplified[0].x},${simplified[0].y}`];
-  for (let i = 1; i < simplified.length; i++) {
-    commands.push(`l ${simplified[i].x},${simplified[i].y}`);
-  }
-  commands.push("x e");
+  const strCommands = commands.map((c) => {
+    if (c.type === "m") return `m ${c.x},${c.y}`;
+    if (c.type === "c") return `c ${c.x1},${c.y1},${c.x2},${c.y2},${c.x},${c.y}`;
+    return `l ${c.x},${c.y}`;
+  });
+  strCommands.push("x e");
 
   return {
     coordsize: "1000,1000",
-    path: commands.join(" "),
+    path: strCommands.join(" "),
     bounds: { x: minX, y: minY, width: visW, height: visH },
   };
 }
@@ -259,6 +302,18 @@ export class DocxCanvasRenderer {
       defaultEntries += `<Default Extension="${ext}" ContentType="${mime}"/>`;
     }
 
+    let overrideEntries = "";
+    for (const [resId, res] of Object.entries(doc.resources || {})) {
+      const extIdx = resId.lastIndexOf(".");
+      const hasExt = extIdx !== -1 && extIdx > 0;
+      if (!hasExt) {
+        let mime = res.mimeType || "image/png";
+        if (mime.includes("jpeg") || mime.includes("jpg")) mime = "image/jpeg";
+        else if (mime.includes("png")) mime = "image/png";
+        overrideEntries += `\n  <Override PartName="/word/media/${resId}" ContentType="${mime}"/>`;
+      }
+    }
+
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
@@ -268,7 +323,7 @@ export class DocxCanvasRenderer {
   <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
   <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
   <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
-  <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+  <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>${overrideEntries}
 </Types>`.trim();
   }
 

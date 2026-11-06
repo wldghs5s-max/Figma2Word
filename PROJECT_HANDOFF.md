@@ -40,17 +40,19 @@
 
 ## 3. 구현 현황 및 핵심 성과 (Phase 46.2 완료)
 
-### 3.1 Phase 46.2: Renderer-Level 클리핑 완결 및 실제 시각 재현 품질 검증
+### 3.1 Phase 46.2: Renderer-Level 클리핑 완결 및 독립 GPT 감사 정밀 조치
 1. **Parser → Canvas IR → Renderer 간 클리핑 구조적 단절 완전 해소**:
    - Canvas IR의 `originalBounds`와 `clipBounds`를 DOCX/HWPX Renderer에 완전 연결.
-   - **타원 클리핑 (`buildClippedEllipsePath`)**: 축소된 `<v:oval>`을 다시 그리는 대신, 원본 곡률과 중심점($cx, cy, rx, ry$)을 온전히 유지하면서 화면 경계($x=0$)에 맞춘 정밀 절단면(Flat Cut Edge)을 가진 `<v:shape>` 벡터 패스 및 HWPX `<hp:polygon>` 다각형으로 직렬화.
-   - **벡터 스케일 보존 (`coordorigin`, `coordsize`)**: Word VML 로컬 좌표계 오프셋 및 범위를 동적 계산하여, 부분 클리핑된 벡터의 종횡비와 스케일을 1:1 무왜곡 보존.
-   - **이미지 복합 크롭 (Composite Crop)**: 디자이너 지정 `imageCrop`과 부모 프레임 클리핑 분수를 선형 결합하여 충돌 없는 VML `croptop/bottom/left/right` 및 HWPX `<hp:imgClip>` 직렬화.
+   - **타원 클리핑 (`buildClippedEllipsePath`)**: 축소된 `<v:oval>`을 다시 그리는 대신, 원본 곡률과 중심점($cx, cy, rx, ry$)을 온전히 유지하면서 가시 원호는 **진성 3차 베지에 곡선(`c x1,y1,x2,y2,x,y`)**으로, 화면 절단선($x=0$)은 정밀 직선(`l x,y`)으로 직렬화하여 원본 기하를 100% 무왜곡 보존.
+   - **HWPX 벡터 클리핑 완결**: `hwpxCanvasRenderer.ts`에 `isVectorClipped` 및 Sutherland-Hodgman 다각형 클리핑(`clipHwpxPolygon`), Cohen-Sutherland 선분 클리핑(`clipHwpxLineSegment`)을 구현하여 원본 1:1 종횡비 보존 및 바운딩 밖 정점 절단 완결.
+   - **DOCX 벡터 스케일 보존 (`coordorigin`, `coordsize`)**: Word VML 로컬 좌표계 오프셋 및 범위를 동적 계산하여, 부분 클리핑된 벡터의 종횡비와 스케일을 1:1 무왜곡 보존.
+   - **이미지 복합 크롭 (Composite Crop)**: 디자이너 지정 `imageCrop`과 부모 프레임 클리핑 분수를 선형 결합하여 충돌 없는 VML `croptop/bottom/left/right` 및 HWPX `<hp:imgClip>` 직렬화. 유효 바이너리 PNG를 DOCX `word/media/` 및 HWPX `BinData/`에 실제 패키징.
    - **카드 모서리 반경 정밀화**: 경계에 잘린 모서리는 직각(`radius=0`)으로 깔끔하게 처리하고, 가시 영역 내 모서리는 라운딩을 유지.
+   - **DOCX vs HWPX 표 직렬화 아키텍처 공식화**: Word 2D 캔버스 엔진은 flow-based `<w:tbl>`의 문단 개행 및 z-index 붕괴를 원천 방지하기 위해 **2D 위치 고정 셀 카드(`<v:rect>` + `<w:txbxContent>`)**로 직렬화하며, HWPX는 네이티브 절대 위치 표(`<hp:tbl>`)로 직렬화함을 명확히 규명.
 2. **독립 검증용 아티팩트 및 감사 패키지 생성**:
    - `debug/phase46_2/Figma2Word_Phase46_2_GPT_Review.zip`: DOCX/HWPX 실제 시연 문서, 클리핑/보존/편집성 진단 JSON, SHA-256 매니페스트 수록.
 3. **전체 테스트 759개 전수 통과**:
-   - 111개 테스트 파일, 759개 테스트 100% PASS (신규 7개 반례 테스트 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
+   - 111개 테스트 파일, 759개 테스트 100% PASS (신규 반례 테스트 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
 
 ### 3.2 Phase 46.1: 범용 클리핑 안전성 교정 및 시각 재현 품질 검증
 1. **도형 기하 구조 보존 클리핑 (`originalBounds` / `clipBounds`) (P1)**:

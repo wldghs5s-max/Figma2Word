@@ -36,6 +36,7 @@ debug/*
 !debug/phase46_1/**
 !debug/phase46_2/
 !debug/phase46_2/PHASE46_2_COMPLETION_REPORT.md
+debug/phase46_2/package_staging/
 scratch/
 test-results/
 playwright-report/

@@ -59,6 +59,11 @@ describe("Phase 46.2: Renderer-Level Clipping Completion & Real-World Visual Fid
     const pathData = buildClippedEllipsePath(elem.originalBounds!, elem.clipBounds!);
     expect(pathData.bounds).toEqual({ x: 0, y: 0, width: 250, height: 200 });
 
+    // True cubic Bézier curve segments for the smooth circular arcs
+    expect(pathData.path).toContain(" c ");
+    // Straight flat cut line along the clipped bounding edge
+    expect(pathData.path).toContain(" l ");
+
     // Cut edge along x=0 has exactly the endpoints at y = 100 ± 100 * sqrt(1 - (-100/150)^2) = 100 ± 74.54 pt
     // Normalized to 0..1000 (where 200pt is 1000): 25.46pt -> 127, 174.54pt -> 873
     expect(pathData.path).toContain("0,873");
@@ -145,6 +150,16 @@ describe("Phase 46.2: Renderer-Level Clipping Completion & Real-World Visual Fid
     expect(docXml).toContain('coordsize="833,1000"');
     expect(docXml).toContain('margin-left:0.000pt');
     expect(docXml).toContain('width:250.000pt');
+
+    // HWPX: Vector is clipped using Sutherland-Hodgman polygon clipping,
+    // preserving 1:1 scale (w=250pt, h=200pt) without aspect-ratio squishing
+    elem.rawSvgPath = "M 0 0 L 300 0 L 300 200 L 0 200 Z";
+    const hwpxZip = await hwpxRenderer.buildZip(doc);
+    const sectionXml = await hwpxZip.file("Contents/section0.xml")!.async("string");
+    expect(sectionXml).toContain("<hp:polygon");
+    // Width and height in HWPUs (250pt = 25000, 200pt = 20000)
+    expect(sectionXml).toContain('width="25000"');
+    expect(sectionXml).toContain('height="20000"');
   });
 
   // --------------------------------------------------------------------------

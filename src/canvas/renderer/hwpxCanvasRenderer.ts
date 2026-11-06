@@ -179,6 +179,139 @@ export function buildClippedEllipseHwpxPoints(
   return simplified;
 }
 
+/**
+ * Sutherland-Hodgman Polygon Clipping against local rectangle [0, 0, w, h] in HWPU
+ */
+export function clipHwpxPolygon(
+  points: { x: number; y: number }[],
+  w: number,
+  h: number
+): { x: number; y: number }[] {
+  let output = points;
+
+  function clipEdge(
+    pts: { x: number; y: number }[],
+    isInside: (p: { x: number; y: number }) => boolean,
+    intersect: (p1: { x: number; y: number }, p2: { x: number; y: number }) => { x: number; y: number }
+  ): { x: number; y: number }[] {
+    if (pts.length === 0) return [];
+    const result: { x: number; y: number }[] = [];
+    let s = pts[pts.length - 1];
+
+    for (const p of pts) {
+      if (isInside(p)) {
+        if (isInside(s)) {
+          result.push(p);
+        } else {
+          result.push(intersect(s, p));
+          result.push(p);
+        }
+      } else if (isInside(s)) {
+        result.push(intersect(s, p));
+      }
+      s = p;
+    }
+    return result;
+  }
+
+  // Clip against x >= 0 (Left)
+  output = clipEdge(output, (p) => p.x >= 0, (p1, p2) => ({
+    x: 0,
+    y: Math.round(p1.y + ((0 - p1.x) * (p2.y - p1.y)) / (p2.x - p1.x || 1e-9)),
+  }));
+
+  // Clip against x <= w (Right)
+  output = clipEdge(output, (p) => p.x <= w, (p1, p2) => ({
+    x: w,
+    y: Math.round(p1.y + ((w - p1.x) * (p2.y - p1.y)) / (p2.x - p1.x || 1e-9)),
+  }));
+
+  // Clip against y >= 0 (Top)
+  output = clipEdge(output, (p) => p.y >= 0, (p1, p2) => ({
+    x: Math.round(p1.x + ((0 - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y || 1e-9)),
+    y: 0,
+  }));
+
+  // Clip against y <= h (Bottom)
+  output = clipEdge(output, (p) => p.y <= h, (p1, p2) => ({
+    x: Math.round(p1.x + ((h - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y || 1e-9)),
+    y: h,
+  }));
+
+  return output.map((p) => ({
+    x: Math.max(0, Math.min(w, p.x)),
+    y: Math.max(0, Math.min(h, p.y)),
+  }));
+}
+
+/**
+ * Cohen-Sutherland line clipping against local rectangle [0, 0, w, h] in HWPU
+ */
+export function clipHwpxLineSegment(
+  p0: { x: number; y: number },
+  p1: { x: number; y: number },
+  w: number,
+  h: number
+): [{ x: number; y: number }, { x: number; y: number }] | null {
+  const INSIDE = 0;
+  const LEFT = 1;
+  const RIGHT = 2;
+  const BOTTOM = 4;
+  const TOP = 8;
+
+  function computeCode(x: number, y: number): number {
+    let code = INSIDE;
+    if (x < 0) code |= LEFT;
+    else if (x > w) code |= RIGHT;
+    if (y < 0) code |= TOP;
+    else if (y > h) code |= BOTTOM;
+    return code;
+  }
+
+  let x0 = p0.x;
+  let y0 = p0.y;
+  let x1 = p1.x;
+  let y1 = p1.y;
+  let code0 = computeCode(x0, y0);
+  let code1 = computeCode(x1, y1);
+
+  while (true) {
+    if ((code0 | code1) === 0) {
+      return [{ x: Math.round(x0), y: Math.round(y0) }, { x: Math.round(x1), y: Math.round(y1) }];
+    } else if ((code0 & code1) !== 0) {
+      return null;
+    } else {
+      const outcode = code0 !== 0 ? code0 : code1;
+      let x = 0;
+      let y = 0;
+
+      if ((outcode & TOP) !== 0) {
+        x = x0 + ((x1 - x0) * (0 - y0)) / (y1 - y0 || 1e-9);
+        y = 0;
+      } else if ((outcode & BOTTOM) !== 0) {
+        x = x0 + ((x1 - x0) * (h - y0)) / (y1 - y0 || 1e-9);
+        y = h;
+      } else if ((outcode & RIGHT) !== 0) {
+        y = y0 + ((y1 - y0) * (w - x0)) / (x1 - x0 || 1e-9);
+        x = w;
+      } else if ((outcode & LEFT) !== 0) {
+        y = y0 + ((y1 - y0) * (0 - x0)) / (x1 - x0 || 1e-9);
+        x = 0;
+      }
+
+      if (outcode === code0) {
+        x0 = x;
+        y0 = y;
+        code0 = computeCode(x0, y0);
+      } else {
+        x1 = x;
+        y1 = y;
+        code1 = computeCode(x1, y1);
+      }
+    }
+  }
+}
+
 export class HwpxCanvasRenderer {
   private creator: string;
 
@@ -1037,10 +1170,25 @@ ${paraPrEntries}
 
     // 3. Vector Shape (KS X 6101 native hp:polygon for closed paths / hp:line for open subpaths)
     if (elem.type === "vector") {
+      const orig = elem.originalBounds;
+      const isVectorClipped = !!(
+        orig &&
+        elem.clipBounds &&
+        (orig.x < elem.clipBounds.x - 0.01 ||
+          orig.y < elem.clipBounds.y - 0.01 ||
+          orig.x + orig.width > elem.clipBounds.x + elem.clipBounds.width + 0.01 ||
+          orig.y + orig.height > elem.clipBounds.y + elem.clipBounds.height + 0.01)
+      );
+
+      const targetW = isVectorClipped && orig ? ptToHwpu(orig.width) : shapeW;
+      const targetH = isVectorClipped && orig ? ptToHwpu(orig.height) : shapeH;
+      const offsetX = isVectorClipped && orig ? ptToHwpu(elem.bounds.x - orig.x) : 0;
+      const offsetY = isVectorClipped && orig ? ptToHwpu(elem.bounds.y - orig.y) : 0;
+
       let subpaths = elem.vectorSubpaths;
       if (!subpaths || subpaths.length === 0) {
         if (elem.rawSvgPath) {
-          subpaths = SvgPath.parse(elem.rawSvgPath).toHwpxSubpathsWithClosed(shapeW, shapeH);
+          subpaths = SvgPath.parse(elem.rawSvgPath).toHwpxSubpathsWithClosed(targetW, targetH);
         } else if (elem.vectorPoints && elem.vectorPoints.length > 0) {
           subpaths = [{ points: elem.vectorPoints, closed: true }];
         }
@@ -1050,7 +1198,11 @@ ${paraPrEntries}
         const renderedShapes: string[] = [];
         for (let idx = 0; idx < subpaths.length; idx++) {
           const sp = subpaths[idx];
-          const pts = sp.points;
+          let pts = sp.points;
+
+          if (isVectorClipped) {
+            pts = pts.map((p) => ({ x: p.x - offsetX, y: p.y - offsetY }));
+          }
 
           // Open subpath: emit connected <hp:line> segments
           if (!sp.closed && pts.length >= 2) {
@@ -1064,8 +1216,16 @@ ${paraPrEntries}
             const endCap = pts.length > 2 ? "ROUND" : "FLAT";
 
             for (let segIdx = 0; segIdx < pts.length - 1; segIdx++) {
-              const p0 = pts[segIdx];
-              const p1 = pts[segIdx + 1];
+              let p0 = pts[segIdx];
+              let p1 = pts[segIdx + 1];
+
+              if (isVectorClipped) {
+                const clippedSeg = clipHwpxLineSegment(p0, p1, shapeW, shapeH);
+                if (!clippedSeg) continue;
+                p0 = clippedSeg[0];
+                p1 = clippedSeg[1];
+              }
+
               const lineId = nextId();
               renderedShapes.push(
                 this.renderLineXml({
@@ -1088,13 +1248,7 @@ ${paraPrEntries}
           }
 
           // Closed polygon
-          const polyId = nextId();
-          const subFillBrush =
-            sp.closed && hasFill
-              ? fillBrushXml
-              : `<hc:fillBrush/>`;
-
-          const polyPts =
+          let polyPts =
             pts.length > 0
               ? pts
               : [
@@ -1103,6 +1257,17 @@ ${paraPrEntries}
                   { x: shapeW, y: shapeH },
                   { x: 0, y: shapeH },
                 ];
+
+          if (isVectorClipped) {
+            polyPts = clipHwpxPolygon(polyPts, shapeW, shapeH);
+            if (polyPts.length < 3) continue; // Polygon completely clipped away
+          }
+
+          const polyId = nextId();
+          const subFillBrush =
+            sp.closed && hasFill
+              ? fillBrushXml
+              : `<hc:fillBrush/>`;
 
           renderedShapes.push(
             this.renderPolygonXml({
