@@ -32,6 +32,8 @@ debug/*
 !debug/hwpx-overlap-mre/
 !debug/hwpx-overlap-mre/**
 !debug/phase46/PHASE46_VISUAL_FIDELITY_REPORT.md
+!debug/phase46_1/
+!debug/phase46_1/**
 scratch/
 test-results/
 playwright-report/

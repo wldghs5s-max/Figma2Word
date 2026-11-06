@@ -2,6 +2,7 @@ import {
   CanvasDocument,
   CanvasPage,
   CanvasElement,
+  CanvasBounds,
   CanvasTextRun,
   CanvasStyle,
   ScalePolicy,
@@ -1052,8 +1053,37 @@ export class FigmaCanvasParser {
     let currentZIndex = 1;
     const consumedNodeIds = new Set<string>();
 
-    // Helper to recursively process children with cascading opacity propagation (Phase 33)
-    const processChildren = (node: FigmaNode, parentOpacity: number = 1.0) => {
+    // Helper to compute intersection of two clipping bounds (Phase 46.1)
+    const intersectBounds = (
+      a?: CanvasBounds,
+      b?: CanvasBounds,
+    ): CanvasBounds | undefined => {
+      if (!a) return b;
+      if (!b) return a;
+      const x = Math.max(a.x, b.x);
+      const y = Math.max(a.y, b.y);
+      const right = Math.min(a.x + a.width, b.x + b.width);
+      const bottom = Math.min(a.y + a.height, b.y + b.height);
+      if (right <= x || bottom <= y) {
+        return { x, y, width: 0, height: 0 };
+      }
+      return { x, y, width: right - x, height: bottom - y };
+    };
+
+    const pageClipBounds: CanvasBounds = {
+      x: 0,
+      y: 0,
+      width: targetWidthPt,
+      height: targetHeightPt,
+    };
+    const rootClip = frameClips ? pageClipBounds : undefined;
+
+    // Helper to recursively process children with cascading opacity and clip propagation (Phase 46.1)
+    const processChildren = (
+      node: FigmaNode,
+      parentOpacity: number = 1.0,
+      activeClip?: CanvasBounds,
+    ) => {
       if (!node.children) return;
 
       for (const child of node.children) {
@@ -1076,26 +1106,64 @@ export class FigmaCanvasParser {
         const childBox = child.absoluteBoundingBox;
         if (!childBox) {
           // If no absolute bounding box, still process children if any
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, activeClip);
           continue;
         }
 
-        // Relative coordinate to page frame
+        // Relative coordinate to page frame (unscaled and unclipped exact geometry)
         const relX = childBox.x - frameBox.x;
         const relY = childBox.y - frameBox.y;
 
-        let xPt = relX * scaleX;
-        let yPt = relY * scaleY;
-        let wPt = childBox.width * scaleX;
-        let hPt = childBox.height * scaleY;
+        const origXPt = relX * scaleX;
+        const origYPt = relY * scaleY;
+        const origWPt = childBox.width * scaleX;
+        const origHPt = childBox.height * scaleY;
+        const origBounds: CanvasBounds = {
+          x: origXPt,
+          y: origYPt,
+          width: origWPt,
+          height: origHPt,
+        };
 
-        // P2-01: Clipping check when parent frame has clipsContent=true
-        if (frameClips) {
-          // If element is completely outside the page canvas bounds, omit it
-          if (xPt + wPt <= 0 || yPt + hPt <= 0 || xPt >= targetWidthPt || yPt >= targetHeightPt) {
-            continue;
+        // Determine if this child container imposes clipping on its own descendants
+        const childClips = child.clipsContent === true;
+        const childClipBounds = childClips
+          ? intersectBounds(activeClip, origBounds)
+          : activeClip;
+
+        // Check if element is completely outside active clipping boundary
+        const isCompletelyOutside =
+          activeClip !== undefined &&
+          (activeClip.width <= 0 ||
+            activeClip.height <= 0 ||
+            origXPt + origWPt <= activeClip.x ||
+            origYPt + origHPt <= activeClip.y ||
+            origXPt >= activeClip.x + activeClip.width ||
+            origYPt >= activeClip.y + activeClip.height);
+
+        if (isCompletelyOutside) {
+          // If child container has clipsContent !== true (clipsContent: false or omitted),
+          // its children could extend back into activeClip! Descend into children without emitting parent.
+          if (child.children && child.children.length > 0 && !childClips) {
+            processChildren(child, effectiveOpacity, childClipBounds);
           }
-          // If shape extends outside page canvas boundaries, clamp bounds so it doesn't spill into negative margins or header gutters
+          continue;
+        }
+
+        // Check if shape partially extends outside clipping boundary
+        const isPartiallyClipped =
+          activeClip !== undefined &&
+          (origXPt < activeClip.x ||
+            origYPt < activeClip.y ||
+            origXPt + origWPt > activeClip.x + activeClip.width ||
+            origYPt + origHPt > activeClip.y + activeClip.height);
+
+        let xPt = origXPt;
+        let yPt = origYPt;
+        let wPt = origWPt;
+        let hPt = origHPt;
+
+        if (isPartiallyClipped && activeClip) {
           if (
             child.type === "ELLIPSE" ||
             child.type === "RECTANGLE" ||
@@ -1103,22 +1171,33 @@ export class FigmaCanvasParser {
             child.type === "VECTOR" ||
             child.type === "INSTANCE"
           ) {
-            if (xPt < 0) {
-              wPt = Math.max(1, wPt + xPt);
-              xPt = 0;
+            if (xPt < activeClip.x) {
+              wPt = Math.max(1, wPt + (xPt - activeClip.x));
+              xPt = activeClip.x;
             }
-            if (yPt < 0) {
-              hPt = Math.max(1, hPt + yPt);
-              yPt = 0;
+            if (yPt < activeClip.y) {
+              hPt = Math.max(1, hPt + (yPt - activeClip.y));
+              yPt = activeClip.y;
             }
-            if (xPt + wPt > targetWidthPt) {
-              wPt = Math.max(1, targetWidthPt - xPt);
+            if (xPt + wPt > activeClip.x + activeClip.width) {
+              wPt = Math.max(1, activeClip.x + activeClip.width - xPt);
             }
-            if (yPt + hPt > targetHeightPt) {
-              hPt = Math.max(1, targetHeightPt - yPt);
+            if (yPt + hPt > activeClip.y + activeClip.height) {
+              hPt = Math.max(1, activeClip.y + activeClip.height - yPt);
             }
           }
         }
+
+        // Helper to push element while preserving exact original geometry & clip bounds (Phase 46.1)
+        const pushElement = (elem: CanvasElement) => {
+          if (!elem.originalBounds) {
+            elem.originalBounds = origBounds;
+          }
+          if (isPartiallyClipped && activeClip && !elem.clipBounds) {
+            elem.clipBounds = activeClip;
+          }
+          elements.push(elem);
+        };
 
         // Diagnostic: clipsContent check
         if (child.clipsContent) {
@@ -1145,7 +1224,7 @@ export class FigmaCanvasParser {
             for (const id of tableDetection.consumedNodeIds) {
               consumedNodeIds.add(id);
             }
-            elements.push({
+            pushElement({
               id: child.id,
               name: child.name || "Table",
               type: "table",
@@ -1196,7 +1275,7 @@ export class FigmaCanvasParser {
           const elemRotation =
             affineAnalysis?.rotationDegrees ?? (child as any).rotation;
 
-          elements.push({
+          pushElement({
             id: child.id,
             name: child.name,
             type: "image",
@@ -1220,7 +1299,7 @@ export class FigmaCanvasParser {
             Array.isArray(child.children) &&
             child.children.length > 0
           ) {
-            processChildren(child, effectiveOpacity);
+            processChildren(child, effectiveOpacity, childClipBounds);
           }
         } else if (child.type === "TEXT") {
           const textRuns = this.extractTextRuns(child, scaleX);
@@ -1306,7 +1385,7 @@ export class FigmaCanvasParser {
               ? rawTar
               : undefined;
 
-          elements.push({
+          pushElement({
             id: child.id,
             name: child.name,
             type: "text",
@@ -1339,7 +1418,7 @@ export class FigmaCanvasParser {
               lineW = 0;
             }
           }
-          elements.push({
+          pushElement({
             id: child.id,
             name: child.name,
             type: "line",
@@ -1404,7 +1483,7 @@ export class FigmaCanvasParser {
               );
               const vectorPoints = vectorSubpaths.flatMap((s) => s.points);
 
-              elements.push({
+              pushElement({
                 id: child.id,
                 name: child.name,
                 type: "vector",
@@ -1422,7 +1501,7 @@ export class FigmaCanvasParser {
                 geometryProvenance: "PRIMITIVE_SHAPE",
               });
             } else {
-              elements.push({
+              pushElement({
                 id: child.id,
                 name: child.name,
                 type: "oval",
@@ -1437,7 +1516,7 @@ export class FigmaCanvasParser {
               });
             }
           }
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, childClipBounds);
         } else if (
           child.type === "VECTOR" ||
           child.type === "STAR" ||
@@ -1553,7 +1632,7 @@ export class FigmaCanvasParser {
               strokeVmlPath = parsedStroke.toVmlPath(1000, 1000);
             }
 
-            elements.push({
+            pushElement({
               id: child.id,
               name: child.name,
               type: "vector",
@@ -1577,7 +1656,7 @@ export class FigmaCanvasParser {
               sourceNodeType: child.type,
             });
           }
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, childClipBounds);
         } else if (
           child.type === "RECTANGLE" ||
           child.type === "FRAME" ||
@@ -1600,7 +1679,7 @@ export class FigmaCanvasParser {
           if (isPartialBorder) {
             // 1. If has background fill, emit a card with fill only (no 4-sided stroke)
             if (hasFill) {
-              elements.push({
+              pushElement({
                 id: child.id,
                 name: child.name,
                 type: "card",
@@ -1626,7 +1705,7 @@ export class FigmaCanvasParser {
             const strokeDashed = style.strokeDashed;
 
             if ((bs.bottom ?? 0) > 0) {
-              elements.push({
+              pushElement({
                 id: `${child.id}_b`,
                 name: `${child.name || "border"}_bottom`,
                 type: "line",
@@ -1645,7 +1724,7 @@ export class FigmaCanvasParser {
               });
             }
             if ((bs.top ?? 0) > 0) {
-              elements.push({
+              pushElement({
                 id: `${child.id}_t`,
                 name: `${child.name || "border"}_top`,
                 type: "line",
@@ -1664,7 +1743,7 @@ export class FigmaCanvasParser {
               });
             }
             if ((bs.left ?? 0) > 0) {
-              elements.push({
+              pushElement({
                 id: `${child.id}_l`,
                 name: `${child.name || "border"}_left`,
                 type: "line",
@@ -1683,7 +1762,7 @@ export class FigmaCanvasParser {
               });
             }
             if ((bs.right ?? 0) > 0) {
-              elements.push({
+              pushElement({
                 id: `${child.id}_r`,
                 name: `${child.name || "border"}_right`,
                 type: "line",
@@ -1702,7 +1781,7 @@ export class FigmaCanvasParser {
               });
             }
           } else if (hasFill || hasStroke) {
-            elements.push({
+            pushElement({
               id: child.id,
               name: child.name,
               type: "card",
@@ -1718,14 +1797,14 @@ export class FigmaCanvasParser {
           }
 
           // Process nested children inside this container
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, childClipBounds);
         } else if (child.type === "GROUP") {
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, childClipBounds);
         } else {
           // Fallback for VECTOR, STAR, ELLIPSE, etc.
           const style = this.extractStyle(child, scaleX);
           if (style.fillColor || style.strokeColor) {
-            elements.push({
+            pushElement({
               id: child.id,
               name: child.name,
               type: "card",
@@ -1739,12 +1818,12 @@ export class FigmaCanvasParser {
               geometryProvenance: "PRIMITIVE_SHAPE",
             });
           }
-          processChildren(child, effectiveOpacity);
+          processChildren(child, effectiveOpacity, childClipBounds);
         }
       }
     };
 
-    processChildren(frame);
+    processChildren(frame, 1.0, rootClip);
 
     // Sort elements by zIndex
     elements.sort((a, b) => a.zIndex - b.zIndex);

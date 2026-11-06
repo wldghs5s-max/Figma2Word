@@ -264,6 +264,8 @@ export interface CanvasElement {
   frameId?: string;
   type: CanvasElementType;
   bounds: CanvasBounds;
+  originalBounds?: CanvasBounds; // Phase 46.1: Exact unclipped geometry in scaled canvas pt
+  clipBounds?: CanvasBounds; // Phase 46.1: Active clipping rectangle in scaled canvas pt
   zIndex: number;
   rotation?: number; // degrees
   opacity?: number; // 0.0 ~ 1.0

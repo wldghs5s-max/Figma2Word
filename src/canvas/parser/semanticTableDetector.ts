@@ -430,6 +430,28 @@ function computeColumnTrackAlignment(allRowCells: FigmaNode[][], containerWidth:
  * Implements Phase 44 Universal Content Preservation, Atomic Fallback,
  * Generalized Relative Geometry, and Robust RowSpan/ColSpan detection.
  */
+function extractEffectiveSolidFill(
+  node: FigmaNode | undefined
+): { colorHex: string; isTransparent?: boolean } | undefined {
+  if (!node || node.type === "TEXT") return undefined;
+  const fills = node.fills;
+  if (!Array.isArray(fills) || fills.length === 0) return undefined;
+  const solid = fills.find((f: any) => f && f.type === "SOLID" && f.visible !== false);
+  if (solid && solid.color) {
+    const alpha =
+      typeof solid.opacity === "number"
+        ? solid.opacity
+        : typeof solid.color.a === "number"
+          ? solid.color.a
+          : 1.0;
+    if (alpha <= 0.001) {
+      return { colorHex: "TRANSPARENT", isTransparent: true };
+    }
+    return { colorHex: `#${figmaColorToHex(solid.color)}` };
+  }
+  return undefined;
+}
+
 export function detectSemanticTable(
   container: FigmaNode,
   scaleX: number,
@@ -803,10 +825,14 @@ export function detectSemanticTable(
   const headerRow = allRowCells[0];
   const dataRow = allRowCells[1];
   if (headerRow && dataRow && headerRow.length > 0 && dataRow.length > 0) {
-    const headerFills = (headerRow[0].type !== "TEXT" ? headerRow[0].fills : undefined) || (candidateRows[0].type !== "TEXT" ? candidateRows[0].fills : undefined);
-    const dataFills = (dataRow[0].type !== "TEXT" ? dataRow[0].fills : undefined) || (candidateRows[1].type !== "TEXT" ? candidateRows[1].fills : undefined);
-    const headerHasBg = headerFills && headerFills.length > 0;
-    const dataHasBg = dataFills && dataFills.length > 0;
+    const headerSolid =
+      extractEffectiveSolidFill(headerRow[0]) ||
+      extractEffectiveSolidFill(candidateRows[0]);
+    const dataSolid =
+      extractEffectiveSolidFill(dataRow[0]) ||
+      extractEffectiveSolidFill(candidateRows[1]);
+    const headerHasBg = !!(headerSolid && !headerSolid.isTransparent);
+    const dataHasBg = !!(dataSolid && !dataSolid.isTransparent);
     if (headerHasBg !== dataHasBg || (headerHasBg && dataHasBg)) {
       score += 10;
     }
@@ -966,14 +992,18 @@ export function detectSemanticTable(
         markDescendants(cellNode);
 
         // Cell styling: in Figma, TEXT node fills represent font color, NEVER background color!
+        // Track fill provenance from non-TEXT container nodes, correctly handling empty fills [] and transparent fills.
         let cellBgColor: string | undefined;
-        const cellFills =
-          (cellNode.type !== "TEXT" ? cellNode.fills : undefined) ||
-          (rowNode.type !== "TEXT" ? rowNode.fills : undefined);
-        if (cellFills && cellFills.length > 0) {
-          const solid = cellFills.find((f: any) => f.type === "SOLID" && f.visible !== false);
-          if (solid && solid.color) {
-            cellBgColor = `#${figmaColorToHex(solid.color)}`;
+        const cellSolid = extractEffectiveSolidFill(cellNode);
+        if (cellSolid) {
+          if (!cellSolid.isTransparent) {
+            cellBgColor = cellSolid.colorHex;
+          }
+        } else {
+          // Fallback to row container fill if cellNode has no explicit fill or empty fills []
+          const rowSolid = extractEffectiveSolidFill(rowNode);
+          if (rowSolid && !rowSolid.isTransparent) {
+            cellBgColor = rowSolid.colorHex;
           }
         }
 
@@ -995,24 +1025,17 @@ export function detectSemanticTable(
         const paragraphs = extractCellParagraphs(cellNode, scaleX);
         const align = extractCellTextAlign(cellNode);
 
-        // Contrast collision safeguard: if cellBgColor collides with text color, discard it
-        if (cellBgColor && textRuns.length > 0) {
+        // Zero-contrast collision safeguard (Phase 46.1):
+        // If cellBgColor was inherited (not explicitly declared on the cell itself) and the text color
+        // is 100% identical hex to that background, discard inherited background to prevent invisible text.
+        // Genuine valid backgrounds with intentional low or subtle contrast are strictly preserved.
+        if (cellBgColor && textRuns.length > 0 && !cellSolid) {
           const cleanBg = cellBgColor.replace(/^#/, "").toUpperCase();
-          const r1 = parseInt(cleanBg.substring(0, 2), 16) || 0;
-          const g1 = parseInt(cleanBg.substring(2, 4), 16) || 0;
-          const b1 = parseInt(cleanBg.substring(4, 6), 16) || 0;
-
-          const collides = textRuns.some((tr) => {
+          const isZeroContrast = textRuns.some((tr) => {
             if (!tr.color) return false;
-            const tc = tr.color.replace(/^#/, "").toUpperCase();
-            if (tc === cleanBg) return true;
-            const r2 = parseInt(tc.substring(0, 2), 16) || 0;
-            const g2 = parseInt(tc.substring(2, 4), 16) || 0;
-            const b2 = parseInt(tc.substring(4, 6), 16) || 0;
-            const dist = Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
-            return dist < 35; // Distinguishable threshold
+            return tr.color.replace(/^#/, "").toUpperCase() === cleanBg;
           });
-          if (collides) {
+          if (isZeroContrast) {
             cellBgColor = undefined;
           }
         }
