@@ -1092,7 +1092,13 @@ ${paraPrEntries}
 
     // Common text & style calculation
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
-    const hasFill = !!elem.style.fillColor;
+    const effectiveFillColor =
+      elem.style.fillColor && elem.style.fillColor !== "none"
+        ? elem.style.fillColor
+        : elem.style.gradient && elem.style.gradient.stops.length > 0
+          ? elem.style.gradient.stops[0].color
+          : undefined;
+    const hasFill = !!effectiveFillColor;
     const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
 
     const lineStyle = hasStroke ? (elem.style.strokeDashed ? "DASH" : "SOLID") : "NONE";
@@ -1104,7 +1110,7 @@ ${paraPrEntries}
     const alphaVal = Math.max(0, Math.min(255, Math.round((1 - fillAlpha) * 255)));
 
     const fillBrushXml = hasFill
-      ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(elem.style.fillColor)}" hatchColor="#999999" alpha="${alphaVal}"/></hc:fillBrush>`
+      ? `<hc:fillBrush><hc:winBrush faceColor="#${cleanHex(effectiveFillColor)}" hatchColor="#999999" alpha="${alphaVal}"/></hc:fillBrush>`
       : `<hc:fillBrush/>`;
 
     const shapeW = wHwpu;

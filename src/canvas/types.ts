@@ -184,9 +184,22 @@ export interface CanvasShadow {
   spread?: number; // pt
 }
 
+export interface CanvasGradientStop {
+  color: string; // hex '#RRGGBB'
+  opacity?: number; // 0.0 ~ 1.0
+  position: number; // 0.0 ~ 1.0
+}
+
+export interface CanvasGradient {
+  type: "linear" | "radial";
+  angle?: number; // degrees (VML convention: 270 = left-to-right, 180 = top-to-bottom, 90 = right-to-left, 0 = bottom-to-top)
+  stops: CanvasGradientStop[];
+}
+
 export interface CanvasStyle {
   fillColor?: string; // hex '#RRGGBB'
   fillOpacity?: number; // 0.0 ~ 1.0
+  gradient?: CanvasGradient;
   strokeColor?: string; // hex '#RRGGBB'
   strokeWidth?: number; // pt
   strokeDashed?: boolean;

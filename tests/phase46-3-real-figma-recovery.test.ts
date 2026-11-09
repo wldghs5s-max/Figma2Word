@@ -79,7 +79,8 @@ describe("Phase 46.3: Real Figma Full File Recovery & 5-Screen Live Verification
     const doc = parser.parse(raw);
 
     const page = doc.pages[0];
-    expect(page.elements.length).toBe(165);
+    // Phase 46.final: 166 elements (165 previous + 1 recovered gradient banner node 1154:7735)
+    expect(page.elements.length).toBe(166);
 
     // Verify clipped ovals
     const clippedOvals = page.elements.filter(

@@ -747,7 +747,7 @@ export class DocxCanvasRenderer {
             name: `${elem.name || "Table"}_Cell_${r}_${c}`,
             type: "card",
             bounds: { x: cellX, y: cellY, width: cellW, height: cellH },
-            zIndex: z + subIdx + 1,
+            zIndex: z,
             style: {
               fillColor: cell.backgroundColor,
               strokeColor: cell.borderColor || "#D0D5DD",
@@ -791,10 +791,13 @@ export class DocxCanvasRenderer {
         elem.vectorSubpaths &&
         elem.vectorSubpaths.length > 0 &&
         elem.vectorSubpaths.every((sp) => !sp.closed);
-      const hasFill = !!elem.style.fillColor && elem.style.fillColor !== "none" && !allOpenSubpaths;
+      const hasGradient = !allOpenSubpaths && !!elem.style.gradient && elem.style.gradient.stops && elem.style.gradient.stops.length > 0;
+      const hasFill = ((!!elem.style.fillColor && elem.style.fillColor !== "none") || hasGradient) && !allOpenSubpaths;
       const hasStroke = !!elem.style.strokeColor && (elem.style.strokeWidth || 0) > 0;
       const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
-      const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(elem.style.fillColor)}"` : "";
+      const fillcolorAttr = hasFill
+        ? `fillcolor="#${cleanHex(elem.style.fillColor || (hasGradient ? elem.style.gradient!.stops[0].color : "FFFFFF"))}"`
+        : "";
       const strokedAttr = hasStroke ? 'stroked="t"' : 'stroked="f"';
       const strokecolorAttr = hasStroke ? `strokecolor="#${cleanHex(elem.style.strokeColor)}"` : "";
       const strokeweightAttr = hasStroke
@@ -812,10 +815,20 @@ export class DocxCanvasRenderer {
       const dashChild = hasStroke && (elem.style.strokeDashed || elemOpacity < 1)
         ? `<v:stroke${elem.style.strokeDashed ? ' dashstyle="dash"' : ""}${strokeOpacityAttr}/>`
         : "";
-      const opacityChild =
-        hasFill && fillAlpha < 1
-          ? `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`
-          : "";
+      let fillChild = "";
+      if (hasGradient) {
+        const grad = elem.style.gradient!;
+        const angle = typeof grad.angle === "number" ? grad.angle : 270;
+        const startColor = cleanHex(grad.stops[0].color, "000000");
+        const endColor = cleanHex(grad.stops[grad.stops.length - 1].color, "FFFFFF");
+        const colorsAttr = grad.stops
+          .map((s) => `${Math.round(s.position * 100)}% #${cleanHex(s.color)}`)
+          .join("; ");
+        const fillOpacityAttr = fillAlpha < 1 ? ` opacity="${fillAlpha.toFixed(2)}"` : "";
+        fillChild = `<v:fill type="gradient" angle="${angle}" color="#${startColor}" color2="#${endColor}" colors="${colorsAttr}"${fillOpacityAttr}/>`;
+      } else if (hasFill && fillAlpha < 1) {
+        fillChild = `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`;
+      }
       const shadowChild = elem.style.shadow
         ? `<v:shadow on="t" type="single" color="#${cleanHex(elem.style.shadow.color, "000000")}" offset="${(elem.style.shadow.offsetX || 0).toFixed(2)}pt,${(elem.style.shadow.offsetY || 0).toFixed(2)}pt"${typeof elem.style.shadow.opacity === "number" ? ` opacity="${elem.style.shadow.opacity.toFixed(2)}"` : ""}/>`
         : "";
@@ -843,12 +856,12 @@ export class DocxCanvasRenderer {
 
       // F-01: When fill and stroke geometries have distinct paths, emit discrete fill and stroke shapes
       if (elem.strokeVectorPath && elem.strokeVectorPath !== pathStr && hasFill && hasStroke) {
-        const fillShape = `<v:shape id="${shapeId}" ${altAttr} ${titleAttr} style="${baseStyle}" ${vmlCoordAttrs} path="${pathStr}" filled="t" ${fillcolorAttr} stroked="f">${opacityChild}${pathChild}${shadowChild}</v:shape>`;
+        const fillShape = `<v:shape id="${shapeId}" ${altAttr} ${titleAttr} style="${baseStyle}" ${vmlCoordAttrs} path="${pathStr}" filled="t" ${fillcolorAttr} stroked="f">${fillChild}${pathChild}${shadowChild}</v:shape>`;
         const strokeShape = `<v:shape id="${shapeId}_s" ${altAttr} ${titleAttr} style="${baseStyle}" ${vmlCoordAttrs} path="${elem.strokeVectorPath}" filled="f" stroked="t" ${strokecolorAttr} ${strokeweightAttr}>${dashChild}</v:shape>`;
         return `<w:r>\n  <w:pict>\n    ${fillShape}\n    ${strokeShape}\n  </w:pict>\n</w:r>`;
       }
 
-      if (dashChild || opacityChild || shadowChild || pathChild) {
+      if (dashChild || fillChild || shadowChild || pathChild) {
         return `<w:r>
   <w:pict>
     <v:shape id="${shapeId}"
@@ -861,7 +874,7 @@ export class DocxCanvasRenderer {
              ${fillcolorAttr}
              ${strokedAttr}
              ${strokecolorAttr}
-             ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}${pathChild}</v:shape>
+             ${strokeweightAttr}>${dashChild}${fillChild}${shadowChild}${pathChild}</v:shape>
   </w:pict>
 </w:r>`;
       }
@@ -1082,11 +1095,14 @@ export class DocxCanvasRenderer {
     // 3. Card or Text
     const style = elem.style || {};
     const isText = elem.type === "text" || (elem.textRuns && elem.textRuns.length > 0);
-    const hasFill = !!style.fillColor && style.fillColor !== "none";
+    const hasGradient = !isText && !!style.gradient && style.gradient.stops && style.gradient.stops.length > 0;
+    const hasFill = (!!style.fillColor && style.fillColor !== "none") || hasGradient;
     const hasStroke = !!style.strokeColor && (style.strokeWidth || 0) > 0;
 
     const filledAttr = hasFill ? 'filled="t"' : 'filled="f"';
-    const fillcolorAttr = hasFill ? `fillcolor="#${cleanHex(style.fillColor)}"` : "";
+    const fillcolorAttr = hasFill
+      ? `fillcolor="#${cleanHex(style.fillColor || (hasGradient ? style.gradient!.stops[0].color : "FFFFFF"))}"`
+      : "";
 
     const strokedAttr = hasStroke ? 'stroked="t"' : 'stroked="f"';
     const strokecolorAttr = hasStroke ? `strokecolor="#${cleanHex(style.strokeColor)}"` : "";
@@ -1318,10 +1334,20 @@ export class DocxCanvasRenderer {
     const dashChild = hasStroke && (style.strokeDashed || elemOpacity < 1)
       ? `<v:stroke${style.strokeDashed ? ' dashstyle="dash"' : ""}${strokeOpacityAttr}/>`
       : "";
-    const opacityChild =
-      hasFill && fillAlpha < 1
-        ? `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`
-        : "";
+    let fillChild = "";
+    if (hasGradient) {
+      const grad = style.gradient!;
+      const angle = typeof grad.angle === "number" ? grad.angle : 270;
+      const startColor = cleanHex(grad.stops[0].color, "000000");
+      const endColor = cleanHex(grad.stops[grad.stops.length - 1].color, "FFFFFF");
+      const colorsAttr = grad.stops
+        .map((s) => `${Math.round(s.position * 100)}% #${cleanHex(s.color)}`)
+        .join("; ");
+      const fillOpacityAttr = fillAlpha < 1 ? ` opacity="${fillAlpha.toFixed(2)}"` : "";
+      fillChild = `<v:fill type="gradient" angle="${angle}" color="#${startColor}" color2="#${endColor}" colors="${colorsAttr}"${fillOpacityAttr}/>`;
+    } else if (hasFill && fillAlpha < 1) {
+      fillChild = `<v:fill opacity="${fillAlpha.toFixed(2)}"/>`;
+    }
     const shadowChild = style.shadow
       ? `<v:shadow on="t" type="single" color="#${cleanHex(
           style.shadow.color,
@@ -1345,7 +1371,7 @@ export class DocxCanvasRenderer {
             ${fillcolorAttr}
             ${strokedAttr}
             ${strokecolorAttr}
-            ${strokeweightAttr}>${dashChild}${opacityChild}${shadowChild}${textboxContentXml}
+            ${strokeweightAttr}>${dashChild}${fillChild}${shadowChild}${textboxContentXml}
     </${tag}>
   </w:pict>
 </w:r>`;

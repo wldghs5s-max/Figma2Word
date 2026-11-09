@@ -5,6 +5,8 @@ import {
   CanvasBounds,
   CanvasTextRun,
   CanvasStyle,
+  CanvasGradient,
+  CanvasGradientStop,
   ScalePolicy,
   resolveScale,
   CanvasResource,
@@ -1894,12 +1896,51 @@ export class FigmaCanvasParser {
 
     // 1. Fills
     if (node.fills && node.fills.length > 0) {
-      const solid = node.fills.find(
-        (f) => f.type === "SOLID" && f.visible !== false,
+      const visibleFills = node.fills.filter((f) => f.visible !== false);
+      const solid = visibleFills.find((f) => f.type === "SOLID");
+      const gradient = visibleFills.find(
+        (f) =>
+          (f.type === "GRADIENT_LINEAR" || f.type === "GRADIENT_RADIAL") &&
+          Array.isArray(f.gradientStops) &&
+          f.gradientStops.length > 0,
       );
+
       if (solid && solid.color) {
         style.fillColor = this.figmaColorToHex(solid.color);
         style.fillOpacity = solid.opacity ?? solid.color.a ?? 1.0;
+      } else if (gradient && gradient.gradientStops && gradient.gradientStops.length > 0) {
+        const stops: CanvasGradientStop[] = gradient.gradientStops
+          .filter((s: any) => s.color)
+          .map((s: any) => ({
+            color: this.figmaColorToHex(s.color),
+            opacity: s.color.a ?? 1.0,
+            position: typeof s.position === "number" ? s.position : 0,
+          }));
+
+        if (stops.length > 0) {
+          let angle = 270; // default horizontal left-to-right in VML
+          const handles = (gradient as any).gradientHandlePositions;
+          if (Array.isArray(handles) && handles.length >= 2) {
+            const p0 = handles[0];
+            const p1 = handles[1];
+            const dx = (p1.x ?? 0) - (p0.x ?? 0);
+            const dy = (p1.y ?? 0) - (p0.y ?? 0);
+            const thetaScreen = (Math.atan2(dy, dx) * 180) / Math.PI;
+            // VML angle formula: 270 - thetaScreen
+            let vmlAngle = Math.round(270 - thetaScreen) % 360;
+            if (vmlAngle < 0) vmlAngle += 360;
+            angle = vmlAngle;
+          }
+
+          style.gradient = {
+            type: gradient.type === "GRADIENT_RADIAL" ? "radial" : "linear",
+            angle,
+            stops,
+          };
+          // Fallback solid color for renderers without gradient support (e.g. HWPX)
+          style.fillColor = stops[0].color;
+          style.fillOpacity = gradient.opacity ?? stops[0].opacity ?? 1.0;
+        }
       }
     }
 
@@ -2121,8 +2162,17 @@ export class FigmaCanvasParser {
       const solid = textFills.find(
         (f) => f.type === "SOLID" && f.visible !== false,
       );
+      const gradient = textFills.find(
+        (f) =>
+          (f.type === "GRADIENT_LINEAR" || f.type === "GRADIENT_RADIAL") &&
+          f.visible !== false &&
+          Array.isArray(f.gradientStops) &&
+          f.gradientStops.length > 0,
+      );
       if (solid && solid.color) {
         defaultColor = this.figmaColorToHex(solid.color);
+      } else if (gradient && gradient.gradientStops && gradient.gradientStops[0]?.color) {
+        defaultColor = this.figmaColorToHex(gradient.gradientStops[0].color);
       }
     }
 
