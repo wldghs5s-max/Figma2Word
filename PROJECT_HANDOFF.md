@@ -38,9 +38,33 @@
 
 ---
 
-## 3. 구현 현황 및 핵심 성과 (Phase 46.2 완료 및 GPT 독립 재감사 교정)
+## 3. 구현 현황 및 핵심 성과 (Phase 46.3 완료)
 
-### 3.1 Phase 46.2: Renderer-Level 클리핑 완결 및 독립 GPT 감사 정밀 조치
+### 3.1 Phase 46.3: Figma 원본 데이터 완전 복구 및 실제 5개 화면 Word 16.0 COM 실사 검증
+1. **Figma API 단 1회 호출로 원본 전체 JSON(45.7 MB) 영구 복구 및 삼중 백업 완결**:
+   - HTTP 429 쿨다운 경과 후 `GET /v1/files/dSZL6f35AcaN3qmjmII0uB`를 **정확히 단 1회** 호출하여 `HTTP 200 OK` (6.32초) 확보.
+   - **원본 무결성**: 45,704,275 bytes, SHA-256 `1241738082692e1f625c3d0b06e5d91bd354f6b4c86d1d3fc1ab800f09c49faa`.
+   - **삼중 백업 완료**:
+     1. 기본 캐시: `debug/phase45/cache/figma_full_original.json`
+     2. 로컬 압축: `debug/phase46_3/backup/figma_full_original.json.gz` (압축률 94.5%, SHA-256 100% 일치)
+     3. 외부 드라이브: `D:\Figma2Word_Backup\figma_full_original.json.gz` (SHA-256 100% 일치)
+   - 데이터 수집 완료 후 추가 외부 API 요청 **0회 (100% 오프라인 처리)**.
+2. **실제 5대 대표 화면 AST 추출 및 수치 100% 일치 입증**:
+   - `1154:2591` (고객목록): 332개 노드, 98개 가시 텍스트(734자), 11개 숨김 텍스트
+   - `1154:3082` (고객상세): 201개 노드, 55개 가시 텍스트(355자), 8개 숨김 텍스트
+   - `1154:7666` (홈): 204개 노드, 92개 가시 텍스트(617자), 0개 숨김 텍스트
+   - `1154:4490` (계약관리): 320개 노드, 147개 가시 텍스트(784자), 10개 숨김 텍스트
+   - `1154:8582` (보장분석 요약): 333개 노드, 132개 가시 텍스트(809자), 0개 숨김 텍스트
+   - **총 524개 가시 텍스트, 29개 숨김 텍스트, 3,299자 문자열**이 이전 Phase 46 보고서와 100% 오차 없이 완벽 일치.
+3. **실제 5개 화면 DOCX / HWPX 변환 및 Microsoft Word 16.0 COM 렌더링 실증**:
+   - 5개 화면 전원 `DocxCanvasRenderer` 및 `HwpxCanvasRenderer` 정상 출력.
+   - **Word COM 16.0 연동**: 5개 문서 전수 오류 없이 열기 성공, 문단 밀림 없이 **단 1페이지(`Pages: 1`)**로 정밀 렌더링.
+   - Word COM PDF 5종 (`debug/phase46_3/pdf/`) 및 WinRT 고해상도 PNG 5종 (`debug/phase46_3/rendered/`, 1400px 폭) 렌더링 산출.
+   - 계약관리 표 110개 셀 텍스트 색상 누출 0건, 보장분석 요약 팝업 카드 원자적 보존(표 평탄화 0건), 홈 화면 상단 타원 3차 베지에 클리핑 완결.
+4. **전체 테스트 768개 전수 통과**:
+   - 112개 테스트 파일, 768개 테스트 100% PASS (`tests/phase46-3-real-figma-recovery.test.ts` 8개 통합 테스트 포함), 회귀 오류 0건, TypeScript/Web 빌드 100% 성공.
+
+### 3.2 Phase 46.2: Renderer-Level 클리핑 완결 및 독립 GPT 감사 정밀 조치
 1. **Parser → Canvas IR → Renderer 간 클리핑 구조적 단절 완전 해소 및 이중 축소 버그 교정**:
    - **HWPX 벡터 이중 축소(Double-Shrink) 원천 차단 (Critical Fix)**:
      - 기존 파서(`figmaCanvasParser.ts`)가 `vectorSubpaths` 생성 시 클램핑된 가시 너비(`wPt`)로 점을 스케일링하고, HWPX 렌더러가 다시 오프셋 이동 및 클리핑을 가해 250pt 가시 영역이 200pt/150pt로 왜곡 축소되던 결함을 발견 및 완전 교정.
@@ -98,19 +122,18 @@
    - 계약관리 표 40.52% 픽셀 개선 (MAE 60.72) 등 5개 프레임 전원 시각적 결함 완전 해소.
    - TypeScript 컴파일 0 오류, 전체 테스트 741개 100% 통과.
 
-### 3.2 핵심 벤치마크 지표
+### 3.3 핵심 벤치마크 지표
 
-| 지표 항목 | Phase 46.1 | Phase 46.2 (Current) | 판정 기준 | 최종 상태 |
+| 지표 항목 | Phase 46.2 | Phase 46.3 (Current) | 판정 기준 | 최종 상태 |
 |---|:---:|:---:|:---:|:---:|
-| **Renderer 타원 클리핑 연결** | IR에만 보존 (Renderer 미반영) | **DOCX v:shape & HWPX polygon 완결** | 곡률·중심점 무왜곡 보존 | **RESOLVED (P1)** |
-| **Renderer 벡터/이미지 클리핑** | coordsize 고정 / 크롭 미반영 | **coordorigin/coordsize & 복합 크롭** | 종횡비/크롭 충돌 완전 해소 | **RESOLVED (P1)** |
-| **도형 기하 보존 클리핑 (P1)** | originalBounds & clipBounds 보존 | **Parser-IR-Renderer 전 구간 연결** | 타원/곡선 곡률 100% 무손실 | **RESOLVED (P1)** |
-| **중첩 클리핑 및 오프스크린 자식** | intersectBounds 누적 & 자식 보존 | **intersectBounds 누적 & 자식 보존** | 가시 영역 자식 100% 수집 | **RESOLVED (P1)** |
-| **표 셀 배경 텍스트 가림 및 대비 (P2)** | 출처 기반 상속 & 의도된 저대비 보존 | **출처 기반 상속 & 의도된 저대비 보존** | 텍스트 가독성 & 원본 의도 양립 | **RESOLVED (P2)** |
-| **빈 fills 배열 배경 상속** | extractEffectiveSolidFill 정상 fallback | **extractEffectiveSolidFill 정상 fallback** | 행 배경색 정상 상속 | **RESOLVED (P2)** |
-| **복합 UI 카드 평탄화 (P1-02)** | 원자적 폴백 유지 (무회귀) | **원자적 폴백 유지 (무회귀)** | 그래픽/배지 100% 보존 | **RESOLVED** |
-| **5대 Frame 시각 재현 라이브 측정** | BLOCKED_SOURCE_MISSING | **NOT_VERIFIED (Figma API 429)** | 투명한 실사 공시 & 반례검증 | **DOCUMENTED** |
-| **전체 단위/통합 테스트** | 752 passed (110개 파일) | **760 passed (111개 파일)** | 111개 파일 전원 통과 | **PASSED** |
+| **Figma 전체 원본 JSON 캐시** | 유실 (PC 포맷 후 캐시 부재) | **단 1회 200 OK 복구 및 삼중 백업** | 45.7 MB, SHA-256 일치 | **RESOLVED** |
+| **5대 실제 Frame 데이터 추출** | 부재 | **5개 화면 100% 완전 추출** | 524개 가시 텍스트(3,299자) 일치 | **RECOVERED** |
+| **Microsoft Word 16.0 COM 렌더링** | NOT_VERIFIED (Office 미설치) | **5개 화면 전원 1페이지 성공** | Word COM 오픈 & PDF/PNG 생성 | **VERIFIED** |
+| **Renderer 타원 클리핑 연결** | DOCX v:shape & HWPX polygon 완결 | **실제 홈 화면 3차 베지에 실증** | 곡률·중심점 무왜곡 보존 | **RESOLVED (P1)** |
+| **표 셀 배경 텍스트 가림 방지** | 출처 기반 상속 & 저대비 보존 | **실제 계약관리 표(110셀) 누출 0건** | 텍스트 가독성 & 원본 의도 양립 | **RESOLVED (P2)** |
+| **복합 UI 카드 평탄화 방지** | 원자적 폴백 규칙 적용 | **실제 보장분석 요약(78카드) 보존** | 복합 카드 네이티브 표 뭉개짐 0건 | **RESOLVED** |
+| **HWPX 벡터 Double-Shrink 방지** | 단일 클리핑 좌표계 통일 | **실제 5대 화면 벡터 1:1 보존** | 정점 종횡비 및 뷰포트 일치 | **RESOLVED** |
+| **전체 단위/통합 테스트** | 760 passed (111개 파일) | **768 passed (112개 파일)** | 112개 파일 전원 통과 | **PASSED** |
 | **TypeScript 컴파일** | 0 errors (noEmit pass) | **0 errors (noEmit pass)** | 컴파일/빌드 성공 | **PASSED** |
 
 ---
